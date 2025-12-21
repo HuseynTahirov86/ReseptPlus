@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'SaglikNet',
+  title: 'SaglikNet - Səhiyyəni Qüsursuz Birləşdiririk',
   description: 'Aptekləri, xəstəxanaları və xəstələri birləşdirən elektron resept sistemi.',
 };
 
@@ -20,7 +20,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased">
+      <body className="font-body antialiased bg-background">
         <FirebaseClientProvider>
           {children}
         </FirebaseClientProvider>
@@ -29,3 +29,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+    
