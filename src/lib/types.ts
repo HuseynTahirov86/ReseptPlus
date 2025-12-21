@@ -58,3 +58,10 @@ export type PricingPlan = {
   features: string[];
   isPopular: boolean;
 };
+
+export type ProductFeature = {
+  id: string;
+  title: string;
+  description: string;
+  icon: string; // lucide-react icon name
+};

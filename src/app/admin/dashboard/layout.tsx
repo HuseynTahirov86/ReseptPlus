@@ -8,7 +8,8 @@ import {
   LogOut,
   ChevronLeft,
   FileText,
-  DollarSign
+  DollarSign,
+  Package
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ const adminNavItems = [
   { href: "/admin/partners", label: "Partnyorlar", icon: Handshake },
   { href: "/admin/blog", label: "Blog", icon: FileText },
   { href: "/admin/pricing", label: "Qiymətlər", icon: DollarSign },
+  { href: "/admin/product", label: "Məhsul", icon: Package },
 ];
 
 export default function AdminDashboardLayout({

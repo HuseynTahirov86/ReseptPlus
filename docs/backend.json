@@ -444,6 +444,31 @@
         }
       },
       "required": ["id", "title", "description", "price", "features", "isPopular"]
+    },
+    "ProductFeature": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ProductFeature",
+      "type": "object",
+      "description": "Represents a feature of the product, displayed on the marketing site.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Product Feature entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the feature."
+        },
+        "description": {
+          "type": "string",
+          "description": "A short description of the feature."
+        },
+        "icon": {
+          "type": "string",
+          "description": "The name of the lucide-react icon to display for the feature."
+        }
+      },
+      "required": ["id", "title", "description", "icon"]
     }
   },
   "auth": {
@@ -630,6 +655,22 @@
             {
               "name": "planId",
               "description": "The unique identifier for the pricing plan."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/productFeatures/{featureId}",
+        "definition": {
+          "entityName": "ProductFeature",
+          "schema": {
+            "$ref": "#/backend/entities/ProductFeature"
+          },
+          "description": "Stores the product features for the marketing site. Publicly readable, admin writable.",
+          "params": [
+            {
+              "name": "featureId",
+              "description": "The unique identifier for the product feature."
             }
           ]
         }
