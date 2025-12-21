@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -51,7 +52,7 @@ export function TeamMemberForm({ initialData, onFormSubmit }: TeamMemberFormProp
   
   const action = isEditing ? updateTeamMember : addTeamMember;
 
-  const [state, formAction] = useFormState(action, { message: '', type: 'error' });
+  const [state, formAction] = useActionState(action, { message: '', type: 'error' });
 
   const form = useForm<TeamMemberFormValues>({
     resolver: zodResolver(TeamMemberSchema),

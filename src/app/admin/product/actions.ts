@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
-import { getSdks } from '@/firebase/index';
+import { initializeFirebase } from '@/firebase/index';
 
 const FeatureSchema = z.object({
   id: z.string().optional(),
@@ -20,7 +20,7 @@ export type FormState = {
 };
 
 async function getDb() {
-    const { firestore } = getSdks(undefined as any);
+    const { firestore } = initializeFirebase();
     return firestore;
 }
 

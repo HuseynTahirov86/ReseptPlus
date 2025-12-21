@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -40,7 +41,7 @@ function SubmitButton() {
 
 export function SuggestionForm() {
   const initialState: FormState = { message: '' };
-  const [state, formAction] = useFormState(getSuggestions, initialState);
+  const [state, formAction] = useActionState(getSuggestions, initialState);
 
   const form = useForm<z.infer<typeof SmartMedicationSuggestionsInputSchema>>({
     resolver: zodResolver(SmartMedicationSuggestionsInputSchema),

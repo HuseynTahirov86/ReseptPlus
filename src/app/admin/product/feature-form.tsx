@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -50,7 +51,7 @@ export function FeatureForm({ initialData, onFormSubmit }: FeatureFormProps) {
   
   const action = isEditing ? updateFeature : addFeature;
 
-  const [state, formAction] = useFormState(action, { message: '', type: 'error' });
+  const [state, formAction] = useActionState(action, { message: '', type: 'error' });
 
   const form = useForm<FeatureFormValues>({
     resolver: zodResolver(FeatureSchema),

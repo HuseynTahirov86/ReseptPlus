@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -55,7 +56,7 @@ export function PlanForm({ initialData, onFormSubmit }: PlanFormProps) {
   
   const action = isEditing ? updatePlan : addPlan;
 
-  const [state, formAction] = useFormState(action, { message: '', type: 'error', fields: {} });
+  const [state, formAction] = useActionState(action, { message: '', type: 'error', fields: {} });
 
   const form = useForm<PlanFormValues>({
     resolver: zodResolver(PlanSchema),
