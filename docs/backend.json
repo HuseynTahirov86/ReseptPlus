@@ -362,6 +362,48 @@
         }
       },
       "required": ["id", "name", "description", "logoUrl"]
+    },
+    "BlogPost": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BlogPost",
+      "type": "object",
+      "description": "Represents a blog post on the marketing site.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Blog Post entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the blog post."
+        },
+        "description": {
+          "type": "string",
+          "description": "A short summary or description of the blog post."
+        },
+        "content": {
+          "type": "string",
+          "description": "The full content of the blog post, likely in Markdown format."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL for the main image of the blog post."
+        },
+        "imageHint": {
+          "type": "string",
+          "description": "A hint for AI to find a relevant image."
+        },
+        "author": {
+          "type": "string",
+          "description": "The name of the post's author."
+        },
+        "datePublished": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date the blog post was published."
+        }
+      },
+      "required": ["id", "title", "description", "content", "author", "datePublished", "imageUrl"]
     }
   },
   "auth": {
@@ -519,9 +561,26 @@
             }
           ]
         }
+      },
+      {
+        "path": "/blogPosts/{postId}",
+        "definition": {
+          "entityName": "BlogPost",
+          "schema": {
+            "$ref": "#/backend/entities/BlogPost"
+          },
+          "description": "Stores blog posts for the marketing website. Publicly readable, admin writable.",
+          "params": [
+            {
+              "name": "postId",
+              "description": "The unique identifier for the blog post."
+            }
+          ]
+        }
       }
     ],
     "reasoning": "The Firestore structure is designed to support a secure and scalable e-prescription system (SaglikNet) connecting patients, doctors, hospitals, and pharmacies. Key considerations include authorization independence, data segregation, and clear access control.\n\n1.  **Authorization Independence:** The design avoids hierarchical `get()` calls in security rules by denormalizing relevant authorization data directly into documents. For example, prescriptions store `patientId`, `doctorId`, and `pharmacyId` to facilitate independent authorization checks without needing to retrieve parent documents.\n\n2.  **Data Segregation:** Different data types with distinct access requirements are stored in separate collections. This simplifies security rules. For instance, patient profiles reside in `/patients/{patientId}`, while prescriptions are in `/prescriptions/{prescriptionId}`. This segregation allows for granular control over who can access each type of data.\n\n3.  **Access Control:** Path-based ownership is used for patient data (`/patients/{patientId}`). Prescriptions, while not directly owned by users, incorporate relevant IDs for secure access control.\n\n4.  **QAPs Support:**\n    *   `list` operations are secured by ensuring each collection has a homogeneous security posture (all documents in the same collection share the same access rules).\n\n5. **Invariants:**\n* The structure supports the integrity of ownership, timestamps, and denormalized data by making it straightforward to write rules that enforce restrictions.\n\nThis structure prioritizes simplicity and security, resulting in more robust and maintainable security rules."
   }
 }
+
     

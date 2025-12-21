@@ -1,41 +1,39 @@
-
+'use client';
 import MarketingHeader from "@/components/marketing-header";
 import MarketingFooter from "@/components/marketing-footer";
-import { Newspaper } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
+import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
+import { collection } from "firebase/firestore";
+import type { BlogPost } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
+
+function PostSkeleton() {
+    return (
+        <Card className="overflow-hidden h-full flex flex-col">
+            <Skeleton className="h-48 w-full" />
+            <CardHeader>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2 mt-2" />
+            </CardHeader>
+            <CardContent>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full mt-2" />
+                <Skeleton className="h-4 w-2/3 mt-2" />
+            </CardContent>
+            <CardFooter>
+                <Skeleton className="h-5 w-24" />
+            </CardFooter>
+        </Card>
+    );
+}
+
 
 export default function BlogPage() {
-    const blogPosts = [
-    {
-      id: 1,
-      title: "Səhiyyədə Rəqəmsal Transformasiya: E-reseptlərin Rolu",
-      description: "E-resept sistemlərinin səhiyyə sənayesində necə inqilab yaratdığını və həm həkimlər, həm də xəstələr üçün hansı faydaları təqdim etdiyini araşdırın.",
-      imageUrl: "https://picsum.photos/seed/blog1/600/400",
-      imageHint: "digital health",
-      date: "15 Oktyabr 2024",
-      author: "Dr. Aysel Məmmədova"
-    },
-    {
-      id: 2,
-      title: "Dərman Təhlükəsizliyi: AI Qarşılıqlı Təsirləri Necə Aşkarlayır?",
-      description: "Süni intellektin potensial təhlükəli dərman qarşılıqlı təsirlərini proqnozlaşdırmaq və həkimlərə daha təhlükəsiz müalicə planları tərtib etməkdə necə kömək etdiyini öyrənin.",
-      imageUrl: "https://picsum.photos/seed/blog2/600/400",
-      imageHint: "artificial intelligence",
-      date: "10 Oktyabr 2024",
-      author: "Əli Vəliyev, Əczaçı"
-    },
-     {
-      id: 3,
-      title: "Xəstə Məlumatlarının Məxfiliyi: Bulud Əsaslı Sistemlərdə Təhlükəsizlik",
-      description: "SaglikNet kimi platformalarda xəstə məlumatlarının məxfiliyini və təhlükəsizliyini təmin etmək üçün istifadə olunan ən son texnologiyalar haqqında məlumat əldə edin.",
-      imageUrl: "https://picsum.photos/seed/blog3/600/400",
-      imageHint: "data security",
-      date: "5 Oktyabr 2024",
-      author: "Leyla Həsənova, Kibertəhlükəsizlik Mütəxəssisi"
-    }
-  ];
+    const { firestore } = useFirebase();
+    const blogPostsQuery = useMemoFirebase(() => firestore && collection(firestore, 'blogPosts'), [firestore]);
+    const { data: blogPosts, isLoading } = useCollection<BlogPost>(blogPostsQuery);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -52,7 +50,8 @@ export default function BlogPage() {
         <section className="py-16 md:py-24">
           <div className="container">
              <div className="grid gap-8 lg:grid-cols-3">
-              {blogPosts.map((post) => (
+              {isLoading && Array.from({length: 3}).map((_, i) => <PostSkeleton key={i} />)}
+              {!isLoading && blogPosts?.map((post) => (
                 <Link key={post.id} href={`/blog/${post.id}`} className="group block">
                   <Card className="overflow-hidden h-full flex flex-col">
                     <div className="relative h-48 w-full">
@@ -60,7 +59,7 @@ export default function BlogPage() {
                     </div>
                     <CardHeader>
                       <CardTitle className="group-hover:text-primary transition-colors">{post.title}</CardTitle>
-                      <CardDescription>{post.date} • {post.author}</CardDescription>
+                      <CardDescription>{new Date(post.datePublished).toLocaleDateString('az-AZ', { year: 'numeric', month: 'long', day: 'numeric' })} • {post.author}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <p className="text-muted-foreground">{post.description}</p>
@@ -71,6 +70,9 @@ export default function BlogPage() {
                   </Card>
                 </Link>
               ))}
+               {!isLoading && blogPosts?.length === 0 && (
+                <p className="col-span-full text-center text-muted-foreground">Heç bir blog yazısı tapılmadı.</p>
+               )}
             </div>
           </div>
         </section>

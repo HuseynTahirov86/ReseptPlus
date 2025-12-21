@@ -6,7 +6,8 @@ import {
   Home,
   Handshake,
   LogOut,
-  ChevronLeft
+  ChevronLeft,
+  FileText
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/button";
 const adminNavItems = [
   { href: "/admin/dashboard", label: "İdarə Paneli", icon: Home },
   { href: "/admin/partners", label: "Partnyorlar", icon: Handshake },
+  { href: "/admin/blog", label: "Blog", icon: FileText },
 ];
 
 export default function AdminDashboardLayout({
@@ -34,7 +36,7 @@ export default function AdminDashboardLayout({
             <Button
               key={item.href}
               asChild
-              variant={pathname === item.href ? "secondary" : "ghost"}
+              variant={pathname.startsWith(item.href) ? "secondary" : "ghost"}
               className="w-full justify-start"
             >
               <Link href={item.href}>

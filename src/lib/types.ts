@@ -37,4 +37,16 @@ export type ClientCompany = {
     description: string;
     logoUrl: string;
 };
+
+export type BlogPost = {
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+  imageUrl: string;
+  imageHint: string;
+  author: string;
+  datePublished: string; // ISO String
+};
+
     
