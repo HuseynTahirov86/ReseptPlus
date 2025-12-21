@@ -9,7 +9,8 @@ import {
   ChevronLeft,
   FileText,
   DollarSign,
-  Package
+  Package,
+  Upload,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ const adminNavItems = [
   { href: "/admin/blog", label: "Blog", icon: FileText },
   { href: "/admin/pricing", label: "Qiymətlər", icon: DollarSign },
   { href: "/admin/product", label: "Məhsul", icon: Package },
+  { href: "/admin/upload", label: "Upload", icon: Upload },
 ];
 
 export default function AdminDashboardLayout({
