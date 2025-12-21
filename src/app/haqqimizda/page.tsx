@@ -2,8 +2,31 @@
 import MarketingHeader from "@/components/marketing-header";
 import MarketingFooter from "@/components/marketing-footer";
 import { Building, Target, Users } from "lucide-react";
+import Image from "next/image";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function AboutUsPage() {
+
+    const teamMembers = [
+        {
+            name: "Dr. Leyla Əliyeva",
+            role: "CEO & Qurucu",
+            image: PlaceHolderImages.find(p => p.id === "team-member-1")
+        },
+        {
+            name: "Orxan Məmmədov",
+            role: "Texniki Direktor (CTO)",
+            image: PlaceHolderImages.find(p => p.id === "team-member-2")
+        },
+        {
+            name: "Aysel Quliyeva",
+            role: "Məhsul Meneceri",
+            image: PlaceHolderImages.find(p => p.id === "team-member-3")
+        },
+    ];
+
   return (
     <div className="flex min-h-screen flex-col">
       <MarketingHeader />
@@ -51,10 +74,37 @@ export default function AboutUsPage() {
             </div>
           </div>
         </section>
+
+        <section id="team" className="py-16 md:py-24">
+            <div className="container">
+                <div className="mx-auto mb-12 max-w-3xl text-center">
+                <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
+                    Komandamızla Tanış Olun
+                </h2>
+                <p className="mt-4 text-lg text-muted-foreground">
+                    SaglikNet-in arxasında dayanan istedadlı və fədakar insanlar.
+                </p>
+                </div>
+                <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                {teamMembers.map((member, i) => (
+                    <Card key={i} className="text-center p-6 bg-background rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20">
+                        {member.image && (
+                            <Avatar className="h-28 w-28 mx-auto mb-4 border-4 border-primary/20">
+                                <AvatarImage src={member.image.imageUrl} alt={member.name} data-ai-hint={member.image.imageHint} />
+                                <AvatarFallback>{member.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
+                            </Avatar>
+                        )}
+                        <CardContent className="p-0">
+                            <h3 className="text-xl font-bold">{member.name}</h3>
+                            <p className="text-primary font-medium">{member.role}</p>
+                        </CardContent>
+                    </Card>
+                ))}
+                </div>
+            </div>
+        </section>
       </main>
       <MarketingFooter />
     </div>
   );
 }
-
-    

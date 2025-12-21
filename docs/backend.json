@@ -469,6 +469,35 @@
         }
       },
       "required": ["id", "title", "description", "icon"]
+    },
+    "TeamMember": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TeamMember",
+      "type": "object",
+      "description": "Represents a team member of the SaglikNet project.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Team Member entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the team member."
+        },
+        "role": {
+          "type": "string",
+          "description": "The role or title of the team member."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the team member's avatar/photo."
+        },
+        "imageHint": {
+          "type": "string",
+          "description": "A hint for AI to find a relevant image for the team member."
+        }
+      },
+      "required": ["id", "name", "role", "imageUrl"]
     }
   },
   "auth": {
@@ -671,6 +700,22 @@
             {
               "name": "featureId",
               "description": "The unique identifier for the product feature."
+            }
+          ]
+        }
+      },
+       {
+        "path": "/teamMembers/{memberId}",
+        "definition": {
+          "entityName": "TeamMember",
+          "schema": {
+            "$ref": "#/backend/entities/TeamMember"
+          },
+          "description": "Stores information about team members. Publicly readable, admin writable.",
+          "params": [
+            {
+              "name": "memberId",
+              "description": "The unique identifier for the team member."
             }
           ]
         }
