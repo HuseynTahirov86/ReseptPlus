@@ -38,7 +38,8 @@ export async function addFeature(
   
   try {
     const collectionRef = collection(db, 'productFeatures');
-    await addDoc(collectionRef, validatedFields.data);
+    const docRef = await addDoc(collectionRef, validatedFields.data);
+    await setDoc(docRef, { id: docRef.id }, { merge: true });
     return { type: 'success', message: 'Xüsusiyyət uğurla əlavə edildi.' };
   } catch (error) {
     return {

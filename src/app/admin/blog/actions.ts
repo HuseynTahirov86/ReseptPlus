@@ -44,7 +44,10 @@ export async function addPost(
         ...validatedFields.data,
         datePublished: new Date().toISOString()
     };
-    await addDoc(collectionRef, dataToAdd);
+    const docRef = await addDoc(collectionRef, dataToAdd);
+    // Add the auto-generated ID to the data before returning, if needed elsewhere
+    await setDoc(docRef, { id: docRef.id }, { merge: true });
+    
     return { type: 'success', message: 'Yazı uğurla əlavə edildi.' };
   } catch (error) {
     return {

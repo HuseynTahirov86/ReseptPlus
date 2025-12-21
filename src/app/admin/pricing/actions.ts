@@ -43,7 +43,8 @@ export async function addPlan(
   
   try {
     const collectionRef = collection(db, 'pricingPlans');
-    await addDoc(collectionRef, validatedFields.data);
+    const docRef = await addDoc(collectionRef, validatedFields.data);
+    await setDoc(docRef, { id: docRef.id }, { merge: true });
     return { type: 'success', message: 'Plan uğurla əlavə edildi.' };
   } catch (error) {
     return {
