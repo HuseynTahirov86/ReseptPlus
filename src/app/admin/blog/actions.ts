@@ -1,9 +1,8 @@
 'use server';
 
 import { z } from 'zod';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase/index';
+import { db } from '@/firebase/server-init';
+import { collection, doc, addDoc, setDoc, deleteDoc } from 'firebase/firestore';
 
 const PostSchema = z.object({
   id: z.string().optional(),
@@ -22,11 +21,6 @@ export type FormState = {
   type: 'success' | 'error';
 };
 
-async function getDb() {
-    const { firestore } = initializeFirebase();
-    return firestore;
-}
-
 export async function addPost(
   prevState: FormState,
   formData: FormData
@@ -44,15 +38,13 @@ export async function addPost(
     };
   }
   
-  const firestore = await getDb();
-  
   try {
-    const collectionRef = collection(firestore, 'blogPosts');
+    const collectionRef = collection(db, 'blogPosts');
     const dataToAdd = {
         ...validatedFields.data,
         datePublished: new Date().toISOString()
     };
-    addDocumentNonBlocking(collectionRef, dataToAdd);
+    await addDoc(collectionRef, dataToAdd);
     return { type: 'success', message: 'Yazı uğurla əlavə edildi.' };
   } catch (error) {
     return {
@@ -81,12 +73,11 @@ export async function updatePost(
     }
 
     const { id, ...dataToUpdate } = validatedFields.data;
-    const firestore = await getDb();
 
     try {
-        const docRef = doc(firestore, 'blogPosts', id);
+        const docRef = doc(db, 'blogPosts', id);
         // We keep the original published date, only content is updated
-        setDocumentNonBlocking(docRef, dataToUpdate, { merge: true });
+        await setDoc(docRef, dataToUpdate, { merge: true });
         return { type: 'success', message: 'Yazı uğurla yeniləndi.' };
     } catch (error) {
         return {
@@ -103,15 +94,11 @@ export async function deletePost(id: string): Promise<FormState> {
     return { type: 'error', message: 'ID təyin edilməyib.' };
   }
   
-  const firestore = await getDb();
-
   try {
-    const docRef = doc(firestore, 'blogPosts', id);
-    deleteDocumentNonBlocking(docRef);
+    const docRef = doc(db, 'blogPosts', id);
+    await deleteDoc(docRef);
     return { type: 'success', message: 'Yazı uğurla silindi.' };
   } catch (error) {
     return { type: 'error', message: 'Yazını silmək mümkün olmadı.' };
   }
 }
-
-    

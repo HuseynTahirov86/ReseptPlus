@@ -1,9 +1,8 @@
 'use server';
 
 import { z } from 'zod';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase/index';
+import { db } from '@/firebase/server-init';
+import { collection, doc, addDoc, setDoc, deleteDoc } from 'firebase/firestore';
 
 const TeamMemberSchema = z.object({
   id: z.string().optional(),
@@ -19,11 +18,6 @@ export type FormState = {
   issues?: string[];
   type: 'success' | 'error';
 };
-
-async function getDb() {
-    const { firestore } = initializeFirebase();
-    return firestore;
-}
 
 export async function addTeamMember(
   prevState: FormState,
@@ -42,11 +36,9 @@ export async function addTeamMember(
     };
   }
   
-  const firestore = await getDb();
-  
   try {
-    const collectionRef = collection(firestore, 'teamMembers');
-    addDocumentNonBlocking(collectionRef, validatedFields.data);
+    const collectionRef = collection(db, 'teamMembers');
+    await addDoc(collectionRef, validatedFields.data);
     return { type: 'success', message: 'Komanda üzvü uğurla əlavə edildi.' };
   } catch (error) {
     return {
@@ -75,11 +67,10 @@ export async function updateTeamMember(
     }
 
     const { id, ...dataToUpdate } = validatedFields.data;
-    const firestore = await getDb();
 
     try {
-        const docRef = doc(firestore, 'teamMembers', id);
-        setDocumentNonBlocking(docRef, dataToUpdate, { merge: true });
+        const docRef = doc(db, 'teamMembers', id);
+        await setDoc(docRef, dataToUpdate, { merge: true });
         return { type: 'success', message: 'Komanda üzvü uğurla yeniləndi.' };
     } catch (error) {
         return {
@@ -96,11 +87,9 @@ export async function deleteTeamMember(id: string): Promise<FormState> {
     return { type: 'error', message: 'ID təyin edilməyib.' };
   }
   
-  const firestore = await getDb();
-
   try {
-    const docRef = doc(firestore, 'teamMembers', id);
-    deleteDocumentNonBlocking(docRef);
+    const docRef = doc(db, 'teamMembers', id);
+    await deleteDoc(docRef);
     return { type: 'success', message: 'Komanda üzvü uğurla silindi.' };
   } catch (error) {
     return { type: 'error', message: 'Üzvü silmək mümkün olmadı.' };

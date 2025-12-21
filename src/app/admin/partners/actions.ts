@@ -1,9 +1,8 @@
 'use server';
 
 import { z } from 'zod';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase/index';
+import { db } from '@/firebase/server-init';
+import { collection, doc, addDoc, setDoc, deleteDoc } from 'firebase/firestore';
 
 const PartnerSchema = z.object({
   id: z.string().optional(),
@@ -18,11 +17,6 @@ export type FormState = {
   issues?: string[];
   type: 'success' | 'error';
 };
-
-async function getDb() {
-    const { firestore } = initializeFirebase();
-    return firestore;
-}
 
 export async function addPartner(
   partnerType: 'supportingOrganizations' | 'clientCompanies',
@@ -42,11 +36,9 @@ export async function addPartner(
     };
   }
   
-  const firestore = await getDb();
-  
   try {
-    const collectionRef = collection(firestore, partnerType);
-    addDocumentNonBlocking(collectionRef, validatedFields.data);
+    const collectionRef = collection(db, partnerType);
+    await addDoc(collectionRef, validatedFields.data);
     return { type: 'success', message: 'Partnyor uğurla əlavə edildi.' };
   } catch (error) {
     return {
@@ -76,11 +68,10 @@ export async function updatePartner(
     }
 
     const { id, ...dataToUpdate } = validatedFields.data;
-    const firestore = await getDb();
 
     try {
-        const docRef = doc(firestore, partnerType, id);
-        setDocumentNonBlocking(docRef, dataToUpdate, { merge: true });
+        const docRef = doc(db, partnerType, id);
+        await setDoc(docRef, dataToUpdate, { merge: true });
         return { type: 'success', message: 'Partnyor uğurla yeniləndi.' };
     } catch (error) {
         return {
@@ -100,15 +91,11 @@ export async function deletePartner(
     return { type: 'error', message: 'ID təyin edilməyib.' };
   }
   
-  const firestore = await getDb();
-
   try {
-    const docRef = doc(firestore, partnerType, id);
-    deleteDocumentNonBlocking(docRef);
+    const docRef = doc(db, partnerType, id);
+    await deleteDoc(docRef);
     return { type: 'success', message: 'Partnyor uğurla silindi.' };
   } catch (error) {
     return { type: 'error', message: 'Partnyoru silmək mümkün olmadı.' };
   }
 }
-
-    
