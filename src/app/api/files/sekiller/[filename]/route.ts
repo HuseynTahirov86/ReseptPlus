@@ -5,16 +5,23 @@ import mime from 'mime';
 
 const STORAGE_DIR = path.join(process.cwd(), './storage/sekiller');
 
+// Sanitize filename to prevent path traversal
+function sanitizeFilename(filename: string): string | null {
+  if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+    return null;
+  }
+  return filename;
+}
+
+
+// GET /api/files/sekiller/[filename] - Serves a single file
 export async function GET(
   req: NextRequest,
   { params }: { params: { filename: string } }
 ) {
-  const { filename } = params;
-
-  // --- Təhlükəsizlik Yoxlamaları ---
-  // Path traversal cəhdlərinin qarşısını alır
-  if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
-    return new NextResponse(JSON.stringify({ error: 'Keçərsiz fayl adı' }), { status: 400 });
+  const filename = sanitizeFilename(params.filename);
+  if (!filename) {
+      return NextResponse.json({ error: 'Keçərsiz fayl adı' }, { status: 400 });
   }
 
   try {
@@ -40,10 +47,43 @@ export async function GET(
   } catch (error: any) {
     // Fayl tapılmadıqda 404 xətası qaytarır
     if (error.code === 'ENOENT') {
-      return new NextResponse(JSON.stringify({ error: 'Şəkil tapılmadı' }), { status: 404 });
+      return NextResponse.json({ error: 'Şəkil tapılmadı' }, { status: 404 });
     }
     
     console.error('Fayl servis xətası:', error);
-    return new NextResponse(JSON.stringify({ error: 'Daxili server xətası' }), { status: 500 });
+    return NextResponse.json({ error: 'Daxili server xətası' }, { status: 500 });
   }
+}
+
+// DELETE /api/files/sekiller/[filename] - Deletes a single file
+export async function DELETE(
+    req: NextRequest,
+    { params }: { params: { filename: string } }
+) {
+    const filename = sanitizeFilename(params.filename);
+    if (!filename) {
+        return NextResponse.json({ error: 'Keçərsiz fayl adı' }, { status: 400 });
+    }
+
+    try {
+        const filePath = path.join(STORAGE_DIR, filename);
+
+        // Faylın mövcudluğunu yoxlayır
+        await fs.access(filePath);
+
+        // Faylı silir
+        await fs.unlink(filePath);
+        
+        console.log(`Fayl silindi: ${filePath}`);
+
+        return NextResponse.json({ message: 'Fayl uğurla silindi' }, { status: 200 });
+
+    } catch (error: any) {
+         if (error.code === 'ENOENT') {
+            return NextResponse.json({ error: 'Silinəcək şəkil tapılmadı' }, { status: 404 });
+        }
+        
+        console.error('Fayl silmə xətası:', error);
+        return NextResponse.json({ error: 'Daxili server xətası' }, { status: 500 });
+    }
 }

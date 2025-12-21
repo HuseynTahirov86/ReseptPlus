@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, UploadCloud, AlertCircle } from 'lucide-react';
+import Link from 'next/link';
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -65,7 +66,7 @@ export default function UploadPage() {
         <CardHeader>
           <CardTitle>Şəkil Yükləmə Sistemi</CardTitle>
           <CardDescription>
-            Serverə şəkil yükləyin və API vasitəsilə servis edilən URL-i əldə edin.
+            Serverə şəkil yükləyin və API vasitəsilə servis edilən URL-i əldə edin. Yüklədikdən sonra <Link href="/admin/media" className="text-primary underline">Media Kitabxanasında</Link> şəkilləri idarə edə bilərsiniz.
           </CardDescription>
         </CardHeader>
         <CardContent>
