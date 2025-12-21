@@ -86,6 +86,11 @@
         "hospitalId": {
           "type": "string",
           "description": "Reference to Hospital. (Relationship: Hospital 1:N Doctor)"
+        },
+        "role": {
+            "type": "string",
+            "description": "The role of the doctor within the hospital.",
+            "enum": ["doctor", "head_doctor"]
         }
       },
       "required": [
@@ -95,7 +100,8 @@
         "specialization",
         "contactNumber",
         "email",
-        "hospitalId"
+        "hospitalId",
+        "role"
       ]
     },
     "Hospital": {

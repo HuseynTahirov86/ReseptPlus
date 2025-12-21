@@ -11,6 +11,7 @@ import {
   User,
   Users,
   ChevronDown,
+  Hospital,
 } from "lucide-react";
 
 import {
@@ -38,6 +39,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth, useUser } from "@/firebase";
 import { signOut } from "firebase/auth";
+import { Badge } from "@/components/ui/badge";
 
 const menuItems = [
   {
@@ -55,6 +57,12 @@ const menuItems = [
     label: "Reseptlər",
     icon: ClipboardList,
   },
+   {
+    href: "/dashboard/hospital",
+    label: "Xəstəxana İdarəçiliyi",
+    icon: Hospital,
+    role: "head_doctor",
+  },
   {
     href: "/dashboard/suggestions",
     label: "AI Təklifləri",
@@ -70,12 +78,17 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
-
+  
   const handleSignOut = () => {
     signOut(auth);
   };
   
   const userInitials = user?.email?.charAt(0).toUpperCase() || 'S';
+  const userRole = user?.profile?.role;
+  const roleDisplay = userRole === 'head_doctor' ? 'Baş Həkim' : 'Həkim';
+
+
+  const filteredMenuItems = menuItems.filter(item => !item.role || item.role === userRole);
 
   return (
     <SidebarProvider>
@@ -85,7 +98,7 @@ export default function DashboardLayout({
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            {menuItems.map((item) => (
+            {filteredMenuItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
@@ -145,7 +158,7 @@ export default function DashboardLayout({
                     </Avatar>
                     <div className="text-left hidden sm:block">
                       <div className="font-medium text-sm">{user.displayName || user.email}</div>
-                      {/* Role can be added later from custom claims or Firestore */}
+                      {userRole && <Badge variant="secondary">{roleDisplay}</Badge>}
                     </div>
                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   </Button>

@@ -14,3 +14,12 @@ export type Prescription = {
   verificationCode: string;
   status: 'Təhvil verildi' | 'Gözləmədə' | 'Ləğv edildi';
 };
+
+export type Doctor = {
+    id: string;
+    firstName: string;
+    lastName: string;
+    specialization: string;
+    hospitalId: string;
+    role: 'doctor' | 'head_doctor';
+};
