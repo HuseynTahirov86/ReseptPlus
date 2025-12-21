@@ -17,7 +17,7 @@ export default function AdminLayout({
   useEffect(() => {
     // If user loading is finished and there's no user or the user is not an admin, redirect.
     if (!isUserLoading && (!user || user.profile?.role !== 'admin')) {
-      router.push('/dashboard'); // Redirect to the main dashboard or a login page
+      router.push('/login'); // Redirect to the main login page
     }
   }, [user, isUserLoading, router]);
 

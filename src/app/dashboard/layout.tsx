@@ -12,8 +12,6 @@ import {
   Users,
   ChevronDown,
   Hospital,
-  Shield,
-  Handshake,
 } from "lucide-react";
 
 import {
@@ -70,12 +68,6 @@ const menuItems = [
     label: "AI Təklifləri",
     icon: BrainCircuit,
   },
-  {
-    href: "/admin/dashboard",
-    label: "Admin Paneli",
-    icon: Shield,
-    role: "admin",
-  },
 ];
 
 export default function DashboardLayout({
@@ -98,9 +90,7 @@ export default function DashboardLayout({
   
   let roleDisplay = "Həkim";
   if (userRole === 'head_doctor') roleDisplay = 'Baş Həkim';
-  if (userRole === 'admin') roleDisplay = 'Admin';
-
-
+  
   const filteredMenuItems = menuItems.filter(item => {
     if (item.role) {
         return item.role === userRole;
@@ -121,7 +111,7 @@ export default function DashboardLayout({
                 <SidebarMenuButton
                   asChild
                   isActive={
-                    pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard' && !pathname.startsWith('/admin'))
+                    pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard')
                   }
                   tooltip={{
                     children: item.label,

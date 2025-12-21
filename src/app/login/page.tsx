@@ -39,10 +39,10 @@ function AuthForm() {
       if (action === 'login') {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
-        // In a real app, you'd collect more info for signup
         await createUserWithEmailAndPassword(auth, email, password);
       }
-      router.push('/dashboard');
+      // The redirection is now handled by the FirebaseProvider
+      // so we don't need to push the router here anymore.
     } catch (e: any) {
       switch (e.code) {
         case 'auth/user-not-found':
@@ -147,14 +147,9 @@ function AuthForm() {
 
 export default function LoginPage() {
     const { user, isUserLoading } = useUser();
-    const router = useRouter();
-
-    useEffect(() => {
-        if (user) {
-            router.push('/dashboard');
-        }
-    }, [user, router]);
-
+    
+    // The redirection logic is now in FirebaseProvider, 
+    // so we just show a loader here while the user state is being determined.
     if (isUserLoading || user) {
         return (
             <div className="flex h-screen w-full items-center justify-center">
@@ -174,5 +169,3 @@ export default function LoginPage() {
         </div>
     )
 }
-
-    

@@ -6,6 +6,7 @@ import { Firestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import type { Doctor, Admin, UserProfile } from '@/lib/types';
+import { usePathname, useRouter } from 'next/navigation';
 
 
 interface FirebaseProviderProps {
@@ -62,6 +63,45 @@ export const FirebaseContext = createContext<FirebaseContextState | undefined>(u
 
 // Special email for the first admin
 const SUPER_ADMIN_EMAIL = 'admin@sagliknet.az';
+
+const RedirectHandler = () => {
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // Don't redirect until auth state is determined
+    if (isUserLoading) {
+      return;
+    }
+
+    const isAdminPage = pathname.startsWith('/admin');
+    const isDashboardPage = pathname.startsWith('/dashboard');
+
+    if (user) {
+      if (user.profile?.role === 'admin') {
+        // If user is admin and not already in admin section, redirect to admin dashboard
+        if (!isAdminPage) {
+          router.push('/admin/dashboard');
+        }
+      } else {
+        // If user is a doctor/head_doctor and not already in doctor dashboard, redirect there
+        if (!isDashboardPage) {
+          router.push('/dashboard');
+        }
+      }
+    } else {
+      // If no user is logged in, and they are trying to access a protected route, redirect to login
+      if (isAdminPage || isDashboardPage) {
+        router.push('/login');
+      }
+    }
+
+  }, [user, isUserLoading, pathname, router]);
+
+  return null; // This component does not render anything
+};
+
 
 /**
  * FirebaseProvider manages and provides Firebase services and user authentication state.
@@ -122,6 +162,21 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                     const userDoc = await getDoc(userDocRef);
                     if (userDoc.exists()) {
                         userProfile = userDoc.data() as Doctor;
+                    } else {
+                         if (firebaseUser.email !== SUPER_ADMIN_EMAIL) {
+                            // Automatically create a doctor profile for new signups
+                            const newDoctorProfile: Omit<Doctor, 'id'> = {
+                                firstName: firebaseUser.email?.split('@')[0] || 'Yeni',
+                                lastName: 'Həkim',
+                                specialization: 'Ümumi',
+                                hospitalId: 'default', // Assign a default hospital or handle this differently
+                                role: 'doctor',
+                            };
+                            const newUserDocRef = doc(firestore, 'doctors', firebaseUser.uid);
+                            await setDoc(newUserDocRef, newDoctorProfile);
+                            userProfile = { id: firebaseUser.uid, ...newDoctorProfile };
+                            console.log('New doctor document created for:', firebaseUser.email);
+                         }
                     }
                 }
 
@@ -162,6 +217,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   return (
     <FirebaseContext.Provider value={contextValue}>
       <FirebaseErrorListener />
+      <RedirectHandler />
       {children}
     </FirebaseContext.Provider>
   );
