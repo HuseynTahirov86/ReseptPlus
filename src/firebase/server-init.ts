@@ -1,14 +1,15 @@
+'use server';
+
 import { initializeApp, getApps, getApp, App } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { firebaseConfig } from './config';
 
 let app: App;
 
+// In a server environment (like Firebase App Hosting), initializeApp() with no arguments
+// will automatically use the available service account and project configuration
+// from the environment variables.
 if (!getApps().length) {
-    app = initializeApp({
-        credential: undefined, // Let the environment variables be used
-        projectId: firebaseConfig.projectId
-    });
+    app = initializeApp();
 } else {
     app = getApp();
 }
