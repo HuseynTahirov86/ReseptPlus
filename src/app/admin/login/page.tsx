@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -152,7 +151,7 @@ export default function LoginPage() {
     useEffect(() => {
         if (!isUserLoading && user) {
             if (user.profile?.role === 'admin') {
-                router.push('/admin/dashboard');
+                router.push('/admin');
             } else {
                 router.push('/dashboard');
             }

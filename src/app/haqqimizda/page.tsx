@@ -35,7 +35,7 @@ export default function AboutUsPage() {
           <div className="container text-center">
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Haqqımızda</h1>
             <p className="mt-4 text-lg text-muted-foreground md:text-xl">
-              SaglikNet-in arxasındakı missiya və komanda ilə tanış olun.
+              ReseptPlus-ın arxasındakı missiya və komanda ilə tanış olun.
             </p>
           </div>
         </section>
@@ -82,7 +82,7 @@ export default function AboutUsPage() {
                     Komandamızla Tanış Olun
                 </h2>
                 <p className="mt-4 text-lg text-muted-foreground">
-                    SaglikNet-in arxasında dayanan istedadlı və fədakar insanlar.
+                    ReseptPlus-ın arxasında dayanan istedadlı və fədakar insanlar.
                 </p>
                 </div>
                 <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">

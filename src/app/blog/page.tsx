@@ -43,7 +43,7 @@ export default function BlogPage() {
           <div className="container text-center">
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Blog</h1>
             <p className="mt-4 text-lg text-muted-foreground md:text-xl">
-              Səhiyyə texnologiyaları və SaglikNet yenilikləri haqqında ən son məqalələr.
+              Səhiyyə texnologiyaları və ReseptPlus yenilikləri haqqında ən son məqalələr.
             </p>
           </div>
         </section>
@@ -81,5 +81,3 @@ export default function BlogPage() {
     </div>
   );
 }
-
-    

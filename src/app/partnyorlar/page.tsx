@@ -90,7 +90,7 @@ export default function PartnersPage() {
                         Müştərilərimiz
                     </h2>
                     <p className="mt-4 text-lg text-muted-foreground">
-                        SaglikNet platformasına etimad edərək fəaliyyətlərini gücləndirən şirkətlər.
+                        ReseptPlus platformasına etimad edərək fəaliyyətlərini gücləndirən şirkətlər.
                     </p>
                 </div>
                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">

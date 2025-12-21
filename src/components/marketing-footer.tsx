@@ -39,7 +39,7 @@ export default function MarketingFooter() {
           </div>
         </div>
         <div className="mt-8 border-t pt-6 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} SaglikNet. Bütün hüquqlar qorunur.
+          © {new Date().getFullYear()} ReseptPlus. Bütün hüquqlar qorunur.
         </div>
       </div>
     </footer>

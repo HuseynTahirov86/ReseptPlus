@@ -6,8 +6,8 @@ export function Logo({ className }: { className?: string }) {
     <div className={cn("flex items-center gap-2", className)}>
       <HeartPulse className="h-7 w-7 text-primary" />
       <div className="text-2xl font-bold tracking-tight">
-        <span className="font-medium">Saglik</span>
-        <span className="text-primary">Net</span>
+        <span className="font-medium">Resept</span>
+        <span className="text-primary">Plus</span>
       </div>
     </div>
   );

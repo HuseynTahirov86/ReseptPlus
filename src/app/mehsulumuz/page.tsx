@@ -48,7 +48,7 @@ export default function ProductPage() {
           <div className="container text-center">
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Məhsulumuz</h1>
             <p className="mt-4 text-lg text-muted-foreground md:text-xl">
-              SaglikNet-in səhiyyə idarəçiliyini necə dəyişdirdiyini kəşf edin.
+              ReseptPlus-ın səhiyyə idarəçiliyini necə dəyişdirdiyini kəşf edin.
             </p>
           </div>
         </section>

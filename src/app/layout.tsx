@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'SaglikNet - Səhiyyəni Qüsursuz Birləşdiririk',
+  title: 'ReseptPlus - Səhiyyəni Qüsursuz Birləşdiririk',
   description: 'Aptekləri, xəstəxanaları və xəstələri birləşdirən elektron resept sistemi.',
 };
 
@@ -29,5 +29,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-    

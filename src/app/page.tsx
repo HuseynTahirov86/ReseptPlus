@@ -41,7 +41,7 @@ export default function MarketingHomePage() {
       avatar: patientAvatar,
       name: "Ayşə Yılmaz",
       role: "Xəstə",
-      text: "SaglikNet ailəmin reseptlərini idarə etməyi inanılmaz dərəcədə sadələşdirdi. Hər şeyi telefonumda görə bilirəm və dərmanlarımın stokda olduğu ən yaxın apteki tapa bilirəm.",
+      text: "ReseptPlus ailəmin reseptlərini idarə etməyi inanılmaz dərəcədə sadələşdirdi. Hər şeyi telefonumda görə bilirəm və dərmanlarımın stokda olduğu ən yaxın apteki tapa bilirəm.",
     },
     {
       avatar: doctorAvatar,
@@ -53,7 +53,7 @@ export default function MarketingHomePage() {
       avatar: pharmacistAvatar,
       name: "Fatma Kaya",
       role: "Əczaçı",
-      text: "Reseptlərin yoxlanılması əvvəllər bir problem idi. SaglikNet ilə bu, anlıqdır. İş axınımız daha rəvandır və xəstə qayğısına daha çox diqqət yetirə bilirik.",
+      text: "Reseptlərin yoxlanılması əvvəllər bir problem idi. ReseptPlus ilə bu, anlıqdır. İş axınımız daha rəvandır və xəstə qayğısına daha çox diqqət yetirə bilirik.",
     },
   ];
 
@@ -77,7 +77,7 @@ export default function MarketingHomePage() {
               Səhiyyəni Qüsursuz Birləşdiririk.
             </h1>
             <p className="mx-auto mt-6 max-w-3xl text-lg text-muted-foreground md:text-xl">
-              SaglikNet, həkimləri, aptekləri və xəstələri daha təhlükəsiz və səmərəli səhiyyə təcrübəsi üçün bir araya gətirən hərtərəfli elektron resept sistemidir.
+              ReseptPlus, həkimləri, aptekləri və xəstələri daha təhlükəsiz və səmərəli səhiyyə təcrübəsi üçün bir araya gətirən hərtərəfli elektron resept sistemidir.
             </p>
             <div className="mt-8 flex justify-center gap-4">
               <Button asChild size="lg">
@@ -98,7 +98,7 @@ export default function MarketingHomePage() {
                 Hər Kəs Üçün Vahid Platforma
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                SaglikNet xəstələrin, həkimlərin və əczaçıların unikal ehtiyaclarını ödəmək üçün hazırlanmışdır.
+                ReseptPlus xəstələrin, həkimlərin və əczaçıların unikal ehtiyaclarını ödəmək üçün hazırlanmışdır.
               </p>
             </div>
             <div className="grid gap-8 md:grid-cols-3">
@@ -143,7 +143,7 @@ export default function MarketingHomePage() {
                 <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full border-2 border-primary bg-background text-3xl font-bold text-primary shadow-md">2</div>
                 <h3 className="text-xl font-semibold">Xəstə Qəbul Edir</h3>
                 <p className="mt-2 text-muted-foreground">
-                  Xəstələr e-resepti dərhal SaglikNet profillərində alırlar.
+                  Xəstələr e-resepti dərhal ReseptPlus profillərində alırlar.
                 </p>
               </div>
               <div className="relative flex flex-col items-center text-center">
@@ -193,4 +193,3 @@ export default function MarketingHomePage() {
     </div>
   );
 }
-    
