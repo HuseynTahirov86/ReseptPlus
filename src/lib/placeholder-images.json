@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-image",
+      "description": "A modern and clean image of a doctor using a tablet, symbolizing digital healthcare.",
+      "imageUrl": "https://images.unsplash.com/photo-1729949129670-cdf60345f89b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxkb2N0b3IlMjB0YWJsZXR8ZW58MHx8fHwxNzY2MzEwMjQ2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "doctor tablet"
+    },
+    {
+      "id": "testimonial-patient",
+      "description": "Avatar for a patient testimonial.",
+      "imageUrl": "https://images.unsplash.com/photo-1623605931891-d5b95ee98459?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxwZXJzb24lMjBzbWlsaW5nfGVufDB8fHx8MTc2NjI2Nzk4Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person smiling"
+    },
+    {
+      "id": "testimonial-doctor",
+      "description": "Avatar for a doctor testimonial.",
+      "imageUrl": "https://images.unsplash.com/photo-1730597842283-943c7986ee2c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxkb2N0b3IlMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjYyNDc4MTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "doctor portrait"
+    },
+    {
+      "id": "testimonial-pharmacist",
+      "description": "Avatar for a pharmacist testimonial.",
+      "imageUrl": "https://images.unsplash.com/photo-1659353887804-fc7f9313021a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGhhcm1hY2lzdCUyMHBvcnRyYWl0fGVufDB8fHx8MTc2NjI2ODExM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pharmacist portrait"
+    }
+  ]
 }
