@@ -312,6 +312,56 @@
         "quantity",
         "expirationDate"
       ]
+    },
+    "SupportingOrganization": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SupportingOrganization",
+      "type": "object",
+      "description": "Represents an organization that supports the SaglikNet project.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Supporting Organization entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the supporting organization."
+        },
+        "description": {
+          "type": "string",
+          "description": "A short description of the organization's support."
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "URL of the organization's logo."
+        }
+      },
+      "required": ["id", "name", "description", "logoUrl"]
+    },
+    "ClientCompany": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ClientCompany",
+      "type": "object",
+      "description": "Represents a client company using the SaglikNet platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Client Company entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the client company."
+        },
+        "description": {
+          "type": "string",
+          "description": "A short description of the company."
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "URL of the company's logo."
+        }
+      },
+      "required": ["id", "name", "description", "logoUrl"]
     }
   },
   "auth": {
@@ -434,6 +484,38 @@
             {
               "name": "inventoryId",
               "description": "The unique identifier for the inventory item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/supportingOrganizations/{orgId}",
+        "definition": {
+          "entityName": "SupportingOrganization",
+          "schema": {
+            "$ref": "#/backend/entities/SupportingOrganization"
+          },
+          "description": "Stores information about organizations that support SaglikNet. Publicly readable, admin writable.",
+          "params": [
+            {
+              "name": "orgId",
+              "description": "The unique identifier for the supporting organization."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/clientCompanies/{companyId}",
+        "definition": {
+          "entityName": "ClientCompany",
+          "schema": {
+            "$ref": "#/backend/entities/ClientCompany"
+          },
+          "description": "Stores information about companies that are clients of SaglikNet. Publicly readable, admin writable.",
+          "params": [
+            {
+              "name": "companyId",
+              "description": "The unique identifier for the client company."
             }
           ]
         }

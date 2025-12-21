@@ -24,4 +24,17 @@ export type Doctor = {
     role: 'doctor' | 'head_doctor' | 'admin';
 };
 
+export type SupportingOrganization = {
+    id: string;
+    name: string;
+    description: string;
+    logoUrl: string;
+};
+
+export type ClientCompany = {
+    id: string;
+    name: string;
+    description: string;
+    logoUrl: string;
+};
     

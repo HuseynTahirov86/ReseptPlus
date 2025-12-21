@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Hospital,
   Shield,
+  Handshake,
 } from "lucide-react";
 
 import {
@@ -87,7 +88,9 @@ export default function DashboardLayout({
   const auth = useAuth();
   
   const handleSignOut = () => {
-    signOut(auth);
+    if(auth) {
+        signOut(auth);
+    }
   };
   
   const userInitials = user?.email?.charAt(0).toUpperCase() || 'S';
@@ -113,7 +116,7 @@ export default function DashboardLayout({
                 <SidebarMenuButton
                   asChild
                   isActive={
-                    pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard')
+                    pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard' && !pathname.startsWith('/admin'))
                   }
                   tooltip={{
                     children: item.label,

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
+import AdminDashboardLayout from './dashboard/layout';
 
 export default function AdminLayout({
   children,
@@ -29,8 +30,8 @@ export default function AdminLayout({
     );
   }
 
-  // If user is an admin, render the requested page
-  return <>{children}</>;
+  // If user is an admin, render the requested page within the admin-specific layout
+  return <AdminDashboardLayout>{children}</AdminDashboardLayout>;
 }
 
     

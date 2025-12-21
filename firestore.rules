@@ -168,7 +168,24 @@ service cloud.firestore {
       allow update: if isExistingDoctor(resource.data.doctorId) || isAdmin(); // Admin can update status
       allow delete: if isExistingDoctor(resource.data.doctorId) || isAdmin();
     }
+
+    /**
+     * @description Stores info about supporting organizations. Publicly readable, admin writable.
+     * @path /supportingOrganizations/{orgId}
+     */
+    match /supportingOrganizations/{orgId} {
+        allow get, list: if true;
+        allow create, update, delete: if isAdmin();
+    }
+
+    /**
+     * @description Stores info about client companies. Publicly readable, admin writable.
+     * @path /clientCompanies/{companyId}
+     */
+    match /clientCompanies/{companyId} {
+        allow get, list: if true;
+        allow create, update, delete: if isAdmin();
+    }
   }
 }
-
     
