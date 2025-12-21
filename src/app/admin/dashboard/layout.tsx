@@ -7,7 +7,8 @@ import {
   Handshake,
   LogOut,
   ChevronLeft,
-  FileText
+  FileText,
+  DollarSign
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ const adminNavItems = [
   { href: "/admin/dashboard", label: "İdarə Paneli", icon: Home },
   { href: "/admin/partners", label: "Partnyorlar", icon: Handshake },
   { href: "/admin/blog", label: "Blog", icon: FileText },
+  { href: "/admin/pricing", label: "Qiymətlər", icon: DollarSign },
 ];
 
 export default function AdminDashboardLayout({
@@ -70,5 +72,3 @@ export default function AdminDashboardLayout({
     </div>
   );
 }
-
-    

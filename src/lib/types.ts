@@ -49,4 +49,12 @@ export type BlogPost = {
   datePublished: string; // ISO String
 };
 
-    
+export type PricingPlan = {
+  id: string;
+  title: string;
+  description: string;
+  price: string;
+  period: string;
+  features: string[];
+  isPopular: boolean;
+};

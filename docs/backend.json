@@ -404,6 +404,46 @@
         }
       },
       "required": ["id", "title", "description", "content", "author", "datePublished", "imageUrl"]
+    },
+     "PricingPlan": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PricingPlan",
+      "type": "object",
+      "description": "Represents a pricing plan for the SaglikNet service.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Pricing Plan entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the pricing plan."
+        },
+        "description": {
+          "type": "string",
+          "description": "A short description of the plan."
+        },
+        "price": {
+          "type": "string",
+          "description": "The price of the plan, can be a number or 'Custom'."
+        },
+        "period": {
+          "type": "string",
+          "description": "The billing period, e.g., '/ay'."
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of features included in the plan."
+        },
+        "isPopular": {
+          "type": "boolean",
+          "description": "Whether the plan is marked as popular."
+        }
+      },
+      "required": ["id", "title", "description", "price", "features", "isPopular"]
     }
   },
   "auth": {
@@ -577,10 +617,24 @@
             }
           ]
         }
+      },
+      {
+        "path": "/pricingPlans/{planId}",
+        "definition": {
+          "entityName": "PricingPlan",
+          "schema": {
+            "$ref": "#/backend/entities/PricingPlan"
+          },
+          "description": "Stores the pricing plans for the service. Publicly readable, admin writable.",
+          "params": [
+            {
+              "name": "planId",
+              "description": "The unique identifier for the pricing plan."
+            }
+          ]
+        }
       }
     ],
     "reasoning": "The Firestore structure is designed to support a secure and scalable e-prescription system (SaglikNet) connecting patients, doctors, hospitals, and pharmacies. Key considerations include authorization independence, data segregation, and clear access control.\n\n1.  **Authorization Independence:** The design avoids hierarchical `get()` calls in security rules by denormalizing relevant authorization data directly into documents. For example, prescriptions store `patientId`, `doctorId`, and `pharmacyId` to facilitate independent authorization checks without needing to retrieve parent documents.\n\n2.  **Data Segregation:** Different data types with distinct access requirements are stored in separate collections. This simplifies security rules. For instance, patient profiles reside in `/patients/{patientId}`, while prescriptions are in `/prescriptions/{prescriptionId}`. This segregation allows for granular control over who can access each type of data.\n\n3.  **Access Control:** Path-based ownership is used for patient data (`/patients/{patientId}`). Prescriptions, while not directly owned by users, incorporate relevant IDs for secure access control.\n\n4.  **QAPs Support:**\n    *   `list` operations are secured by ensuring each collection has a homogeneous security posture (all documents in the same collection share the same access rules).\n\n5. **Invariants:**\n* The structure supports the integrity of ownership, timestamps, and denormalized data by making it straightforward to write rules that enforce restrictions.\n\nThis structure prioritizes simplicity and security, resulting in more robust and maintainable security rules."
   }
 }
-
-    
