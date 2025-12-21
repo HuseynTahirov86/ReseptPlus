@@ -1,3 +1,4 @@
+'use client';
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -16,14 +17,8 @@ import {
 } from "@/components/ui/table";
 import type { Prescription } from "@/lib/types";
 import { ClipboardList, Users, RefreshCw } from "lucide-react";
-
-const prescriptions: Prescription[] = [
-  { id: "RX789012", patientName: "Əli Vəliyev", date: "2024-07-21", medication: "Aspirin 100mg", status: "Təhvil verildi" },
-  { id: "RX789013", patientName: "Zeynəb Qaya", date: "2024-07-21", medication: "Metformin 500mg", status: "Gözləmədə" },
-  { id: "RX789014", patientName: "Mustafa Dəmir", date: "2024-07-20", medication: "Lisinopril 10mg", status: "Təhvil verildi" },
-  { id: "RX789015", patientName: "Elif Şahin", date: "2024-07-20", medication: "Atorvastatin 20mg", status: "Ləğv edildi" },
-  { id: "RX789016", patientName: "Həsən Çelik", date: "2024-07-19", medication: "Amoxicillin 500mg", status: "Təhvil verildi" },
-];
+import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
+import { collection, query, where } from "firebase/firestore";
 
 const statusVariant: { [key in Prescription['status']]: 'default' | 'secondary' | 'destructive' } = {
     'Təhvil verildi': 'default',
@@ -31,12 +26,22 @@ const statusVariant: { [key in Prescription['status']]: 'default' | 'secondary' 
     'Ləğv edildi': 'destructive'
 };
 
-// @ts-ignore
-export default function DashboardPage({user}) {
+export default function DashboardPage() {
+  const { firestore, user } = useFirebase();
+
+  const prescriptionsQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(collection(firestore, "prescriptions"), where("doctorId", "==", user.uid));
+  }, [firestore, user]);
+
+  const { data: prescriptions, isLoading } = useCollection<Prescription>(prescriptionsQuery);
+  
+  const welcomeMessage = user ? `Xoş gəlmisiniz, ${user.displayName || user.email}!` : "Xoş gəlmisiniz!";
+
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Xoş gəlmisiniz, {user?.name || "Dr. Aydın"}!</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{welcomeMessage}</h1>
         <p className="text-muted-foreground">Bugünkü fəaliyyətinizin xülasəsi.</p>
       </div>
 
@@ -47,8 +52,8 @@ export default function DashboardPage({user}) {
             <ClipboardList className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">dünəndən +5</p>
+            <div className="text-2xl font-bold">{isLoading ? "..." : prescriptions?.length || 0}</div>
+            <p className="text-xs text-muted-foreground">bu ay</p>
           </CardContent>
         </Card>
         <Card>
@@ -90,17 +95,27 @@ export default function DashboardPage({user}) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {prescriptions.map((p) => (
+              {isLoading && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center">Yüklənir...</TableCell>
+                </TableRow>
+              )}
+              {!isLoading && prescriptions?.map((p) => (
                 <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.id}</TableCell>
+                  <TableCell className="font-medium">{p.id.substring(0,8)}</TableCell>
                   <TableCell>{p.patientName}</TableCell>
-                  <TableCell>{p.date}</TableCell>
-                  <TableCell>{p.medication}</TableCell>
+                  <TableCell>{new Date(p.datePrescribed).toLocaleDateString()}</TableCell>
+                  <TableCell>{p.medicationName}</TableCell>
                   <TableCell className="text-right">
-                    <Badge variant={statusVariant[p.status]}>{p.status}</Badge>
+                    <Badge variant={statusVariant[p.status] || 'secondary'}>{p.status}</Badge>
                   </TableCell>
                 </TableRow>
               ))}
+               {!isLoading && prescriptions?.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center">Heç bir resept tapılmadı.</TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>

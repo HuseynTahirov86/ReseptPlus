@@ -1,3 +1,5 @@
+'use client';
+
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -6,13 +8,27 @@ import {
   Pill,
   Stethoscope,
   Users,
+  LogIn,
 } from "lucide-react";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from 'firebase/auth';
+import { useAuth, useUser } from '@/firebase';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Logo } from "@/components/logo";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find((img) => img.id === "hero-image");
@@ -65,6 +81,18 @@ export default function Home() {
     },
   ];
 
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+
+  if (isUserLoading) {
+    return <div className="w-full h-screen flex items-center justify-center">Yüklənir...</div>
+  }
+
+  if (user) {
+    router.push('/dashboard');
+    return null;
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -72,24 +100,11 @@ export default function Home() {
           <div className="mr-auto flex items-center">
             <Logo />
           </div>
-          <nav className="hidden items-center space-x-6 text-sm font-medium md:flex">
-            <Link href="#features" className="transition-colors hover:text-primary">Xüsusiyyətlər</Link>
-            <Link href="#how-it-works" className="transition-colors hover:text-primary">Necə İşləyir</Link>
-            <Link href="#testimonials" className="transition-colors hover:text-primary">Rəylər</Link>
-          </nav>
-          <div className="flex items-center justify-end md:ml-6">
-            <Button variant="ghost" asChild>
-              <Link href="/dashboard">Daxil Ol</Link>
-            </Button>
-            <Button asChild className="ml-2">
-              <Link href="/dashboard">Pulsuz Qeydiyyat</Link>
-            </Button>
-          </div>
         </div>
       </header>
       <main className="flex-1">
         <section className="py-16 md:py-24 lg:py-32">
-          <div className="container grid items-center gap-8 px-4 md:px-6 lg:grid-cols-2 lg:gap-16">
+          <div className="container grid items-center gap-16 px-4 md:px-6 lg:grid-cols-2">
             <div className="space-y-6">
               <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
                 Səhiyyəni Qüsursuz Birləşdiririk.
@@ -97,29 +112,8 @@ export default function Home() {
               <p className="max-w-[600px] text-lg text-muted-foreground">
                 SaglikNet, həkimləri, aptekləri və xəstələri daha təhlükəsiz və səmərəli səhiyyə təcrübəsi üçün bir araya gətirmək məqsədi ilə hazırlanmış hərtərəfli elektron resept sistemidir.
               </p>
-              <div className="flex flex-col gap-4 sm:flex-row">
-                <Button size="lg" asChild>
-                  <Link href="/dashboard">
-                    İndi Başlayın <ArrowRight className="ml-2" />
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link href="#features">Daha Çox Məlumat</Link>
-                </Button>
-              </div>
             </div>
-            <div className="relative h-[300px] w-full overflow-hidden rounded-xl shadow-2xl md:h-[400px] lg:h-[500px]">
-              {heroImage && (
-                <Image
-                  src={heroImage.imageUrl}
-                  alt={heroImage.description}
-                  data-ai-hint={heroImage.imageHint}
-                  fill
-                  style={{ objectFit: "cover" }}
-                  priority
-                />
-              )}
-            </div>
+            <LoginForm />
           </div>
         </section>
 
@@ -233,4 +227,98 @@ export default function Home() {
       </footer>
     </div>
   );
+}
+
+
+function LoginForm() {
+  const auth = useAuth();
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleAuthAction = async (action: 'login' | 'signup') => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (action === 'login') {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
+      router.push('/dashboard');
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Tabs defaultValue="login" className="w-full max-w-md">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="login">Daxil Ol</TabsTrigger>
+        <TabsTrigger value="signup">Qeydiyyat</TabsTrigger>
+      </TabsList>
+      <TabsContent value="login">
+        <Card>
+          <CardHeader>
+            <CardTitle>Hesabınıza daxil olun</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {error && (
+                <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Xəta</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="login-email">Email</Label>
+              <Input id="login-email" type="email" placeholder="email@nümunə.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="login-password">Şifrə</Label>
+              <Input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button className="w-full" onClick={() => handleAuthAction('login')} disabled={loading}>
+                {loading ? "Gözləyin..." : "Daxil Ol"}
+            </Button>
+          </CardFooter>
+        </Card>
+      </TabsContent>
+      <TabsContent value="signup">
+        <Card>
+          <CardHeader>
+            <CardTitle>Yeni hesab yaradın</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+             {error && (
+                <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Xəta</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="signup-email">Email</Label>
+              <Input id="signup-email" type="email" placeholder="email@nümunə.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="signup-password">Şifrə</Label>
+              <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button className="w-full" onClick={() => handleAuthAction('signup')} disabled={loading}>
+                 {loading ? "Gözləyin..." : "Qeydiyyatdan Keç"}
+            </Button>
+          </CardFooter>
+        </Card>
+      </TabsContent>
+    </Tabs>
+  )
 }
