@@ -31,11 +31,12 @@ const statusVariant: { [key in Prescription['status']]: 'default' | 'secondary' 
     'Ləğv edildi': 'destructive'
 };
 
-export default function DashboardPage() {
+// @ts-ignore
+export default function DashboardPage({user}) {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Xoş gəlmisiniz, Dr. Aydın!</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Xoş gəlmisiniz, {user?.name || "Dr. Aydın"}!</h1>
         <p className="text-muted-foreground">Bugünkü fəaliyyətinizin xülasəsi.</p>
       </div>
 
