@@ -65,3 +65,11 @@ export type ProductFeature = {
   description: string;
   icon: string; // lucide-react icon name
 };
+
+export type TeamMember = {
+  id: string;
+  name: string;
+  role: string;
+  imageUrl: string;
+  imageHint: string;
+};

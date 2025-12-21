@@ -1,31 +1,31 @@
+'use client';
 
 import MarketingHeader from "@/components/marketing-header";
 import MarketingFooter from "@/components/marketing-footer";
 import { Building, Target, Users } from "lucide-react";
-import Image from "next/image";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
+import { collection, orderBy, query } from "firebase/firestore";
+import type { TeamMember } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
+
+function TeamMemberSkeleton() {
+    return (
+        <Card className="text-center p-6 bg-background rounded-xl shadow-lg">
+            <Skeleton className="h-28 w-28 rounded-full mx-auto mb-4" />
+            <CardContent className="p-0">
+                <Skeleton className="h-6 w-3/4 mx-auto" />
+                <Skeleton className="h-4 w-1/2 mx-auto mt-2" />
+            </CardContent>
+        </Card>
+    );
+}
 
 export default function AboutUsPage() {
-
-    const teamMembers = [
-        {
-            name: "Dr. Leyla Əliyeva",
-            role: "CEO & Qurucu",
-            image: PlaceHolderImages.find(p => p.id === "team-member-1")
-        },
-        {
-            name: "Orxan Məmmədov",
-            role: "Texniki Direktor (CTO)",
-            image: PlaceHolderImages.find(p => p.id === "team-member-2")
-        },
-        {
-            name: "Aysel Quliyeva",
-            role: "Məhsul Meneceri",
-            image: PlaceHolderImages.find(p => p.id === "team-member-3")
-        },
-    ];
+    const { firestore } = useFirebase();
+    const teamQuery = useMemoFirebase(() => firestore && query(collection(firestore, "teamMembers"), orderBy("name")), [firestore]);
+    const { data: teamMembers, isLoading } = useCollection<TeamMember>(teamQuery);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -86,20 +86,22 @@ export default function AboutUsPage() {
                 </p>
                 </div>
                 <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                {teamMembers.map((member, i) => (
-                    <Card key={i} className="text-center p-6 bg-background rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20">
-                        {member.image && (
-                            <Avatar className="h-28 w-28 mx-auto mb-4 border-4 border-primary/20">
-                                <AvatarImage src={member.image.imageUrl} alt={member.name} data-ai-hint={member.image.imageHint} />
-                                <AvatarFallback>{member.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
-                            </Avatar>
-                        )}
+                {isLoading && Array.from({ length: 3 }).map((_, i) => <TeamMemberSkeleton key={i} />)}
+                {!isLoading && teamMembers?.map((member) => (
+                    <Card key={member.id} className="text-center p-6 bg-background rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20">
+                        <Avatar className="h-28 w-28 mx-auto mb-4 border-4 border-primary/20">
+                            <AvatarImage src={member.imageUrl} alt={member.name} data-ai-hint={member.imageHint} />
+                            <AvatarFallback>{member.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
+                        </Avatar>
                         <CardContent className="p-0">
                             <h3 className="text-xl font-bold">{member.name}</h3>
                             <p className="text-primary font-medium">{member.role}</p>
                         </CardContent>
                     </Card>
                 ))}
+                 {!isLoading && teamMembers?.length === 0 && (
+                    <p className="col-span-full text-center text-muted-foreground">Heç bir komanda üzvü tapılmadı.</p>
+                )}
                 </div>
             </div>
         </section>

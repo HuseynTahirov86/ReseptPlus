@@ -12,6 +12,7 @@ import {
   Package,
   Upload,
   Library,
+  Users,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ const adminNavItems = [
   { href: "/admin/blog", label: "Blog", icon: FileText },
   { href: "/admin/pricing", label: "Qiymətlər", icon: DollarSign },
   { href: "/admin/product", label: "Məhsul", icon: Package },
+  { href: "/admin/team", label: "Komanda", icon: Users },
   { href: "/admin/upload", label: "Fayl Yüklə", icon: Upload },
   { href: "/admin/media", label: "Media Kitabxanası", icon: Library },
 ];
