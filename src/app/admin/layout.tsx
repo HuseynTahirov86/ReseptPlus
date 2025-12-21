@@ -15,14 +15,14 @@ export default function AdminLayout({
   const router = useRouter();
 
   useEffect(() => {
-    // If user loading is finished and there's no user or the user is not an admin, redirect.
-    if (!isUserLoading && (!user || user.profile?.role !== 'admin')) {
+    // If user loading is finished and there's no user or the user is not an admin or head_doctor, redirect.
+    if (!isUserLoading && (!user || (user.profile?.role !== 'admin' && user.profile?.role !== 'head_doctor'))) {
       router.push('/dashboard'); // Redirect to the main dashboard or a login page
     }
   }, [user, isUserLoading, router]);
 
   // While checking user auth, show a loader
-  if (isUserLoading || !user || user.profile?.role !== 'admin') {
+  if (isUserLoading || !user || (user.profile?.role !== 'admin' && user.profile?.role !== 'head_doctor')) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -30,8 +30,6 @@ export default function AdminLayout({
     );
   }
 
-  // If user is an admin, render the requested page within the admin-specific layout
+  // If user is an admin or head_doctor, render the requested page within the admin-specific layout
   return <AdminDashboardLayout>{children}</AdminDashboardLayout>;
 }
-
-    

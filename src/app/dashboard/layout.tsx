@@ -75,6 +75,7 @@ const menuItems = [
     label: "Admin Paneli",
     icon: Shield,
     role: "admin",
+    allowedRoles: ["admin", "head_doctor"],
   },
 ];
 
@@ -101,7 +102,15 @@ export default function DashboardLayout({
   if (userRole === 'admin') roleDisplay = 'Admin';
 
 
-  const filteredMenuItems = menuItems.filter(item => !item.role || item.role === userRole);
+  const filteredMenuItems = menuItems.filter(item => {
+    if (item.allowedRoles && userRole) {
+        return item.allowedRoles.includes(userRole);
+    }
+    if (item.role) {
+        return item.role === userRole;
+    }
+    return true;
+  });
 
   return (
     <SidebarProvider>
@@ -185,7 +194,7 @@ export default function DashboardLayout({
               </DropdownMenu>
             ) : (
               <Button asChild>
-                <Link href="/">Daxil Ol</Link>
+                <Link href="/login">Daxil Ol</Link>
               </Button>
             )}
           </div>
@@ -195,5 +204,3 @@ export default function DashboardLayout({
     </SidebarProvider>
   );
 }
-
-    
