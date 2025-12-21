@@ -23,6 +23,30 @@
       "description": "Avatar for a pharmacist testimonial.",
       "imageUrl": "https://images.unsplash.com/photo-1659353887804-fc7f9313021a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGhhcm1hY2lzdCUyMHBvcnRyYWl0fGVufDB8fHx8MTc2NjI2ODExM3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "pharmacist portrait"
+    },
+    {
+      "id": "partner-logo-1",
+      "description": "Placeholder logo for a partner company.",
+      "imageUrl": "https://images.unsplash.com/photo-1529612700005-e35377bf1415?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjb21wYW55JTIwbG9nb3xlbnwwfHx8fDE3NjYyODY4NjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "company logo"
+    },
+    {
+      "id": "partner-logo-2",
+      "description": "Placeholder logo for a partner company.",
+      "imageUrl": "https://images.unsplash.com/photo-1663124178703-d2d6a333e6c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx0ZWNoJTIwbG9nb3xlbnwwfHx8fDE3NjYyNDY2NTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tech logo"
+    },
+    {
+      "id": "partner-logo-3",
+      "description": "Placeholder logo for a partner company.",
+      "imageUrl": "https://images.unsplash.com/photo-1572539561705-80f7a8d6d151?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBsb2dvfGVufDB8fHx8MTc2NjI1NTg4MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "modern logo"
+    },
+    {
+      "id": "partner-logo-4",
+      "description": "Placeholder logo for a partner company.",
+      "imageUrl": "https://images.unsplash.com/photo-1754837369018-ff35655d126f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxhYnN0cmFjdCUyMGxvZ298ZW58MHx8fHwxNzY2MjYzNjcwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract logo"
     }
   ]
 }
