@@ -14,8 +14,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Bot, Loader2, Pill, RefreshCcwDot, Sparkles } from 'lucide-react';
 
 const SmartMedicationSuggestionsInputSchema = z.object({
-  patientHistory: z.string().min(10, 'Patient history must be at least 10 characters.'),
-  currentMedications: z.string().min(3, 'Current medications must be at least 3 characters.'),
+  patientHistory: z.string().min(10, 'Xəstə tarixçəsi ən azı 10 simvol olmalıdır.'),
+  currentMedications: z.string().min(3, 'Cari dərmanlar ən azı 3 simvol olmalıdır.'),
   doctorNotes: z.string(),
 });
 
@@ -26,12 +26,12 @@ function SubmitButton() {
       {pending ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Generating...
+          Yaradılır...
         </>
       ) : (
         <>
          <Sparkles className="mr-2" />
-          Get Suggestions
+          Təklif Al
         </>
       )}
     </Button>
@@ -49,7 +49,6 @@ export function SuggestionForm() {
       currentMedications: '',
       doctorNotes: '',
     },
-    // This makes the form update when the server action returns new state
     values: state?.fields && {
         patientHistory: state.fields.patientHistory || '',
         currentMedications: state.fields.currentMedications || '',
@@ -61,7 +60,7 @@ export function SuggestionForm() {
     <div className="space-y-8">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Bot /> Patient Information</CardTitle>
+          <CardTitle className="flex items-center gap-2"><Bot /> Xəstə Məlumatı</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -71,10 +70,10 @@ export function SuggestionForm() {
                 name="patientHistory"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Patient Medical History</FormLabel>
+                    <FormLabel>Xəstənin Tibbi Tarixçəsi</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="e.g., Diagnosed with Type 2 Diabetes in 2018, history of hypertension..."
+                        placeholder="Məs., 2018-ci ildə 2-ci tip diabet diaqnozu qoyulub, hipertoniya tarixçəsi..."
                         className="min-h-[120px]"
                         {...field}
                       />
@@ -88,10 +87,10 @@ export function SuggestionForm() {
                 name="currentMedications"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Current Medications</FormLabel>
+                    <FormLabel>Cari Dərmanlar</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="e.g., Metformin 500mg daily, Lisinopril 10mg daily..."
+                        placeholder="Məs., Metformin 500mg gündəlik, Lisinopril 10mg gündəlik..."
                         className="min-h-[100px]"
                         {...field}
                       />
@@ -105,10 +104,10 @@ export function SuggestionForm() {
                 name="doctorNotes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Doctor's Notes (Optional)</FormLabel>
+                    <FormLabel>Həkim Qeydləri (İstəyə bağlı)</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="e.g., Patient reports mild dizziness in the mornings..."
+                        placeholder="Məs., Xəstə səhərlər yüngül başgicəllənmədən şikayətlənir..."
                         {...field}
                       />
                     </FormControl>
@@ -125,7 +124,7 @@ export function SuggestionForm() {
       {state?.issues && (
         <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Xəta</AlertTitle>
             <AlertDescription>
             {state.issues.join(', ')}
             </AlertDescription>
@@ -134,11 +133,11 @@ export function SuggestionForm() {
 
       {state?.data && (
         <div className="space-y-6 animate-in fade-in-50 duration-500">
-            <h2 className="text-2xl font-bold flex items-center gap-2"><Sparkles className="text-accent"/> AI Generated Suggestions</h2>
+            <h2 className="text-2xl font-bold flex items-center gap-2"><Sparkles className="text-accent"/> AI tərəfindən Yaradılan Təkliflər</h2>
             <div className="grid gap-6 lg:grid-cols-1">
                  <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Pill /> Suggested Dosage</CardTitle>
+                        <CardTitle className="flex items-center gap-2"><Pill /> Təklif Olunan Doza</CardTitle>
                     </CardHeader>
                     <CardContent className="prose prose-sm max-w-none text-foreground">
                         <p>{state.data.suggestedDosage}</p>
@@ -146,7 +145,7 @@ export function SuggestionForm() {
                 </Card>
                  <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><RefreshCcwDot /> Refill Suggestions</CardTitle>
+                        <CardTitle className="flex items-center gap-2"><RefreshCcwDot /> Təkrar Dərman Təklifləri</CardTitle>
                     </CardHeader>
                     <CardContent className="prose prose-sm max-w-none text-foreground">
                          <p>{state.data.refillSuggestions}</p>
@@ -154,7 +153,7 @@ export function SuggestionForm() {
                 </Card>
                 <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Potential Interactions</AlertTitle>
+                    <AlertTitle>Potensial Qarşılıqlı Təsirlər</AlertTitle>
                     <AlertDescription className="prose prose-sm max-w-none text-destructive-foreground">
                          <p>{state.data.potentialInteractions}</p>
                     </AlertDescription>

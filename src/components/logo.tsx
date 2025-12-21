@@ -4,10 +4,10 @@ import { HeartPulse } from "lucide-react";
 export function Logo({ className }: { className?: string }) {
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <HeartPulse className="h-7 w-7 text-accent" />
+      <HeartPulse className="h-7 w-7 text-primary" />
       <div className="text-2xl font-bold tracking-tight">
         <span className="font-medium">Saglik</span>
-        <span className="text-accent">Net</span>
+        <span className="text-primary">Net</span>
       </div>
     </div>
   );

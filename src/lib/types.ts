@@ -3,5 +3,5 @@ export type Prescription = {
   patientName: string;
   date: string;
   medication: string;
-  status: 'Filled' | 'Pending' | 'Canceled';
+  status: 'Təhvil verildi' | 'Gözləmədə' | 'Ləğv edildi';
 };

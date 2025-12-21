@@ -23,23 +23,23 @@ export default function Home() {
   const features = [
     {
       icon: <Users className="h-10 w-10 text-primary" />,
-      title: "For Patients",
+      title: "Xəstələr üçün",
       description:
-        "Easily access your prescriptions, find nearby pharmacies, and manage your medication history all in one secure place.",
+        "Reseptlərinizə asanlıqla daxil olun, yaxınlıqdakı aptekləri tapın və dərman tarixçənizi bir təhlükəsiz yerdə idarə edin.",
       link: "/dashboard",
     },
     {
       icon: <Stethoscope className="h-10 w-10 text-primary" />,
-      title: "For Doctors",
+      title: "Həkimlər üçün",
       description:
-        "Create, sign, and send digital prescriptions in seconds. Leverage AI for smart dosage and interaction suggestions.",
+        "Saniyələr ərzində rəqəmsal reseptlər yaradın, imzalayın və göndərin. Ağıllı doza və qarşılıqlı təsir təklifləri üçün AI-dan yararlanın.",
       link: "/dashboard",
     },
     {
       icon: <Pill className="h-10 w-10 text-primary" />,
-      title: "For Pharmacies",
+      title: "Apteklər üçün",
       description:
-        "Verify prescriptions in real-time, manage your inventory efficiently, and serve your customers faster than ever.",
+        "Reseptləri real vaxt rejimində yoxlayın, inventarınızı səmərəli şəkildə idarə edin və müştərilərinizə həmişəkindən daha sürətli xidmət göstərin.",
       link: "/dashboard",
     },
   ];
@@ -47,21 +47,21 @@ export default function Home() {
   const testimonials = [
     {
       avatar: patientAvatar,
-      name: "Ayşe Yılmaz",
-      role: "Patient",
-      text: "SaglikNet has made managing my family's prescriptions incredibly simple. I can see everything on my phone and find the closest pharmacy with my medication in stock.",
+      name: "Ayşə Yılmaz",
+      role: "Xəstə",
+      text: "SaglikNet ailəmin reseptlərini idarə etməyi inanılmaz dərəcədə sadələşdirdi. Hər şeyi telefonumda görə bilirəm və dərmanlarımın stokda olduğu ən yaxın apteki tapa bilirəm.",
     },
     {
       avatar: doctorAvatar,
       name: "Dr. Mehmet Öztürk",
-      role: "Doctor",
-      text: "This is the future of prescribing. It's faster, more secure, and the AI suggestions are a fantastic safety net. I've reduced prescription errors and saved so much time.",
+      role: "Həkim",
+      text: "Bu, resept yazmağın gələcəyidir. Daha sürətli, daha təhlükəsizdir və AI təklifləri fantastik bir təhlükəsizlik şəbəkəsidir. Resept səhvlərini azaltmışam və çox vaxta qənaət etmişəm.",
     },
     {
       avatar: pharmacistAvatar,
       name: "Fatma Kaya",
-      role: "Pharmacist",
-      text: "Verifying prescriptions used to be a bottleneck. With SaglikNet, it's instant. Our workflow is smoother, and we can focus more on patient care.",
+      role: "Əczaçı",
+      text: "Reseptlərin yoxlanılması əvvəllər bir problem idi. SaglikNet ilə bu, anlıqdır. İş axınımız daha rəvandır və xəstə qayğısına daha çox diqqət yetirə bilirik.",
     },
   ];
 
@@ -73,16 +73,16 @@ export default function Home() {
             <Logo />
           </div>
           <nav className="hidden items-center space-x-6 text-sm font-medium md:flex">
-            <Link href="#features" className="transition-colors hover:text-accent">Features</Link>
-            <Link href="#how-it-works" className="transition-colors hover:text-accent">How It Works</Link>
-            <Link href="#testimonials" className="transition-colors hover:text-accent">Testimonials</Link>
+            <Link href="#features" className="transition-colors hover:text-primary">Xüsusiyyətlər</Link>
+            <Link href="#how-it-works" className="transition-colors hover:text-primary">Necə İşləyir</Link>
+            <Link href="#testimonials" className="transition-colors hover:text-primary">Rəylər</Link>
           </nav>
           <div className="flex items-center justify-end md:ml-6">
             <Button variant="ghost" asChild>
-              <Link href="/dashboard">Log In</Link>
+              <Link href="/dashboard">Daxil Ol</Link>
             </Button>
             <Button asChild className="ml-2">
-              <Link href="/dashboard">Sign Up Free</Link>
+              <Link href="/dashboard">Pulsuz Qeydiyyat</Link>
             </Button>
           </div>
         </div>
@@ -92,19 +92,19 @@ export default function Home() {
           <div className="container grid items-center gap-8 px-4 md:px-6 lg:grid-cols-2 lg:gap-16">
             <div className="space-y-6">
               <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
-                Connecting Healthcare. Seamlessly.
+                Səhiyyəni Qüsursuz Birləşdiririk.
               </h1>
               <p className="max-w-[600px] text-lg text-muted-foreground">
-                SaglikNet is a comprehensive electronic prescription system designed to bring doctors, pharmacies, and patients together for a safer and more efficient healthcare experience.
+                SaglikNet, həkimləri, aptekləri və xəstələri daha təhlükəsiz və səmərəli səhiyyə təcrübəsi üçün bir araya gətirmək məqsədi ilə hazırlanmış hərtərəfli elektron resept sistemidir.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row">
                 <Button size="lg" asChild>
                   <Link href="/dashboard">
-                    Get Started Now <ArrowRight className="ml-2" />
+                    İndi Başlayın <ArrowRight className="ml-2" />
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
-                  <Link href="#features">Learn More</Link>
+                  <Link href="#features">Daha Çox Məlumat</Link>
                 </Button>
               </div>
             </div>
@@ -123,14 +123,14 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="features" className="w-full bg-card py-16 md:py-24">
+        <section id="features" className="w-full bg-secondary/50 py-16 md:py-24">
           <div className="container">
             <div className="mx-auto mb-12 max-w-2xl text-center">
               <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
-                A Unified Platform for Everyone
+                Hər Kəs Üçün Vahid Platforma
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                SaglikNet is tailored to meet the unique needs of patients, doctors, and pharmacists.
+                SaglikNet xəstələrin, həkimlərin və əczaçıların unikal ehtiyaclarını ödəmək üçün hazırlanmışdır.
               </p>
             </div>
             <div className="grid gap-8 md:grid-cols-3">
@@ -153,44 +153,44 @@ export default function Home() {
           <div className="container">
             <div className="mx-auto mb-12 max-w-2xl text-center">
               <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
-                Simple, Secure, and Swift
+                Sadə, Təhlükəsiz və Sürətli
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                Our process is designed for maximum efficiency and security.
+                Prosesimiz maksimum səmərəlilik və təhlükəsizlik üçün nəzərdə tutulmuşdur.
               </p>
             </div>
             <div className="relative grid gap-12 md:grid-cols-3">
               <div className="absolute left-0 top-1/2 hidden h-0.5 w-full -translate-y-1/2 bg-border md:block"></div>
               <div className="relative flex flex-col items-center text-center">
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary bg-background text-2xl font-bold text-primary">1</div>
-                <h3 className="text-xl font-semibold">Doctor Prescribes</h3>
+                <h3 className="text-xl font-semibold">Həkim Recepti Yazır</h3>
                 <p className="mt-2 text-muted-foreground">
-                  Doctors create and digitally sign prescriptions using our intuitive interface.
+                  Həkimlər intuitiv interfeysimizdən istifadə edərək reseptlər yaradır və rəqəmsal olaraq imzalayır.
                 </p>
               </div>
               <div className="relative flex flex-col items-center text-center">
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary bg-background text-2xl font-bold text-primary">2</div>
-                <h3 className="text-xl font-semibold">Patient Receives</h3>
+                <h3 className="text-xl font-semibold">Xəstə Qəbul Edir</h3>
                 <p className="mt-2 text-muted-foreground">
-                  Patients instantly receive the e-prescription on their SaglikNet profile.
+                  Xəstələr e-resepti dərhal SaglikNet profillərində alırlar.
                 </p>
               </div>
               <div className="relative flex flex-col items-center text-center">
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary bg-background text-2xl font-bold text-primary">3</div>
-                <h3 className="text-xl font-semibold">Pharmacy Dispenses</h3>
+                <h3 className="text-xl font-semibold">Aptek Təqdim Edir</h3>
                 <p className="mt-2 text-muted-foreground">
-                  Pharmacists scan and verify the prescription in real-time before dispensing.
+                  Əczaçılar dərmanı vermədən əvvəl resepti real vaxt rejimində skan edir və yoxlayır.
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        <section id="testimonials" className="w-full bg-card py-16 md:py-24">
+        <section id="testimonials" className="w-full bg-secondary/50 py-16 md:py-24">
           <div className="container">
             <div className="mx-auto mb-12 max-w-2xl text-center">
               <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
-                Trusted by Healthcare Professionals and Patients
+                Səhiyyə Mütəxəssisləri və Xəstələr Tərəfindən Etibar Edilir
               </h2>
             </div>
             <div className="grid gap-8 lg:grid-cols-3">
@@ -222,12 +222,12 @@ export default function Home() {
           <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
             <Logo />
             <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-              © {new Date().getFullYear()} SaglikNet. All rights reserved.
+              © {new Date().getFullYear()} SaglikNet. Bütün hüquqlar qorunur.
             </p>
           </div>
           <div className="flex items-center space-x-4">
-             <Link href="#" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Privacy Policy</Link>
-             <Link href="#" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Terms of Service</Link>
+             <Link href="#" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Məxfilik Siyasəti</Link>
+             <Link href="#" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Xidmət Şərtləri</Link>
           </div>
         </div>
       </footer>

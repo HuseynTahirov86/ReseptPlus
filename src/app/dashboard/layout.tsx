@@ -29,22 +29,22 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const menuItems = [
   {
     href: "/dashboard",
-    label: "Dashboard",
+    label: "İdarə Paneli",
     icon: LayoutDashboard,
   },
   {
     href: "/dashboard/patients",
-    label: "Patients",
+    label: "Xəstələr",
     icon: Users,
   },
   {
     href: "/dashboard/prescriptions",
-    label: "Prescriptions",
+    label: "Reseptlər",
     icon: ClipboardList,
   },
   {
     href: "/dashboard/suggestions",
-    label: "AI Suggestions",
+    label: "AI Təklifləri",
     icon: BrainCircuit,
   },
 ];
@@ -58,7 +58,7 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <Sidebar>
+      <Sidebar variant="inset" collapsible="icon">
         <SidebarHeader>
           <Logo />
         </SidebarHeader>
@@ -73,6 +73,10 @@ export default function DashboardLayout({
                       ? pathname === item.href
                       : pathname.startsWith(item.href)
                   }
+                  tooltip={{
+                    children: item.label,
+                    className: "bg-primary text-primary-foreground"
+                  }}
                 >
                   <Link href={item.href}>
                     <item.icon />
@@ -86,16 +90,16 @@ export default function DashboardLayout({
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton>
+              <SidebarMenuButton tooltip={{children: "Profil", className: "bg-primary text-primary-foreground"}}>
                 <User />
-                <span>Profile</span>
+                <span>Profil</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild>
+              <SidebarMenuButton asChild tooltip={{children: "Çıxış", className: "bg-primary text-primary-foreground"}}>
                 <Link href="/">
                     <LogOut />
-                    <span>Log Out</span>
+                    <span>Çıxış</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

@@ -7,8 +7,8 @@ import {
 } from '@/ai/flows/smart-medication-suggestions';
 
 const SmartMedicationSuggestionsInputSchema = z.object({
-  patientHistory: z.string().min(10, 'Patient history must be at least 10 characters.'),
-  currentMedications: z.string().min(3, 'Current medications must be at least 3 characters.'),
+  patientHistory: z.string().min(10, 'Xəstə tarixçəsi ən azı 10 simvol olmalıdır.'),
+  currentMedications: z.string().min(3, 'Cari dərmanlar ən azı 3 simvol olmalıdır.'),
   doctorNotes: z.string(),
 });
 
@@ -31,7 +31,7 @@ export async function getSuggestions(
     const { errors } = validatedFields.error;
 
     return {
-      message: "Validation failed. Please check your input.",
+      message: "Doğrulama uğursuz oldu. Zəhmət olmasa daxil etdiyiniz məlumatları yoxlayın.",
       fields: Object.fromEntries(formData.entries()),
       issues: errors.map((issue) => issue.message),
     };
@@ -39,11 +39,11 @@ export async function getSuggestions(
 
   try {
     const result = await smartMedicationSuggestions(validatedFields.data);
-    return { message: 'Suggestions generated successfully.', data: result };
+    return { message: 'Təkliflər uğurla yaradıldı.', data: result };
   } catch (error) {
     console.error(error);
     return {
-      message: 'An unexpected error occurred. Please try again.',
+      message: 'Gözlənilməz bir xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.',
       fields: Object.fromEntries(formData.entries()),
     };
   }
