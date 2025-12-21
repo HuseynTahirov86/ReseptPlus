@@ -21,8 +21,17 @@ export type Doctor = {
     lastName: string;
     specialization: string;
     hospitalId: string;
-    role: 'doctor' | 'head_doctor' | 'admin';
+    role: 'doctor' | 'head_doctor';
 };
+
+export type Admin = {
+    id: string;
+    email: string;
+    role: 'admin';
+};
+
+// Represents the combined user profile, which could be a doctor, an admin, or other types.
+export type UserProfile = (Doctor | Admin) & { role: 'doctor' | 'head_doctor' | 'admin' };
 
 export type SupportingOrganization = {
     id: string;
@@ -73,3 +82,5 @@ export type TeamMember = {
   imageUrl: string;
   imageHint: string;
 };
+
+    

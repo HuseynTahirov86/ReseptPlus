@@ -5,7 +5,7 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, getDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
-import type { Doctor } from '@/lib/types';
+import type { Doctor, Admin, UserProfile } from '@/lib/types';
 
 
 interface FirebaseProviderProps {
@@ -17,7 +17,7 @@ interface FirebaseProviderProps {
 
 // Custom user data including role
 export type AppUser = User & {
-    profile?: Partial<Doctor>;
+    profile?: Partial<UserProfile>;
 };
 
 // Internal state for user authentication and profile data
@@ -52,7 +52,7 @@ export interface FirebaseServicesAndUser {
 
 // Return type for useUser() - specific to user auth state
 export interface UserHookResult { 
-  user: App_User | null;
+  user: AppUser | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
@@ -88,15 +88,25 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       auth,
       async (firebaseUser) => { // Auth state determined
         if (firebaseUser) {
-            // Fetch user profile from Firestore
-            const userDocRef = doc(firestore, 'doctors', firebaseUser.uid);
+            let userProfile: Partial<UserProfile> | undefined = undefined;
+            // Check for admin profile first
+            const adminDocRef = doc(firestore, 'admins', firebaseUser.uid);
             try {
-              const userDoc = await getDoc(userDocRef);
-              const appUser: AppUser = {
-                ...firebaseUser,
-                profile: userDoc.exists() ? (userDoc.data() as Doctor) : undefined,
-              };
+              const adminDoc = await getDoc(adminDocRef);
+              if (adminDoc.exists()) {
+                userProfile = adminDoc.data() as Admin;
+              } else {
+                // If not an admin, check for a doctor profile
+                const userDocRef = doc(firestore, 'doctors', firebaseUser.uid);
+                const userDoc = await getDoc(userDocRef);
+                if (userDoc.exists()) {
+                    userProfile = userDoc.data() as Doctor;
+                }
+              }
+
+              const appUser: AppUser = { ...firebaseUser, profile: userProfile };
               setUserAuthState({ user: appUser, isUserLoading: false, userError: null });
+
             } catch (e) {
                console.error("FirebaseProvider: Failed to fetch user profile:", e);
                // Still provide the basic auth user even if profile fails
@@ -199,3 +209,5 @@ export const useUser = (): UserHookResult => {
   const { user, isUserLoading, userError } = useFirebase(); 
   return { user, isUserLoading, userError };
 };
+
+    

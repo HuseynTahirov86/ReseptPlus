@@ -1,29 +1,32 @@
 /**
- * This ruleset enforces a security model for an e-prescription system, primarily
- * based on user ownership and shared access for collaborative documents like
- * prescriptions. It also introduces an 'admin' role with elevated privileges.
+ * This ruleset enforces a security model for an e-prescription system. It's
+ * based on user ownership, shared access for collaborative documents, and a
+ * distinct 'admin' role with elevated privileges, now managed in a separate
+ * 'admins' collection.
  *
  * Core Philosophy:
- * The security model is designed to be strict and explicit. Data access is
- * granted on a need-to-know basis. A user can only access data directly
- * related to them. Admins are granted broader read access for oversight.
+ * The security model is strict and explicit. Access is granted on a
+ * need-to-know basis. A user can only access data directly related to them.
+ * Admins are granted broader read and write access for site management, and
+ * their roles are now checked against the `/admins/{userId}` collection.
  *
  * Data Structure:
- * The data is organized into flat, top-level collections. Roles are stored on
- * the '/doctors/{userId}' document.
+ * The data is organized into flat, top-level collections. Doctor roles are on
+ * '/doctors/{userId}' and admin roles are on '/admins/{userId}'. This
+ * separation ensures that administrative users are distinct from application
+ * (doctor) users.
  *
  * Key Security Decisions:
- * 1. Roles: An 'admin' role is introduced. This role has read-only access to most
- *    data collections for administrative and monitoring purposes. This is checked
- *    using the `isAdmin()` function.
- * 2. Patient Data: A strict user-ownership model is applied. Only the patient
- *    or an admin can read the data. Only the patient can write.
- * 3. Prescriptions: A "Shared Access" model is used. Access is granted if the user
- *    is a participant (patient, doctor, pharmacy) or an admin. Writes are restricted
- *    to the doctor.
- * 4. Reference Data: Collections like 'doctors', 'hospitals', and 'pharmacies'
- *    are readable by any authenticated user but not writable by clients, implying
- *    management by an admin process or admins themselves in the future.
+ * 1. Admin Role Separation: An 'admin' role is now checked via the `isAdmin()`
+ *    function, which reads from the `/admins` collection. This separates
+ *    content/system administrators from doctors.
+ * 2. Patient Data: Strict user-ownership model. Only the patient or an admin
+ *    can read/write.
+ * 3. Prescriptions: A "Shared Access" model. Access is granted if the user is a
+ *    participant (patient, doctor, pharmacy) or an admin. Writes are
+ *    restricted to the doctor.
+ * 4. Marketing/Public Content: Collections like `blogPosts`, `pricingPlans`,
+ *    etc., are publicly readable but writable only by admins.
  * 5. Denormalization for Authorization: Prescriptions contain denormalized UIDs
  *    to avoid slow and costly `get()` calls in rules.
  */
@@ -63,11 +66,11 @@ service cloud.firestore {
     }
     
     /**
-     * Checks if the user has the 'admin' role by reading their profile.
-     * This get() call is a single, efficient check.
+     * Checks if the user has the 'admin' role by reading their profile from
+     * the dedicated 'admins' collection.
      */
     function isAdmin() {
-      return isSignedIn() && get(/databases/$(database)/documents/doctors/$(request.auth.uid)).data.role == 'admin';
+      return isSignedIn() && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin';
     }
 
     /**
@@ -109,7 +112,7 @@ service cloud.firestore {
 
     /**
      * @description Stores doctor/user profiles. Any signed-in user can read.
-     * Admins can update any profile (e.g., to assign roles). Users can update their own.
+     * Admins can update any profile. Users can update their own.
      * @path /doctors/{doctorId}
      */
     match /doctors/{doctorId} {
@@ -118,9 +121,19 @@ service cloud.firestore {
       allow update: if isOwner(doctorId) || isAdmin();
       allow delete: if false; // Deletes handled by admin process
     }
+    
+    /**
+     * @description Stores admin user profiles. Writable only by other admins.
+     * Ensures that only admins can manage other admin roles.
+     * @path /admins/{adminId}
+     */
+    match /admins/{adminId} {
+      allow get, list, create, update, delete: if isAdmin();
+    }
+
 
     /**
-     * @description Stores hospital information. Read-only for clients.
+     * @description Stores hospital information. Read-only for clients. Writable by admin.
      * @path /hospitals/{hospitalId}
      */
     match /hospitals/{hospitalId} {
@@ -129,7 +142,7 @@ service cloud.firestore {
     }
 
     /**
-     * @description Stores pharmacy information. Read-only for clients.
+     * @description Stores pharmacy information. Read-only for clients. Writable by admin.
      * @path /pharmacies/{pharmacyId}
      */
     match /pharmacies/{pharmacyId} {
@@ -137,7 +150,7 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
 
       /**
-       * @description Manages a pharmacy's inventory. Only the pharmacy or an admin can manage it.
+       * @description Manages a pharmacy's inventory. Only the pharmacy owner or an admin can manage it.
        * @path /pharmacies/{pharmacyId}/inventory/{inventoryId}
        */
       match /inventory/{inventoryId} {
@@ -224,3 +237,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
