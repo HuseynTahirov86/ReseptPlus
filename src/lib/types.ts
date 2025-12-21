@@ -21,5 +21,7 @@ export type Doctor = {
     lastName: string;
     specialization: string;
     hospitalId: string;
-    role: 'doctor' | 'head_doctor';
+    role: 'doctor' | 'head_doctor' | 'admin';
 };
+
+    

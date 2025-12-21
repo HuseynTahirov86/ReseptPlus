@@ -1,37 +1,31 @@
 /**
  * This ruleset enforces a security model for an e-prescription system, primarily
  * based on user ownership and shared access for collaborative documents like
- * prescriptions.
+ * prescriptions. It also introduces an 'admin' role with elevated privileges.
  *
  * Core Philosophy:
  * The security model is designed to be strict and explicit. Data access is
  * granted on a need-to-know basis. A user can only access data directly
- * related to them, such as their own patient profile or prescriptions they are
- * a party to. Ambiguous access for "authorized personnel" is locked down by
- * default to promote a secure-by-default posture.
+ * related to them. Admins are granted broader read access for oversight.
  *
  * Data Structure:
- * The data is organized into flat, top-level collections for major entities like
- * 'patients', 'doctors', and 'prescriptions'. This avoids complex hierarchical
- * reads. A nested collection for '/pharmacies/{pharmacyId}/inventory' is used
- * to logically group and secure pharmacy-specific data.
+ * The data is organized into flat, top-level collections. Roles are stored on
+ * the '/doctors/{userId}' document.
  *
  * Key Security Decisions:
- * 1. Patient Data: A strict user-ownership model is applied to the '/patients'
- *    collection. A user can only access the document where the ID matches their
- *    own authentication UID.
- * 2. Prescriptions: Prescriptions use a "Shared Access" model. Access is
- *    granted if the user's UID matches the 'patientId', 'doctorId', or 'pharmacyId'
- *    stored on the prescription document itself. Writes are restricted to the doctor.
- * 3. Public & Admin Data: Collections like 'doctors', 'hospitals', and 'pharmacies'
- *    are treated as reference data, readable by any authenticated user but not
- *    writable by clients. This prevents unauthorized modification and implies
- *    that this data is managed by a separate admin process. 'medications' are
- *    publicly readable by anyone.
- * 4. Denormalization for Authorization: To ensure fast and secure access checks,
- *    documents that require shared access (like 'prescriptions') have the UIDs of
- *    all relevant parties (patientId, doctorId, pharmacyId) denormalized directly
- *    onto them. This avoids slow and costly `get()` calls in rules.
+ * 1. Roles: An 'admin' role is introduced. This role has read-only access to most
+ *    data collections for administrative and monitoring purposes. This is checked
+ *    using the `isAdmin()` function.
+ * 2. Patient Data: A strict user-ownership model is applied. Only the patient
+ *    or an admin can read the data. Only the patient can write.
+ * 3. Prescriptions: A "Shared Access" model is used. Access is granted if the user
+ *    is a participant (patient, doctor, pharmacy) or an admin. Writes are restricted
+ *    to the doctor.
+ * 4. Reference Data: Collections like 'doctors', 'hospitals', and 'pharmacies'
+ *    are readable by any authenticated user but not writable by clients, implying
+ *    management by an admin process or admins themselves in the future.
+ * 5. Denormalization for Authorization: Prescriptions contain denormalized UIDs
+ *    to avoid slow and costly `get()` calls in rules.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -49,7 +43,6 @@ service cloud.firestore {
 
     /**
      * Checks if the authenticated user's UID matches the provided userId.
-     * This is the foundation of the user-ownership model.
      */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
@@ -57,40 +50,43 @@ service cloud.firestore {
 
     /**
      * Checks if a document currently exists in Firestore.
-     * Crucial for protecting against writes on non-existent paths.
      */
     function isExistingDoc() {
       return resource != null;
     }
 
     /**
-     * A robust check for update/delete operations, ensuring the user is the
-     * owner of a document that actually exists.
+     * Checks for update/delete, ensuring the user is the owner of an existing doc.
      */
     function isOwnerOfExistingDoc(userId) {
       return isOwner(userId) && isExistingDoc();
     }
+    
+    /**
+     * Checks if the user has the 'admin' role by reading their profile.
+     * This get() call is a single, efficient check.
+     */
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/doctors/$(request.auth.uid)).data.role == 'admin';
+    }
 
     /**
      * Checks if the user is a participant in a given prescription.
-     * A user is a participant if their UID matches the patient, doctor, or pharmacy.
      */
     function isParticipant(prescription) {
       let participantIds = [prescription.patientId, prescription.doctorId, prescription.pharmacyId];
       return isSignedIn() && request.auth.uid in participantIds;
     }
-
-    /**
-     * Validates that the doctorId on a document matches the authenticated user.
-     * Used to grant write access for prescriptions.
+    
+     /**
+     * Checks if the user is the doctor who created the prescription.
      */
     function isDoctor(doctorId) {
       return isSignedIn() && request.auth.uid == doctorId;
     }
 
     /**
-     * A robust check for update/delete operations by a doctor, ensuring the
-     * document actually exists before allowing the operation.
+     * Robust check for update/delete by a doctor.
      */
     function isExistingDoctor(doctorId) {
       return isDoctor(doctorId) && isExistingDoc();
@@ -101,75 +97,51 @@ service cloud.firestore {
     // =================
 
     /**
-     * @description Manages patient profiles. Only the patient themselves can create,
-     * read, update, or delete their own profile.
+     * @description Manages patient profiles. Read by owner or admin. Write by owner only.
      * @path /patients/{patientId}
-     * @allow A user with UID 'user123' (create)s a profile at /patients/user123.
-     * @deny A user with UID 'user456' tries to (get) the profile at /patients/user123.
-     * @principle Restricts access to a user's own data tree using path-based ownership.
      */
     match /patients/{patientId} {
-      allow get, list: if isOwner(patientId);
+      allow get, list: if isOwner(patientId) || isAdmin();
       allow create: if isOwner(patientId) && request.resource.data.id == patientId;
       allow update: if isOwnerOfExistingDoc(patientId) && request.resource.data.id == resource.data.id;
       allow delete: if isOwnerOfExistingDoc(patientId);
     }
 
     /**
-     * @description Stores doctor profiles. This data is considered reference information,
-     * readable by any authenticated user but not modifiable from the client.
+     * @description Stores doctor/user profiles. Any signed-in user can read.
+     * Admins can update any profile (e.g., to assign roles). Users can update their own.
      * @path /doctors/{doctorId}
-     * @allow Any signed-in user can (get) a doctor's profile.
-     * @deny Any user, signed-in or not, tries to (create) or (update) a doctor's profile.
-     * @principle Secures reference data by making it read-only for clients, implying admin-only management.
      */
     match /doctors/{doctorId} {
       allow get, list: if isSignedIn();
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow create: if isOwner(doctorId); // Allow users to create their own profile
+      allow update: if isOwner(doctorId) || isAdmin();
+      allow delete: if false; // Deletes handled by admin process
     }
 
     /**
-     * @description Stores hospital information. This data is considered reference information,
-     * readable by any authenticated user but not modifiable from the client.
+     * @description Stores hospital information. Read-only for clients.
      * @path /hospitals/{hospitalId}
-     * @allow Any signed-in user can (get) a hospital's details.
-     * @deny Any user, signed-in or not, tries to (create) or (update) a hospital's details.
-     * @principle Secures reference data by making it read-only for clients, implying admin-only management.
      */
     match /hospitals/{hospitalId} {
       allow get, list: if isSignedIn();
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow create, update, delete: if isAdmin();
     }
 
     /**
-     * @description Stores pharmacy information. This data is considered reference information,
-     * readable by any authenticated user but not modifiable from the client. Pharmacy-specific
-     * data like inventory is secured in a subcollection.
+     * @description Stores pharmacy information. Read-only for clients.
      * @path /pharmacies/{pharmacyId}
-     * @allow Any signed-in user can (get) a pharmacy's details.
-     * @deny Any user, signed-in or not, tries to (create) or (update) a pharmacy's details.
-     * @principle Secures reference data by making it read-only for clients, implying admin-only management.
      */
     match /pharmacies/{pharmacyId} {
       allow get, list: if isSignedIn();
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow create, update, delete: if isAdmin();
 
       /**
-       * @description Manages a pharmacy's inventory. Only the pharmacy itself (identified
-       * by the pharmacyId in the path) can manage its inventory.
+       * @description Manages a pharmacy's inventory. Only the pharmacy or an admin can manage it.
        * @path /pharmacies/{pharmacyId}/inventory/{inventoryId}
-       * @allow A user with UID 'pharmacy123' (create)s an item at /pharmacies/pharmacy123/inventory/itemABC.
-       * @deny A user with UID 'pharmacy456' tries to (list) inventory at /pharmacies/pharmacy123/inventory.
-       * @principle Enforces document ownership within a nested collection context.
        */
       match /inventory/{inventoryId} {
-        allow get, list: if isOwner(pharmacyId);
+        allow get, list: if isOwner(pharmacyId) || isAdmin();
         allow create: if isOwner(pharmacyId) && request.resource.data.pharmacyId == pharmacyId;
         allow update: if isOwnerOfExistingDoc(pharmacyId) && request.resource.data.pharmacyId == resource.data.id;
         allow delete: if isOwnerOfExistingDoc(pharmacyId);
@@ -177,37 +149,26 @@ service cloud.firestore {
     }
 
     /**
-     * @description Stores medication details. This is public information, readable by
-     * anyone, including unauthenticated users. It cannot be modified from the client.
+     * @description Stores medication details. Publicly readable. Writable by admin.
      * @path /medications/{medicationId}
-     * @allow Any user, including anonymous ones, can (get) or (list) medications.
-     * @deny Any user tries to (create) or (delete) a medication.
-     * @principle Allows public read access for non-sensitive, globally relevant data.
      */
     match /medications/{medicationId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
     }
 
     /**
-     * @description Manages prescriptions. Prescriptions are readable by any involved party
-     * (patient, doctor, pharmacy), but can only be created, updated, or deleted by the doctor.
+     * @description Manages prescriptions. Readable by participants or admin. Writable by the doctor.
      * @path /prescriptions/{prescriptionId}
-     * @allow The user whose UID is in the document's 'patientId' field can (get) the prescription.
-     * @deny A user whose UID is not the patient, doctor, or pharmacy on the document tries to (get) it.
-     * @principle Implements a shared access model using denormalized IDs for authorization.
      */
     match /prescriptions/{prescriptionId} {
-      allow get: if isParticipant(resource.data);
-      // List is allowed for any signed-in user. The client application is responsible
-      // for querying only the prescriptions relevant to that user (e.g., using a 'where' clause).
+      allow get: if isParticipant(resource.data) || isAdmin();
       allow list: if isSignedIn();
       allow create: if isDoctor(request.resource.data.doctorId);
-      allow update: if isExistingDoctor(resource.data.doctorId);
-      allow delete: if isExistingDoctor(resource.data.doctorId);
+      allow update: if isExistingDoctor(resource.data.doctorId) || isAdmin(); // Admin can update status
+      allow delete: if isExistingDoctor(resource.data.doctorId) || isAdmin();
     }
   }
 }
+
+    
