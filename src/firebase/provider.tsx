@@ -2,7 +2,7 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, getDoc } from 'firebase/firestore';
+import { Firestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import type { Doctor, Admin, UserProfile } from '@/lib/types';
@@ -60,6 +60,9 @@ export interface UserHookResult {
 // React Context
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
 
+// Special email for the first admin
+const SUPER_ADMIN_EMAIL = 'admin@sagliknet.az';
+
 /**
  * FirebaseProvider manages and provides Firebase services and user authentication state.
  */
@@ -89,26 +92,44 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       async (firebaseUser) => { // Auth state determined
         if (firebaseUser) {
             let userProfile: Partial<UserProfile> | undefined = undefined;
-            // Check for admin profile first
-            const adminDocRef = doc(firestore, 'admins', firebaseUser.uid);
+            
             try {
-              const adminDoc = await getDoc(adminDocRef);
-              if (adminDoc.exists()) {
-                userProfile = adminDoc.data() as Admin;
-              } else {
-                // If not an admin, check for a doctor profile
-                const userDocRef = doc(firestore, 'doctors', firebaseUser.uid);
-                const userDoc = await getDoc(userDocRef);
-                if (userDoc.exists()) {
-                    userProfile = userDoc.data() as Doctor;
+                // SUPER ADMIN CHECK: If the user email matches the super admin email, ensure they have an admin doc.
+                if (firebaseUser.email === SUPER_ADMIN_EMAIL) {
+                    const adminDocRef = doc(firestore, 'admins', firebaseUser.uid);
+                    const adminDoc = await getDoc(adminDocRef);
+                    if (!adminDoc.exists()) {
+                        // This is the first time the super admin is logging in.
+                        // Let's create their admin record in Firestore.
+                        const newAdminProfile: Admin = {
+                            id: firebaseUser.uid,
+                            email: firebaseUser.email,
+                            role: 'admin',
+                        };
+                        await setDoc(adminDocRef, newAdminProfile);
+                        console.log('Super admin document created for:', firebaseUser.email);
+                        userProfile = newAdminProfile;
+                    }
                 }
-              }
+                
+                // Fetch user profile from either 'admins' or 'doctors' collection
+                const adminDocRef = doc(firestore, 'admins', firebaseUser.uid);
+                const adminDoc = await getDoc(adminDocRef);
+                if (adminDoc.exists()) {
+                    userProfile = adminDoc.data() as Admin;
+                } else {
+                    const userDocRef = doc(firestore, 'doctors', firebaseUser.uid);
+                    const userDoc = await getDoc(userDocRef);
+                    if (userDoc.exists()) {
+                        userProfile = userDoc.data() as Doctor;
+                    }
+                }
 
-              const appUser: AppUser = { ...firebaseUser, profile: userProfile };
-              setUserAuthState({ user: appUser, isUserLoading: false, userError: null });
+                const appUser: AppUser = { ...firebaseUser, profile: userProfile };
+                setUserAuthState({ user: appUser, isUserLoading: false, userError: null });
 
             } catch (e) {
-               console.error("FirebaseProvider: Failed to fetch user profile:", e);
+               console.error("FirebaseProvider: Failed to fetch or create user profile:", e);
                // Still provide the basic auth user even if profile fails
                setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: e instanceof Error ? e : new Error('Failed to fetch user profile') });
             }
@@ -209,5 +230,3 @@ export const useUser = (): UserHookResult => {
   const { user, isUserLoading, userError } = useFirebase(); 
   return { user, isUserLoading, userError };
 };
-
-    
