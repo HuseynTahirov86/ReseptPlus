@@ -25,6 +25,7 @@ export default function MarketingFooter() {
             <h4 className="mb-4 font-semibold">Şirkət</h4>
             <ul className="space-y-2">
               <li><Link href="/haqqimizda" className="text-sm text-muted-foreground hover:text-foreground">Haqqımızda</Link></li>
+              <li><Link href="/partnyorlar" className="text-sm text-muted-foreground hover:text-foreground">Partnyorlar</Link></li>
               <li><Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground">Blog</Link></li>
               <li><Link href="/elaqe" className="text-sm text-muted-foreground hover:text-foreground">Əlaqə</Link></li>
             </ul>
@@ -44,5 +45,3 @@ export default function MarketingFooter() {
     </footer>
   );
 }
-
-    

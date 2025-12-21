@@ -12,6 +12,7 @@ const navLinks = [
   { href: "/", label: "Ana Səhifə" },
   { href: "/haqqimizda", label: "Haqqımızda" },
   { href: "/mehsulumuz", label: "Məhsulumuz" },
+  { href: "/partnyorlar", label: "Partnyorlar" },
   { href: "/qiymetler", label: "Qiymətlər" },
   { href: "/blog", label: "Blog" },
   { href: "/elaqe", label: "Əlaqə" },
@@ -82,5 +83,3 @@ export default function MarketingHeader() {
     </header>
   );
 }
-
-    
