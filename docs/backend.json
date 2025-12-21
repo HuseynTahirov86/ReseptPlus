@@ -1,0 +1,438 @@
+{
+  "entities": {
+    "Patient": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Patient",
+      "type": "object",
+      "description": "Represents a patient in the system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Patient entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "Patient's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Patient's last name."
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "description": "Patient's date of birth.",
+          "format": "date-time"
+        },
+        "gender": {
+          "type": "string",
+          "description": "Patient's gender."
+        },
+        "contactNumber": {
+          "type": "string",
+          "description": "Patient's contact phone number."
+        },
+        "email": {
+          "type": "string",
+          "description": "Patient's email address.",
+          "format": "email"
+        },
+        "address": {
+          "type": "string",
+          "description": "Patient's address."
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "dateOfBirth",
+        "gender",
+        "contactNumber",
+        "email",
+        "address"
+      ]
+    },
+    "Doctor": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Doctor",
+      "type": "object",
+      "description": "Represents a doctor in the system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Doctor entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "Doctor's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Doctor's last name."
+        },
+        "specialization": {
+          "type": "string",
+          "description": "Doctor's specialization."
+        },
+        "contactNumber": {
+          "type": "string",
+          "description": "Doctor's contact phone number."
+        },
+        "email": {
+          "type": "string",
+          "description": "Doctor's email address.",
+          "format": "email"
+        },
+        "hospitalId": {
+          "type": "string",
+          "description": "Reference to Hospital. (Relationship: Hospital 1:N Doctor)"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "specialization",
+        "contactNumber",
+        "email",
+        "hospitalId"
+      ]
+    },
+    "Hospital": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Hospital",
+      "type": "object",
+      "description": "Represents a hospital in the system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Hospital entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Hospital's name."
+        },
+        "address": {
+          "type": "string",
+          "description": "Hospital's address."
+        },
+        "contactNumber": {
+          "type": "string",
+          "description": "Hospital's contact phone number."
+        },
+        "email": {
+          "type": "string",
+          "description": "Hospital's email address.",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "address",
+        "contactNumber",
+        "email"
+      ]
+    },
+    "Pharmacy": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Pharmacy",
+      "type": "object",
+      "description": "Represents a pharmacy in the system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Pharmacy entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Pharmacy's name."
+        },
+        "address": {
+          "type": "string",
+          "description": "Pharmacy's address."
+        },
+        "contactNumber": {
+          "type": "string",
+          "description": "Pharmacy's contact phone number."
+        },
+        "email": {
+          "type": "string",
+          "description": "Pharmacy's email address.",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "address",
+        "contactNumber",
+        "email"
+      ]
+    },
+    "Medication": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Medication",
+      "type": "object",
+      "description": "Represents a medication in the system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Medication entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Medication's name."
+        },
+        "dosage": {
+          "type": "string",
+          "description": "Medication's dosage."
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit of measurement for the medication (e.g., mg, ml)."
+        },
+        "form": {
+          "type": "string",
+          "description": "Medication's form (e.g., tablet, capsule, liquid)."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "dosage",
+        "unit",
+        "form"
+      ]
+    },
+    "Prescription": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Prescription",
+      "type": "object",
+      "description": "Represents a prescription in the system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Prescription entity."
+        },
+        "patientId": {
+          "type": "string",
+          "description": "Reference to Patient. (Relationship: Patient 1:N Prescription)"
+        },
+        "doctorId": {
+          "type": "string",
+          "description": "Reference to Doctor. (Relationship: Doctor 1:N Prescription)"
+        },
+        "pharmacyId": {
+          "type": "string",
+          "description": "Reference to Pharmacy. (Relationship: Pharmacy 1:N Prescription)"
+        },
+        "medicationId": {
+          "type": "string",
+          "description": "Reference to Medication. (Relationship: Medication 1:N Prescription)"
+        },
+        "datePrescribed": {
+          "type": "string",
+          "description": "Date the prescription was prescribed.",
+          "format": "date-time"
+        },
+        "dosage": {
+          "type": "string",
+          "description": "Dosage of the medication prescribed."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the medication prescribed."
+        },
+        "refills": {
+          "type": "number",
+          "description": "Number of refills allowed for the prescription."
+        },
+        "instructions": {
+          "type": "string",
+          "description": "Additional instructions for the patient."
+        },
+        "verificationCode": {
+          "type": "string",
+          "description": "Verification code of the prescription. Used to verify the OTP."
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "doctorId",
+        "pharmacyId",
+        "medicationId",
+        "datePrescribed",
+        "dosage",
+        "quantity",
+        "refills",
+        "instructions",
+        "verificationCode"
+      ]
+    },
+    "Inventory": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Inventory",
+      "type": "object",
+      "description": "Represents the inventory of a pharmacy.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Inventory entity."
+        },
+        "pharmacyId": {
+          "type": "string",
+          "description": "Reference to Pharmacy. (Relationship: Pharmacy 1:N Inventory)"
+        },
+        "medicationId": {
+          "type": "string",
+          "description": "Reference to Medication. (Relationship: Medication 1:N Inventory)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the medication in stock."
+        },
+        "expirationDate": {
+          "type": "string",
+          "description": "Expiration date of the medication.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "pharmacyId",
+        "medicationId",
+        "quantity",
+        "expirationDate"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/patients/{patientId}",
+        "definition": {
+          "entityName": "Patient",
+          "schema": {
+            "$ref": "#/backend/entities/Patient"
+          },
+          "description": "Stores patient profiles. Path-based ownership ensures only the authenticated user (or authorized personnel) can access their profile data.",
+          "params": [
+            {
+              "name": "patientId",
+              "description": "The unique identifier for the patient."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/doctors/{doctorId}",
+        "definition": {
+          "entityName": "Doctor",
+          "schema": {
+            "$ref": "#/backend/entities/Doctor"
+          },
+          "description": "Stores doctor profiles. Accessible to authorized personnel.",
+          "params": [
+            {
+              "name": "doctorId",
+              "description": "The unique identifier for the doctor."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/hospitals/{hospitalId}",
+        "definition": {
+          "entityName": "Hospital",
+          "schema": {
+            "$ref": "#/backend/entities/Hospital"
+          },
+          "description": "Stores hospital information. Accessible to authorized personnel.",
+          "params": [
+            {
+              "name": "hospitalId",
+              "description": "The unique identifier for the hospital."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/pharmacies/{pharmacyId}",
+        "definition": {
+          "entityName": "Pharmacy",
+          "schema": {
+            "$ref": "#/backend/entities/Pharmacy"
+          },
+          "description": "Stores pharmacy information. Accessible to authorized personnel.",
+          "params": [
+            {
+              "name": "pharmacyId",
+              "description": "The unique identifier for the pharmacy."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/medications/{medicationId}",
+        "definition": {
+          "entityName": "Medication",
+          "schema": {
+            "$ref": "#/backend/entities/Medication"
+          },
+          "description": "Stores medication details. Publicly accessible or restricted to authorized personnel.",
+          "params": [
+            {
+              "name": "medicationId",
+              "description": "The unique identifier for the medication."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/prescriptions/{prescriptionId}",
+        "definition": {
+          "entityName": "Prescription",
+          "schema": {
+            "$ref": "#/backend/entities/Prescription"
+          },
+          "description": "Stores prescription data. Includes denormalized `patientId`, `doctorId`, and `pharmacyId` to enable authorization independence. Accessible to the patient, doctor, and pharmacy involved in the prescription.",
+          "params": [
+            {
+              "name": "prescriptionId",
+              "description": "The unique identifier for the prescription."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/pharmacies/{pharmacyId}/inventory/{inventoryId}",
+        "definition": {
+          "entityName": "Inventory",
+          "schema": {
+            "$ref": "#/backend/entities/Inventory"
+          },
+          "description": "Stores inventory information for each pharmacy. The `pharmacyId` parameter in the path ensures only the pharmacy can access this data.",
+          "params": [
+            {
+              "name": "pharmacyId",
+              "description": "The unique identifier for the pharmacy."
+            },
+            {
+              "name": "inventoryId",
+              "description": "The unique identifier for the inventory item."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to support a secure and scalable e-prescription system (SaglikNet) connecting patients, doctors, hospitals, and pharmacies. Key considerations include authorization independence, data segregation, and clear access control.\n\n1.  **Authorization Independence:** The design avoids hierarchical `get()` calls in security rules by denormalizing relevant authorization data directly into documents. For example, prescriptions store `patientId`, `doctorId`, and `pharmacyId` to facilitate independent authorization checks without needing to retrieve parent documents.\n\n2.  **Data Segregation:** Different data types with distinct access requirements are stored in separate collections. This simplifies security rules. For instance, patient profiles reside in `/patients/{patientId}`, while prescriptions are in `/prescriptions/{prescriptionId}`. This segregation allows for granular control over who can access each type of data.\n\n3.  **Access Control:** Path-based ownership is used for patient data (`/patients/{patientId}`). Prescriptions, while not directly owned by users, incorporate relevant IDs for secure access control.\n\n4.  **QAPs Support:**\n    *   `list` operations are secured by ensuring each collection has a homogeneous security posture (all documents in the same collection share the same access rules).\n\n5. **Invariants:**\n* The structure supports the integrity of ownership, timestamps, and denormalized data by making it straightforward to write rules that enforce restrictions.\n\nThis structure prioritizes simplicity and security, resulting in more robust and maintainable security rules."
+  }
+}
