@@ -2,11 +2,11 @@
 
 import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
 import { collection } from "firebase/firestore";
-import { ClientCompany, SupportingOrganization } from "@/lib/types";
+import type { ClientCompany, SupportingOrganization } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MoreHorizontal, PlusCircle, Trash2, Edit } from "lucide-react";
 import Image from "next/image";
 import { PartnerForm } from "./partner-form";
