@@ -14,6 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import type { SupportingOrganization, ClientCompany } from '@/lib/types';
 import { Textarea } from '@/components/ui/textarea';
+import { MediaLibraryPicker } from '../media/media-library-picker';
 
 const PartnerSchema = z.object({
   id: z.string().optional(),
@@ -120,9 +121,12 @@ export function PartnerForm({ partnerType, initialData, onFormSubmit }: PartnerF
           render={({ field }) => (
             <FormItem>
               <FormLabel>Loqo URL</FormLabel>
-              <FormControl>
-                <Input placeholder="https://example.com/logo.png" {...field} />
-              </FormControl>
+               <div className="flex gap-2">
+                <FormControl>
+                  <Input placeholder="https://example.com/logo.png" {...field} />
+                </FormControl>
+                <MediaLibraryPicker onSelect={(url) => field.onChange(url)} />
+              </div>
               <FormMessage />
             </FormItem>
           )}
@@ -133,5 +137,3 @@ export function PartnerForm({ partnerType, initialData, onFormSubmit }: PartnerF
     </Form>
   );
 }
-
-    

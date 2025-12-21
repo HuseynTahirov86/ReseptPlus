@@ -8,12 +8,13 @@ import { useEffect } from 'react';
 
 import { addPost, updatePost, type FormState } from './actions';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import type { BlogPost } from '@/lib/types';
 import { Textarea } from '@/components/ui/textarea';
+import { MediaLibraryPicker } from '../media/media-library-picker';
 
 const PostSchema = z.object({
   id: z.string().optional(),
@@ -142,39 +143,43 @@ export function PostForm({ initialData, onFormSubmit }: PostFormProps) {
             </FormItem>
           )}
         />
-        <div className="grid grid-cols-2 gap-4">
-            <FormField
+        
+        <FormField
             control={form.control}
             name="imageUrl"
             render={({ field }) => (
                 <FormItem>
-                <FormLabel>Şəkil URL</FormLabel>
-                <FormControl>
-                    <Input placeholder="https://example.com/image.png" {...field} />
-                </FormControl>
-                <FormMessage />
+                    <FormLabel>Şəkil URL</FormLabel>
+                    <div className="flex gap-2">
+                        <FormControl>
+                            <Input placeholder="https://example.com/image.png" {...field} />
+                        </FormControl>
+                         <MediaLibraryPicker onSelect={(url) => field.onChange(url)} />
+                    </div>
+                    <FormMessage />
                 </FormItem>
             )}
-            />
-             <FormField
+        />
+
+        <FormField
             control={form.control}
             name="imageHint"
             render={({ field }) => (
                 <FormItem>
-                <FormLabel>AI Şəkil İpucu (optional)</FormLabel>
-                <FormControl>
-                    <Input placeholder="digital health" {...field} />
-                </FormControl>
-                <FormMessage />
+                    <FormLabel>AI Şəkil İpucu (optional)</FormLabel>
+                    <FormControl>
+                        <Input placeholder="digital health" {...field} />
+                    </FormControl>
+                     <FormDescription>
+                        Bu sahə gələcəkdə AI tərəfindən şəkillərin avtomatik tapılması üçün istifadə ediləcək. Məs: "doctor with patient"
+                    </FormDescription>
+                    <FormMessage />
                 </FormItem>
             )}
-            />
-        </div>
+        />
         
         <SubmitButton isEditing={isEditing} />
       </form>
     </Form>
   );
 }
-
-    
