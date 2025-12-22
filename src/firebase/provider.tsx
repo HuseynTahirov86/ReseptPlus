@@ -98,23 +98,32 @@ const RedirectHandler = () => {
 
     const isAdminPage = pathname.startsWith('/admin');
     const isDashboardPage = pathname.startsWith('/dashboard');
+    const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/admin/login');
 
     if (user) {
       const role = user.profile?.role;
-      if (role === 'admin' || role === 'system_admin') {
-        // If user is admin and not already in admin section, redirect to admin dashboard
-        if (!isAdminPage) {
+      // If user is on an auth page, redirect them away
+      if (isAuthPage) {
+        if (role === 'admin' || role === 'system_admin') {
           router.push('/admin/dashboard');
-        }
-      } else if (role === 'doctor' || role === 'head_doctor' || role === 'pharmacist' || role === 'head_pharmacist') {
-        // If user is a doctor/pharmacist and not already in doctor dashboard, redirect there
-        if (!isDashboardPage) {
+        } else {
           router.push('/dashboard');
         }
+        return;
       }
+      
+      // If user is not on the correct page for their role, redirect them
+      if ((role === 'admin' || role === 'system_admin') && !isAdminPage) {
+         router.push('/admin/dashboard');
+      } else if (role && ['doctor', 'head_doctor', 'pharmacist', 'head_pharmacist', 'employee'].includes(role) && !isDashboardPage) {
+         router.push('/dashboard');
+      }
+
     } else {
       // If no user is logged in, and they are trying to access a protected route, redirect to login
-      if (isAdminPage || isDashboardPage) {
+      if (isAdminPage) {
+        router.push('/admin/login');
+      } else if (isDashboardPage) {
         router.push('/login');
       }
     }
