@@ -1,8 +1,10 @@
-// "use server" direktivini silin
-import { initializeApp, getApps, getApp, cert } from 'firebase-admin/app';
+import { initializeApp, getApps, getApp, App, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { config } from 'dotenv';
+config();
 
-// Bu, tətbiqin yalnız bir dəfə işə salınmasını təmin edir.
+let dbInstance: any;
+
 if (!getApps().length) {
     try {
         initializeApp({
