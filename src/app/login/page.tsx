@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Logo } from '@/components/logo';
+import { createDoctorUser } from './actions';
 
 function AuthForm() {
   const auth = useAuth();
@@ -34,24 +35,33 @@ function AuthForm() {
     setError(null);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // The redirection is now handled by the FirebaseProvider
+      // Uğurlu girişdən sonra yönləndirməni FirebaseProvider həll edir
     } catch (e: any) {
-      switch (e.code) {
-        case 'auth/user-not-found':
-          setError('Bu email ilə hesab tapılmadı.');
-          break;
-        case 'auth/wrong-password':
-          setError('Yanlış şifrə. Zəhmət olmasa, yenidən cəhd edin.');
-          break;
-        case 'auth/invalid-email':
-          setError('Zəhmət olmasa, düzgün bir email adresi daxil edin.');
-          break;
-        case 'auth/invalid-credential':
-          setError('Email və ya şifrə yanlışdır.');
-          break;
-        default:
-          setError('Gözlənilməz bir xəta baş verdi. Zəhmət olmasa, yenidən cəhd edin.');
-          break;
+      // Əgər istifadəçi tapılmasa, test üçün yeni həkim hesabı yaradırıq
+      if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
+        const result = await createDoctorUser(email, password);
+        if ('error' in result) {
+            setError(result.error);
+        } else {
+            // Yeni istifadəçi yaradıldıqdan sonra yenidən daxil olmağa cəhd edirik
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (loginError: any) {
+                 setError(loginError.message || 'Yeni hesab yaradıldıqdan sonra daxil olmaq mümkün olmadı.');
+            }
+        }
+      } else {
+         switch (e.code) {
+            case 'auth/wrong-password':
+            setError('Yanlış şifrə. Zəhmət olmasa, yenidən cəhd edin.');
+            break;
+            case 'auth/invalid-email':
+            setError('Zəhmət olmasa, düzgün bir email adresi daxil edin.');
+            break;
+            default:
+            setError('Gözlənilməz bir xəta baş verdi: ' + e.message);
+            break;
+        }
       }
     } finally {
       setLoading(false);
@@ -66,7 +76,9 @@ function AuthForm() {
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Hesabınıza daxil olun</CardTitle>
-        <CardDescription>İdarəetmə panelinə daxil olmaq üçün məlumatlarınızı daxil edin.</CardDescription>
+        <CardDescription>
+            İdarəetmə panelinə daxil olmaq üçün məlumatlarınızı daxil edin. Test üçün istədiyiniz email və şifrəni yazın, sistem sizin üçün avtomatik olaraq həkim hesabı yaradacaq.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {error && (
@@ -78,17 +90,17 @@ function AuthForm() {
         )}
         <div className="space-y-2">
           <Label htmlFor="login-email">Email</Label>
-          <Input id="login-email" type="email" placeholder="email@nümunə.com" value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} />
+          <Input id="login-email" type="email" placeholder="hekim@test.com" value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="login-password">Şifrə</Label>
-          <Input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
+          <Input id="login-password" type="password" placeholder="şifrə (ən az 6 simvol)" value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
         </div>
       </CardContent>
       <CardFooter>
         <Button className="w-full" onClick={handleLogin} disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {loading ? "Gözləyin..." : "Daxil Ol"}
+            {loading ? "Gözləyin..." : "Daxil Ol və ya Hesab Yarat"}
         </Button>
       </CardFooter>
     </Card>
@@ -101,9 +113,10 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (!isUserLoading && user) {
-            if (user.profile?.role === 'admin') {
+            const role = user.profile?.role;
+            if (role === 'admin' || role === 'system_admin') {
                 router.push('/admin/dashboard');
-            } else {
+            } else if (role === 'doctor' || role === 'head_doctor') {
                 router.push('/dashboard');
             }
         }

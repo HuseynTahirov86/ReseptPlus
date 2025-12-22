@@ -6,7 +6,7 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
-import type { Doctor, Admin, UserProfile } from '@/lib/types';
+import type { Doctor, Admin, UserProfile, SystemAdmin } from '@/lib/types';
 import { usePathname, useRouter } from 'next/navigation';
 
 
@@ -80,12 +80,13 @@ const RedirectHandler = () => {
     const isDashboardPage = pathname.startsWith('/dashboard');
 
     if (user) {
-      if (user.profile?.role === 'admin' || user.profile?.role === 'system_admin') {
+      const role = user.profile?.role;
+      if (role === 'admin' || role === 'system_admin') {
         // If user is admin and not already in admin section, redirect to admin dashboard
         if (!isAdminPage) {
           router.push('/admin/dashboard');
         }
-      } else {
+      } else if (role === 'doctor' || role === 'head_doctor') {
         // If user is a doctor/head_doctor and not already in doctor dashboard, redirect there
         if (!isDashboardPage) {
           router.push('/dashboard');
@@ -150,26 +151,24 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                         break; // Stop after finding the first matching profile
                     }
                 }
-
+                
                 // Super Admin check: If it's the super admin's first login, create their admin profile.
                 if (!profileFound && firebaseUser.email === SUPER_ADMIN_EMAIL) {
-                    const adminDocRef = doc(firestore, 'admins', firebaseUser.uid);
-                    const newAdminProfile: Admin = {
+                    const adminDocRef = doc(firestore, 'systemAdmins', firebaseUser.uid);
+                    const newAdminProfile: SystemAdmin = {
                         id: firebaseUser.uid,
                         email: firebaseUser.email,
-                        role: 'admin',
+                        role: 'system_admin',
                     };
                     await setDoc(adminDocRef, newAdminProfile);
                     console.log('Super admin document created for:', firebaseUser.email);
                     userProfile = newAdminProfile;
                 }
 
+
                 if (!userProfile) {
-                    // If no profile is found after checking all collections, the user is unauthorized.
-                    console.warn(`No profile found for user ${firebaseUser.uid} in any collection. This user is unauthorized.`);
-                    // We can either sign them out or leave them with a basic user object without a profile.
-                    // For this system, we'll let them be authenticated but without a profile,
-                    // and access control will be handled by UI and security rules.
+                    // If no profile is found after checking all collections, the user might be unauthorized.
+                    console.warn(`No profile found for user ${firebaseUser.uid} in any collection.`);
                 }
 
                 const appUser: AppUser = { ...firebaseUser, profile: userProfile };
