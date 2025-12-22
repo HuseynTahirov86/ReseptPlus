@@ -16,11 +16,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Prescription, Doctor, AppUser } from "@/lib/types";
-import { ClipboardList, Users, RefreshCw, UserCheck, Pill, Building, Loader2 } from "lucide-react";
+import { ClipboardList, Users, RefreshCw, UserCheck, Pill, Building, Loader2, Hospital } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser, useFirebase } from "@/firebase";
-import { collection, getCountFromServer, query, where } from "firebase/firestore";
+import { collection, getCountFromServer, query, where, getDocs, limit, orderBy } from "firebase/firestore";
 
 const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
     'Təhvil verildi': 'default',
@@ -28,18 +28,16 @@ const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' } 
     'Ləğv edildi': 'destructive'
 };
 
-interface DashboardClientPageProps {
-    initialUser: AppUser | null;
-    initialPrescriptions: Prescription[];
-    initialStats: {
-        prescriptions: number;
-        patients: number;
-        doctors: number;
-        inventoryCount: number;
-    }
+interface Stats {
+    prescriptions: number;
+    patients: number;
+    doctors: number;
+    inventoryCount: number;
+    pendingPrescriptions: number;
+    hospitalName?: string;
 }
 
-function DoctorDashboard({ user, stats, prescriptions, isLoading }: { user: AppUser | null, stats: any, prescriptions: Prescription[], isLoading: boolean }) {
+function DoctorDashboard({ user, stats, prescriptions, isLoading }: { user: AppUser | null, stats: Stats, prescriptions: Prescription[], isLoading: boolean }) {
     const userRole = user?.profile?.role;
     const welcomeMessage = user ? `Xoş gəlmisiniz, Dr. ${user.profile?.lastName || user.email}!` : "Xoş gəlmisiniz!";
     
@@ -49,7 +47,7 @@ function DoctorDashboard({ user, stats, prescriptions, isLoading }: { user: AppU
                 <h1 className="text-3xl font-bold tracking-tight">{welcomeMessage}</h1>
                 <p className="text-muted-foreground">
                 {userRole === 'head_doctor' 
-                    ? 'Xəstəxananın ümumi fəaliyyətinin xülasəsi.' 
+                    ? `${stats.hospitalName || 'Xəstəxananın'} ümumi fəaliyyətinin xülasəsi.` 
                     : 'Bugünkü fəaliyyətinizin xülasəsi.'}
                 </p>
             </div>
@@ -160,7 +158,7 @@ function DoctorDashboard({ user, stats, prescriptions, isLoading }: { user: AppU
     )
 }
 
-function PharmacistDashboard({ user, stats, prescriptions, isLoading }: { user: AppUser | null, stats: any, prescriptions: Prescription[], isLoading: boolean }) {
+function PharmacistDashboard({ user, stats, isLoading }: { user: AppUser | null, stats: Stats, isLoading: boolean }) {
     const userRole = user?.profile?.role;
     const welcomeMessage = user ? `Xoş gəlmisiniz, ${user.profile?.firstName || user.email}!` : "Xoş gəlmisiniz!";
 
@@ -183,7 +181,7 @@ function PharmacistDashboard({ user, stats, prescriptions, isLoading }: { user: 
                     </CardHeader>
                     <CardContent>
                         {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.prescriptions}</div>}
-                        <p className="text-xs text-muted-foreground">bu gün</p>
+                        <p className="text-xs text-muted-foreground">bu gün (simulyasiya)</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -216,7 +214,6 @@ function PharmacistDashboard({ user, stats, prescriptions, isLoading }: { user: 
                     <CardDescription>Aptekdə təhvil verilən ən son reseptlər.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {/* Placeholder for recent activity table */}
                      <p className="text-sm text-muted-foreground text-center py-8">Son əməliyyatlar üçün funksionallıq hazırlanır.</p>
                 </CardContent>
             </Card>
@@ -225,48 +222,55 @@ function PharmacistDashboard({ user, stats, prescriptions, isLoading }: { user: 
 }
 
 
-export function DashboardClientPage({ initialUser, initialPrescriptions, initialStats }: DashboardClientPageProps) {
-  const { user: liveUser, isUserLoading } = useUser();
+export function DashboardClientPage() {
+  const { user, isUserLoading } = useUser();
   const { firestore } = useFirebase();
-  const [stats, setStats] = useState(initialStats);
+  const [stats, setStats] = useState<Stats>({ prescriptions: 0, patients: 0, doctors: 0, inventoryCount: 0, pendingPrescriptions: 0 });
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
-        if (!firestore || !liveUser?.profile) return;
+    const fetchStatsAndPrescriptions = async () => {
+        if (!firestore || !user?.profile) return;
+        
         setIsLoading(true);
 
-        const profile = liveUser.profile;
-        let newStats = { ...initialStats };
+        const profile = user.profile;
+        let newStats: Stats = { prescriptions: 0, patients: 0, doctors: 0, inventoryCount: 0, pendingPrescriptions: 0 };
+        let newPrescriptions: Prescription[] = [];
 
         try {
+            const presCollection = collection(firestore, "prescriptions");
             if (profile.role === 'doctor' || profile.role === 'head_doctor') {
-                const presCollection = collection(firestore, "prescriptions");
                 let presQuery;
-                let patientQuery;
-
                 if (profile.role === 'head_doctor' && profile.hospitalId) {
                     presQuery = query(presCollection, where("hospitalId", "==", profile.hospitalId));
-                    newStats.doctors = (await getCountFromServer(collection(firestore, "doctors"))).data().count;
+                    const hospitalDoctorsQuery = query(collection(firestore, "doctors"), where("hospitalId", "==", profile.hospitalId));
+                    newStats.doctors = (await getCountFromServer(hospitalDoctorsQuery)).data().count;
                 } else {
-                    presQuery = query(presCollection, where("doctorId", "==", liveUser.uid));
-                    // Get unique patients for a specific doctor
+                    presQuery = query(presCollection, where("doctorId", "==", user.uid));
                     const presSnapshot = await getDocs(presQuery);
                     const patientIds = [...new Set(presSnapshot.docs.map(doc => doc.data().patientId))];
                     newStats.patients = patientIds.length;
                 }
                 newStats.prescriptions = (await getCountFromServer(presQuery)).data().count;
-            } else if (profile.role === 'employee' || profile.role === 'head_pharmacist') {
-                const presCollection = collection(firestore, "prescriptions");
-                const fulfilledQuery = query(presCollection, where("pharmacyId", "==", profile.pharmacyId), where("status", "==", "Təhvil verildi"));
-                const pendingQuery = query(presCollection, where("pharmacyId", "==", profile.pharmacyId), where("status", "==", "Gözləmədə"));
                 
-                newStats.prescriptions = (await getCountFromServer(fulfilledQuery)).data().count;
-                newStats.pendingPrescriptions = (await getCountFromServer(pendingQuery)).data().count;
+                const latestPresQuery = query(presQuery, orderBy('datePrescribed', 'desc'), limit(5));
+                const latestPresSnapshot = await getDocs(latestPresQuery);
+                newPrescriptions = latestPresSnapshot.docs.map(doc => doc.data() as Prescription);
 
-                if (profile.role === 'head_pharmacist') {
-                    const inventoryQuery = collection(firestore, `pharmacies/${profile.pharmacyId}/inventory`);
-                    newStats.inventoryCount = (await getCountFromServer(inventoryQuery)).data().count;
+            } else if (profile.role === 'employee' || profile.role === 'head_pharmacist') {
+                if (profile.pharmacyId) {
+                    const fulfilledQuery = query(presCollection, where("pharmacyId", "==", profile.pharmacyId), where("status", "==", "Təhvil verildi"));
+                    const pendingQuery = query(presCollection, where("pharmacyId", "==", profile.pharmacyId), where("status", "==", "Gözləmədə"));
+                    
+                    newStats.prescriptions = (await getCountFromServer(fulfilledQuery)).data().count; // Simulating "today" for now
+                    newStats.pendingPrescriptions = (await getCountFromServer(pendingQuery)).data().count;
+
+                    if (profile.role === 'head_pharmacist') {
+                        const inventoryQuery = collection(firestore, `pharmacies/${profile.pharmacyId}/inventory`);
+                        newStats.inventoryCount = (await getCountFromServer(inventoryQuery)).data().count;
+                    }
                 }
             }
         } catch (error) {
@@ -274,29 +278,52 @@ export function DashboardClientPage({ initialUser, initialPrescriptions, initial
         }
 
         setStats(newStats);
+        setPrescriptions(newPrescriptions);
         setIsLoading(false);
     };
 
-    if (!isUserLoading) {
-        fetchStats();
+    if (!isUserLoading && user) {
+        fetchStatsAndPrescriptions();
+    } else if (!isUserLoading && !user) {
+        setIsLoading(false);
     }
-  }, [liveUser, isUserLoading, firestore, initialStats]);
+  }, [user, isUserLoading, firestore]);
 
 
-  const userRole = liveUser?.profile?.role;
+  const userRole = user?.profile?.role;
 
-  if (isUserLoading) {
-      return <div><Skeleton className="w-full h-screen" /></div>
+  if (isUserLoading || !user) {
+      return (
+        <div className="space-y-8">
+            <div>
+                <Skeleton className="h-10 w-1/2 mb-2"/>
+                <Skeleton className="h-5 w-3/4"/>
+            </div>
+             <div className="grid gap-6 md:grid-cols-3">
+                <Skeleton className="h-28 w-full"/>
+                <Skeleton className="h-28 w-full"/>
+                <Skeleton className="h-28 w-full"/>
+            </div>
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-1/3"/>
+                </CardHeader>
+                <CardContent>
+                    <Skeleton className="h-40 w-full"/>
+                </CardContent>
+            </Card>
+        </div>
+      )
   }
   
   if (userRole === 'doctor' || userRole === 'head_doctor') {
-      return <DoctorDashboard user={liveUser} stats={stats} prescriptions={initialPrescriptions} isLoading={isLoading} />;
+      return <DoctorDashboard user={user} stats={stats} prescriptions={prescriptions} isLoading={isLoading} />;
   }
   
   if (userRole === 'employee' || userRole === 'head_pharmacist') {
-      return <PharmacistDashboard user={liveUser} stats={stats} prescriptions={initialPrescriptions} isLoading={isLoading} />;
+      return <PharmacistDashboard user={user} stats={stats} isLoading={isLoading} />;
   }
 
   // Fallback for other roles or while loading
-  return <DoctorDashboard user={liveUser} stats={stats} prescriptions={initialPrescriptions} isLoading={isLoading} />;
+  return <div><h1 className="text-2xl">Panelə Xoş Gəlmisiniz!</h1><p>Rolunuz üçün xüsusi panel hazırlanır.</p></div>;
 }

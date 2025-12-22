@@ -34,34 +34,35 @@ export default function PatientDetailPage() {
     const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        async function fetchData() {
-            setIsLoading(true);
-            if (id) {
-                try {
-                    const patientDoc = await getDoc(doc(db, 'patients', id as string));
-                    if (patientDoc.exists()) {
-                        setPatient({ id: patientDoc.id, ...patientDoc.data() } as Patient);
-                    } else {
-                         setPatient(null);
-                    }
-
-                    const q = query(
-                        collection(db, 'prescriptions'),
-                        where('patientId', '==', id)
-                    );
-                    const presDocs = await getDocs(q);
-                    const fetchedPrescriptions = presDocs.docs.map(d => d.data() as Prescription);
-                    
-                    fetchedPrescriptions.sort((a, b) => new Date(b.datePrescribed).getTime() - new Date(a.datePrescribed).getTime());
-
-                    setPrescriptions(fetchedPrescriptions);
-                } catch(e) {
-                    console.error("Error fetching patient data: ", e);
+    const fetchData = async () => {
+        setIsLoading(true);
+        if (id) {
+            try {
+                const patientDoc = await getDoc(doc(db, 'patients', id as string));
+                if (patientDoc.exists()) {
+                    setPatient({ id: patientDoc.id, ...patientDoc.data() } as Patient);
+                } else {
+                     setPatient(null);
                 }
+
+                const q = query(
+                    collection(db, 'prescriptions'),
+                    where('patientId', '==', id)
+                );
+                const presDocs = await getDocs(q);
+                const fetchedPrescriptions = presDocs.docs.map(d => d.data() as Prescription);
+                
+                fetchedPrescriptions.sort((a, b) => new Date(b.datePrescribed).getTime() - new Date(a.datePrescribed).getTime());
+
+                setPrescriptions(fetchedPrescriptions);
+            } catch(e) {
+                console.error("Error fetching patient data: ", e);
             }
-            setIsLoading(false);
         }
+        setIsLoading(false);
+    }
+
+    useEffect(() => {
         fetchData();
     }, [id]);
     
@@ -73,6 +74,7 @@ export default function PatientDetailPage() {
         });
         if (state.type === 'success') {
             setIsFormOpen(false);
+            fetchData(); // Refetch data to show the new prescription
         }
     };
     
@@ -139,35 +141,46 @@ export default function PatientDetailPage() {
                     <CardTitle>Resept Tarixçəsi</CardTitle>
                 </CardHeader>
                 <CardContent>
-                   <div className="space-y-6">
-                       {isLoading && (
-                           <div className="p-8 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>
-                       )}
-                       {!isLoading && prescriptions?.map((p) => (
-                           <Card key={p.id} className="p-4">
-                               <div className="flex justify-between items-start">
-                                   <div>
-                                       <p className="font-semibold">{new Date(p.datePrescribed).toLocaleDateString('az-AZ', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                                       <p className="text-sm text-muted-foreground">Diaqnoz: {p.diagnosis}</p>
-                                   </div>
-                                   <Badge variant={statusVariant[p.status] || 'secondary'}>{p.status}</Badge>
-                               </div>
-                               <div className="mt-4">
-                                   <h4 className="font-medium flex items-center gap-2"><Pill className="h-4 w-4 text-primary" /> Dərmanlar</h4>
-                                   <ul className="mt-2 pl-6 space-y-1 list-disc text-sm text-muted-foreground">
-                                       {p.medications.map((med, index) => (
-                                          <li key={index}>
-                                              <span className="font-semibold text-foreground">{med.medicationName}</span> ({med.dosage}) - {med.instructions}
-                                          </li>
-                                       ))}
-                                   </ul>
-                               </div>
-                           </Card>
-                       ))}
-                       {!isLoading && prescriptions?.length === 0 && (
-                           <div className="p-8 text-center text-gray-500">Bu xəstə üçün heç bir resept tapılmadı.</div>
-                       )}
-                   </div>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Tarix</TableHead>
+                                <TableHead>Diaqnoz</TableHead>
+                                <TableHead>Dərmanlar</TableHead>
+                                <TableHead>Status</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading && (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="h-24 text-center">
+                                        <Loader2 className="animate-spin" />
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                            {!isLoading && prescriptions?.map((p) => (
+                                <TableRow key={p.id}>
+                                    <TableCell>{new Date(p.datePrescribed).toLocaleDateString('az-AZ', { year: 'numeric', month: 'long', day: 'numeric' })}</TableCell>
+                                    <TableCell className="font-medium">{p.diagnosis}</TableCell>
+                                    <TableCell>
+                                        <ul className="list-disc pl-4">
+                                            {p.medications.map((med, i) => <li key={i}>{med.medicationName} ({med.dosage})</li>)}
+                                        </ul>
+                                    </TableCell>
+                                    <TableCell>
+                                         <Badge variant={statusVariant[p.status] || 'secondary'}>{p.status}</Badge>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                            {!isLoading && prescriptions?.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                                        Bu xəstə üçün heç bir resept tapılmadı.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
                 </CardContent>
             </Card>
 

@@ -86,21 +86,27 @@ export async function addPrescription(
         throw new Error("Həkimə bağlı xəstəxana ID-si tapılmadı.");
     }
 
-    const newPrescription: Omit<Prescription, 'id'> = {
+    const newPrescription: Omit<Prescription, 'id' | 'status' | 'verificationCode' | 'datePrescribed' > = {
       ...validatedFields.data,
       doctorId: doctorId,
       hospitalId: hospitalId,
-      pharmacyId: 'apteka_id_placeholder', 
-      datePrescribed: new Date().toISOString(),
-      verificationCode: Math.floor(100000 + Math.random() * 900000).toString(),
-      status: 'Gözləmədə',
+      pharmacyId: '', // Will be assigned by the pharmacy
+      totalCost: 0,
+      paymentReceived: 0,
     };
 
     const collectionRef = db.collection('prescriptions');
-    const docRef = await collectionRef.add(newPrescription);
+    const docRef = await collectionRef.add({
+        ...newPrescription,
+        datePrescribed: new Date().toISOString(),
+        verificationCode: Math.floor(100000 + Math.random() * 900000).toString(),
+        status: 'Gözləmədə',
+    });
     await docRef.update({ id: docRef.id });
 
     revalidatePath(`/dashboard/patients/${validatedFields.data.patientId}`);
+    revalidatePath('/dashboard');
+    revalidatePath('/dashboard/prescriptions');
 
     return { type: 'success', message: 'Resept uğurla əlavə edildi.' };
   } catch (error) {
@@ -127,7 +133,7 @@ export async function addPatient(prevState: FormState, formData: FormData): Prom
         };
     }
 
-    const { finCode, dateOfBirth, ...patientData } = validatedFields.data;
+    const { finCode, ...patientData } = validatedFields.data;
 
     try {
         const patientQuery = db.collection('patients').where('finCode', '==', finCode.toUpperCase());
@@ -144,13 +150,14 @@ export async function addPatient(prevState: FormState, formData: FormData): Prom
         const newPatient: Omit<Patient, 'id'> = {
             ...patientData,
             finCode: finCode.toUpperCase(),
-            dateOfBirth: dateOfBirth,
             role: 'patient',
         };
 
         const collectionRef = db.collection('patients');
         const docRef = await collectionRef.add(newPatient);
         await docRef.update({ id: docRef.id });
+
+        revalidatePath('/dashboard/patients');
 
         return { type: 'success', message: 'Xəstə uğurla qeydiyyata alındı.' };
     } catch (error) {
