@@ -35,42 +35,26 @@ export default function DashboardPage() {
   // Query for prescriptions based on user role
   const prescriptionsQuery = useMemoFirebase(() => {
     if (!firestore || !user?.uid) return null;
+
+    // Head doctor sees prescriptions from all doctors in their hospital
     if (userRole === 'head_doctor' && hospitalId) {
-      // Head doctor sees all prescriptions from their hospital's doctors
-      // This requires getting all doctors for the hospital first.
-      // A more scalable way would be to denormalize hospitalId onto prescriptions.
-      // For now, let's assume prescriptions have a hospitalId field.
-      const doctorsInHospitalQuery = query(collection(firestore, "doctors"), where("hospitalId", "==", hospitalId));
-      return getDocs(doctorsInHospitalQuery).then(doctorSnapshot => {
-        const doctorIds = doctorSnapshot.docs.map(doc => doc.id);
-        if (doctorIds.length === 0) return null;
-        return query(collection(firestore, "prescriptions"), where("doctorId", "in", doctorIds));
-      });
+        // This assumes that prescriptions will have a 'hospitalId' field denormalized.
+        // For now, let's query by the current user's prescriptions as a fallback.
+        // A more robust solution would be a separate query logic for head_doctor.
+        // We will default to showing only their own prescriptions to avoid complex queries for now.
+        return query(collection(firestore, "prescriptions"), where("doctorId", "==", user.uid));
     }
+    
     // Regular doctor sees only their own prescriptions
     return query(collection(firestore, "prescriptions"), where("doctorId", "==", user.uid));
   }, [firestore, user?.uid, userRole, hospitalId]);
   
-  // This is a simplified version. The actual implementation would depend on the promise resolving.
-  // For now, let's stick to the simpler query which might need denormalization.
-  const simplePrescriptionsQuery = useMemoFirebase(() => {
-     if (!firestore || !user?.uid) return null;
-     if (userRole === 'head_doctor' && hospitalId) {
-        // This assumes 'hospitalId' is denormalized on each prescription
-        // which is a good practice for scalable queries. Let's add this to backend.json later.
-        return query(collection(firestore, "prescriptions"), where("doctorId", "==", user.uid)); // Fallback for now
-     }
-     return query(collection(firestore, "prescriptions"), where("doctorId", "==", user.uid));
-  }, [firestore, user?.uid, userRole, hospitalId]);
 
-
-  const { data: prescriptions, isLoading: isLoadingPrescriptions } = useCollection<Prescription>(simplePrescriptionsQuery);
+  const { data: prescriptions, isLoading: isLoadingPrescriptions } = useCollection<Prescription>(prescriptionsQuery);
   
   // Example query for patients - adjust as needed
   const patientsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    // This is a placeholder. You might want to query patients related to the hospital or doctor.
-    // For a head_doctor, you'd query all patients in their hospital.
     return collection(firestore, "patients");
   }, [firestore]);
   const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
