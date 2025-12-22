@@ -114,7 +114,7 @@ export default function UploadPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="relative aspect-video w-full max-w-md rounded-md border overflow-hidden">
-                        <Image src={uploadedUrl} alt="Yüklənmiş şəkil" layout="fill" objectFit="contain" />
+                        <Image src={uploadedUrl} alt="Yüklənmiş şəkil" fill className="object-contain" />
                     </div>
                 </CardContent>
               </Card>

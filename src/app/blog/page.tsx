@@ -55,7 +55,7 @@ export default function BlogPage() {
                 <Link key={post.id} href={`/blog/${post.id}`} className="group block">
                   <Card className="overflow-hidden h-full flex flex-col">
                     <div className="relative h-48 w-full">
-                        <Image src={post.imageUrl} alt={post.title} layout="fill" objectFit="cover" data-ai-hint={post.imageHint} />
+                        <Image src={post.imageUrl} alt={post.title} fill className="object-cover" data-ai-hint={post.imageHint} />
                     </div>
                     <CardHeader>
                       <CardTitle className="group-hover:text-primary transition-colors">{post.title}</CardTitle>

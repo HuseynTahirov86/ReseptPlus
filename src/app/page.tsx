@@ -1,19 +1,22 @@
 
 import Link from "next/link";
-import { ArrowRight, BarChart, Bot, DollarSign, FileText, HeartPulse, Mail, MessageSquare, Newspaper, Stethoscope, Users } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { PlaceHolderImages, type ImagePlaceholder } from "@/lib/placeholder-images";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import MarketingHeader from "@/components/marketing-header";
 import MarketingFooter from "@/components/marketing-footer";
+import { Users, Stethoscope, HeartPulse } from "lucide-react";
+
 
 export default function MarketingHomePage() {
-    const heroImage = PlaceHolderImages.find((img) => img.id === "hero-image");
-    const patientAvatar = PlaceHolderImages.find((img) => img.id === "testimonial-patient");
-    const doctorAvatar = PlaceHolderImages.find((img) => img.id === "testimonial-doctor");
-    const pharmacistAvatar = PlaceHolderImages.find((img) => img.id === "testimonial-pharmacist");
+    // Direct access to image data to prevent hydration issues
+    const heroImage = PlaceHolderImages[0];
+    const patientAvatar = PlaceHolderImages[1];
+    const doctorAvatar = PlaceHolderImages[2];
+    const pharmacistAvatar = PlaceHolderImages[3];
 
     const features = [
     {
@@ -70,6 +73,7 @@ export default function MarketingHomePage() {
                 fill
                 className="object-cover object-center opacity-10"
                 data-ai-hint={heroImage.imageHint}
+                priority
              />
            )}
           <div className="container relative z-10 text-center">

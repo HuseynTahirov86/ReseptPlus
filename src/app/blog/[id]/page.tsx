@@ -68,8 +68,8 @@ export default function BlogPostPage() {
                 <Image
                   src={post.imageUrl}
                   alt={post.title}
-                  layout="fill"
-                  objectFit="cover"
+                  fill
+                  className="object-cover"
                   data-ai-hint={post.imageHint}
                 />
               </div>
@@ -86,5 +86,3 @@ export default function BlogPostPage() {
     </div>
   );
 }
-
-    

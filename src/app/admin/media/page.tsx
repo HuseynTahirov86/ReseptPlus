@@ -153,9 +153,9 @@ export default function MediaLibraryPage() {
                     <Image
                       src={file.url}
                       alt={file.filename}
-                      layout="fill"
-                      objectFit="cover"
-                      className="transition-transform group-hover:scale-105"
+                      fill
+                      className="object-cover transition-transform group-hover:scale-105"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 16vw"
                     />
                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                         <Button

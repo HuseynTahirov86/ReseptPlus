@@ -62,7 +62,7 @@ export default function PartnersPage() {
                         return (
                         <Card key={org.id} className="flex flex-col items-center text-center p-6 bg-background rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20">
                             <div className="relative w-48 h-24 mb-4">
-                                <Image src={org.logoUrl} alt={`${org.name} logo`} layout="fill" objectFit="contain" />
+                                <Image src={org.logoUrl} alt={`${org.name} logo`} fill className="object-contain" />
                             </div>
                             <CardContent className="p-0">
                                 <h3 className="font-semibold text-lg">{org.name}</h3>
@@ -94,7 +94,7 @@ export default function PartnersPage() {
                         return (
                          <Card key={company.id} className="flex flex-col items-center text-center p-6 bg-background rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20">
                             <div className="relative w-40 h-20 mb-4">
-                                <Image src={company.logoUrl} alt={`${company.name} logo`} layout="fill" objectFit="contain" />
+                                <Image src={company.logoUrl} alt={`${company.name} logo`} fill className="object-contain" />
                             </div>
                              <CardContent className="p-0">
                                 <h3 className="font-semibold text-lg">{company.name}</h3>
