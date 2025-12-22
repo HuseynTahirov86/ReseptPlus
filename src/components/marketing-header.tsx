@@ -8,10 +8,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { href: "/", label: "Ana Səhifə" },
-  { href: "/haqqimizda", label: "Haqqımızda" },
   { href: "/mehsulumuz", label: "Məhsulumuz" },
-  { href: "/partnyorlar", label: "Partnyorlar" },
+  { href: "/haqqimizda", label: "Haqqımızda" },
   { href: "/qiymetler", label: "Qiymətlər" },
   { href: "/blog", label: "Blog" },
   { href: "/elaqe", label: "Əlaqə" },
@@ -21,7 +19,7 @@ export default function MarketingHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-glass-border bg-background/80 backdrop-blur-lg supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
         <div className="mr-auto flex items-center">
           <Link href="/" className="mr-6">
@@ -43,8 +41,11 @@ export default function MarketingHeader() {
           </nav>
         </div>
         <div className="hidden items-center gap-4 md:flex">
-          <Button asChild>
+           <Button asChild variant="ghost">
             <Link href="/login">Daxil Ol</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/login">Qeydiyyat</Link>
           </Button>
         </div>
         <div className="md:hidden">
@@ -71,9 +72,14 @@ export default function MarketingHeader() {
                     </Link>
                   ))}
                 </nav>
-                <Button asChild className="w-full">
-                  <Link href="/login">Daxil Ol</Link>
-                </Button>
+                 <div className="flex flex-col gap-4">
+                    <Button asChild className="w-full">
+                        <Link href="/login">Daxil Ol</Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full">
+                        <Link href="/login">Qeydiyyat</Link>
+                    </Button>
+                 </div>
               </div>
             </SheetContent>
           </Sheet>
