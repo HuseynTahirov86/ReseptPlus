@@ -61,11 +61,14 @@ export function SuggestionChat() {
     const newHistory: ChatMessage[] = [...chatHistory, { role: 'user', content: userMessage }];
     setChatHistory(newHistory);
 
-    const newFormData = new FormData();
-    newFormData.append('patientHistory', patientHistory);
-    newFormData.append('chatHistory', JSON.stringify(newHistory));
+    const hiddenFormData = new FormData();
+    hiddenFormData.append('patientHistory', patientHistory);
+    hiddenFormData.append('chatHistory', JSON.stringify(newHistory));
     
-    formAction(newFormData);
+    // Pass the message to the form action
+    hiddenFormData.append('message', userMessage);
+
+    formAction(hiddenFormData);
 
     formRef.current?.reset();
   };
@@ -108,6 +111,8 @@ export function SuggestionChat() {
       </ScrollArea>
       <CardFooter className="pt-4 border-t">
         <form ref={formRef} action={handleFormSubmit} className="flex w-full items-center gap-2">
+            <input type="hidden" name="patientHistory" value={patientHistory} />
+            <input type="hidden" name="chatHistory" value={JSON.stringify(chatHistory)} />
             <Textarea
                 name="message"
                 placeholder="AI asistana mesajınızı yazın..."

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useActionState, useEffect, useRef } from 'react';
-import { useForm, useFormStatus } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
+import { useFormStatus } from 'react-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { addPatient, type FormState } from './actions';
@@ -255,4 +256,3 @@ export function PatientForm({ initialFinCode, initialBirthDate, onFormSubmit }: 
     </Form>
   );
 }
-    

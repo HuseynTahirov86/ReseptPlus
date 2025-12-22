@@ -174,4 +174,3 @@ export function PrescriptionForm({ patient, doctorId, onFormSubmit }: Prescripti
     </Form>
   );
 }
-    
