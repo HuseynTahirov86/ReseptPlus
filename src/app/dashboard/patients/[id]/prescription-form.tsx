@@ -14,6 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, BrainCircuit, Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import type { Patient } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 
 const PrescribedMedicationSchema = z.object({
   medicationName: z.string().min(3, 'Dərman adı ən azı 3 simvol olmalıdır.'),
