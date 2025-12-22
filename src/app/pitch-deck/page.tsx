@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Logo } from '@/components/logo';
@@ -27,7 +28,7 @@ const sections = [
   { id: 'product', title: 'Məhsul / Demo' },
   { id: 'value-prop', title: 'Dəyər Təklifi' },
   { id: 'market-size', title: 'Bazar Həcmi' },
-  { id 'business-model', title: 'Biznes Modeli' },
+  { id: 'business-model', title: 'Biznes Modeli' },
   { id: 'traction', title: 'İnkişaf' },
   { id: 'competition', title: 'Rəqabət' },
   { id: 'technology', title: 'Texnologiya' },
