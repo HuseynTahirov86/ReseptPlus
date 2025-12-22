@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
@@ -79,7 +80,7 @@ const RedirectHandler = () => {
     const isDashboardPage = pathname.startsWith('/dashboard');
 
     if (user) {
-      if (user.profile?.role === 'admin') {
+      if (user.profile?.role === 'admin' || user.profile?.role === 'system_admin') {
         // If user is admin and not already in admin section, redirect to admin dashboard
         if (!isAdminPage) {
           router.push('/admin/dashboard');
@@ -134,58 +135,49 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             let userProfile: Partial<UserProfile> | undefined = undefined;
             
             try {
-                // SUPER ADMIN CHECK: If the user email matches the super admin email, ensure they have an admin doc.
-                if (firebaseUser.email === SUPER_ADMIN_EMAIL) {
-                    const adminDocRef = doc(firestore, 'admins', firebaseUser.uid);
-                    const adminDoc = await getDoc(adminDocRef);
-                    if (!adminDoc.exists()) {
-                        // This is the first time the super admin is logging in.
-                        // Let's create their admin record in Firestore.
-                        const newAdminProfile: Admin = {
-                            id: firebaseUser.uid,
-                            email: firebaseUser.email,
-                            role: 'admin',
-                        };
-                        await setDoc(adminDocRef, newAdminProfile);
-                        console.log('Super admin document created for:', firebaseUser.email);
-                        userProfile = newAdminProfile;
+                // IMPORTANT: The order of checking collections is crucial.
+                // A user could be both a doctor and an admin in some systems,
+                // so we define a clear priority.
+                const profilePaths = ['systemAdmins', 'admins', 'doctors', 'pharmacists', 'patients'];
+                let profileFound = false;
+
+                for (const path of profilePaths) {
+                    const docRef = doc(firestore, path, firebaseUser.uid);
+                    const userDoc = await getDoc(docRef);
+                    if (userDoc.exists()) {
+                        userProfile = userDoc.data() as UserProfile;
+                        profileFound = true;
+                        break; // Stop after finding the first matching profile
                     }
                 }
-                
-                // Fetch user profile from either 'admins' or 'doctors' collection
-                const adminDocRef = doc(firestore, 'admins', firebaseUser.uid);
-                const adminDoc = await getDoc(adminDocRef);
-                if (adminDoc.exists()) {
-                    userProfile = adminDoc.data() as Admin;
-                } else {
-                    const userDocRef = doc(firestore, 'doctors', firebaseUser.uid);
-                    const userDoc = await getDoc(userDocRef);
-                    if (userDoc.exists()) {
-                        userProfile = userDoc.data() as Doctor;
-                    } else {
-                         if (firebaseUser.email !== SUPER_ADMIN_EMAIL) {
-                            // Automatically create a doctor profile for new signups
-                            const newDoctorProfile: Omit<Doctor, 'id'> = {
-                                firstName: firebaseUser.email?.split('@')[0] || 'Yeni',
-                                lastName: 'Həkim',
-                                specialization: 'Ümumi',
-                                hospitalId: 'default', // Assign a default hospital or handle this differently
-                                role: 'doctor',
-                            };
-                            const newUserDocRef = doc(firestore, 'doctors', firebaseUser.uid);
-                            await setDoc(newUserDocRef, newDoctorProfile);
-                            userProfile = { id: firebaseUser.uid, ...newDoctorProfile };
-                            console.log('New doctor document created for:', firebaseUser.email);
-                         }
-                    }
+
+                // Super Admin check: If it's the super admin's first login, create their admin profile.
+                if (!profileFound && firebaseUser.email === SUPER_ADMIN_EMAIL) {
+                    const adminDocRef = doc(firestore, 'admins', firebaseUser.uid);
+                    const newAdminProfile: Admin = {
+                        id: firebaseUser.uid,
+                        email: firebaseUser.email,
+                        role: 'admin',
+                    };
+                    await setDoc(adminDocRef, newAdminProfile);
+                    console.log('Super admin document created for:', firebaseUser.email);
+                    userProfile = newAdminProfile;
+                }
+
+                if (!userProfile) {
+                    // If no profile is found after checking all collections, the user is unauthorized.
+                    console.warn(`No profile found for user ${firebaseUser.uid} in any collection. This user is unauthorized.`);
+                    // We can either sign them out or leave them with a basic user object without a profile.
+                    // For this system, we'll let them be authenticated but without a profile,
+                    // and access control will be handled by UI and security rules.
                 }
 
                 const appUser: AppUser = { ...firebaseUser, profile: userProfile };
                 setUserAuthState({ user: appUser, isUserLoading: false, userError: null });
 
             } catch (e) {
-               console.error("FirebaseProvider: Failed to fetch or create user profile:", e);
-               // Still provide the basic auth user even if profile fails
+               console.error("FirebaseProvider: Failed to fetch user profile:", e);
+               // Still provide the basic auth user even if profile fetching fails
                setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: e instanceof Error ? e : new Error('Failed to fetch user profile') });
             }
         } else {

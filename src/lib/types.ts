@@ -1,3 +1,4 @@
+
 export type Patient = {
     id: string;
     firstName: string;
@@ -33,9 +34,19 @@ export type Doctor = {
     id: string;
     firstName: string;
     lastName: string;
+    email: string;
     specialization: string;
     hospitalId: string;
     role: 'doctor' | 'head_doctor';
+};
+
+export type Pharmacist = {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    pharmacyId: string;
+    role: 'head_pharmacist' | 'employee';
 };
 
 export type Admin = {
@@ -44,57 +55,11 @@ export type Admin = {
     role: 'admin';
 };
 
-// Represents the combined user profile, which could be a doctor, an admin, or other types.
-export type UserProfile = (Doctor | Admin) & { role: 'doctor' | 'head_doctor' | 'admin' };
-
-export type SupportingOrganization = {
+export type SystemAdmin = {
     id: string;
-    name: string;
-    description: string;
-    logoUrl: string;
+    email: string;
+    role: 'system_admin';
 };
 
-export type ClientCompany = {
-    id: string;
-    name: string;
-    description: string;
-    logoUrl: string;
-};
-
-export type BlogPost = {
-  id: string;
-  title: string;
-  description: string;
-  content: string;
-  imageUrl: string;
-  imageHint: string;
-  author: string;
-  datePublished: string; // ISO String
-};
-
-export type PricingPlan = {
-  id: string;
-  title: string;
-  description: string;
-  price: string;
-  period: string;
-  features: string[];
-  isPopular: boolean;
-};
-
-export type ProductFeature = {
-  id: string;
-  title: string;
-  description: string;
-  icon: string; // lucide-react icon name
-};
-
-export type TeamMember = {
-  id: string;
-  name: string;
-  role: string;
-  imageUrl: string;
-  imageHint: string;
-};
-
-    
+// Represents the combined user profile, which could be any of the defined roles.
+export type UserProfile = (Doctor | Admin | SystemAdmin | Pharmacist | Patient);
