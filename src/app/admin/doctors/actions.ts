@@ -11,7 +11,7 @@ const CreateDoctorSchema = z.object({
   email: z.string().email('Düzgün email daxil edin.'),
   password: z.string().min(6, 'Şifrə ən azı 6 simvol olmalıdır.'),
   specialization: z.string().min(2, 'İxtisas ən azı 2 simvol olmalıdır.'),
-  hospitalId: z.string().min(1, 'Xəstəxana seçilməlidir.'),
+  hospitalId: z.string({ required_error: 'Xəstəxana seçilməlidir.' }).min(1, 'Xəstəxana seçilməlidir.'),
   role: z.enum(['doctor', 'head_doctor'], {
     errorMap: () => ({ message: 'Rol seçilməlidir.' }),
   }),

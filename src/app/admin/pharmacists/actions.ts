@@ -10,7 +10,7 @@ const CreatePharmacistSchema = z.object({
   lastName: z.string().min(2, 'Soyad ən azı 2 simvol olmalıdır.'),
   email: z.string().email('Düzgün email daxil edin.'),
   password: z.string().min(6, 'Şifrə ən azı 6 simvol olmalıdır.'),
-  pharmacyId: z.string().min(1, 'Aptek seçilməlidir.'),
+  pharmacyId: z.string({ required_error: 'Aptek seçilməlidir.' }).min(1, 'Aptek seçilməlidir.'),
   role: z.enum(['employee', 'head_pharmacist'], {
     errorMap: () => ({ message: 'Rol seçilməlidir.' }),
   }),
