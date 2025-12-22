@@ -62,8 +62,9 @@ export interface UserHookResult {
 // React Context
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
 
-// Special email for the first admin
-const SUPER_ADMIN_EMAIL = 'admin@sagliknet.az';
+// Special emails for admin roles
+const SITE_ADMIN_EMAIL = 'admin@sagliknet.az';
+const SYSTEM_ADMIN_EMAIL = 'superadmin@reseptplus.az';
 
 const RedirectHandler = () => {
   const { user, isUserLoading } = useUser();
@@ -137,8 +138,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             
             try {
                 // IMPORTANT: The order of checking collections is crucial.
-                // A user could be both a doctor and an admin in some systems,
-                // so we define a clear priority.
                 const profilePaths = ['systemAdmins', 'admins', 'doctors', 'pharmacists', 'patients'];
                 let profileFound = false;
 
@@ -152,22 +151,24 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                     }
                 }
                 
-                // Super Admin check: If it's the super admin's first login, create their admin profile.
-                if (!profileFound && firebaseUser.email === SUPER_ADMIN_EMAIL) {
-                    const adminDocRef = doc(firestore, 'systemAdmins', firebaseUser.uid);
-                    const newAdminProfile: SystemAdmin = {
-                        id: firebaseUser.uid,
-                        email: firebaseUser.email,
-                        role: 'system_admin',
-                    };
-                    await setDoc(adminDocRef, newAdminProfile);
-                    console.log('Super admin document created for:', firebaseUser.email);
-                    userProfile = newAdminProfile;
+                // If no profile found, check if it's a special admin email for first-time setup.
+                if (!profileFound && firebaseUser.email) {
+                    if (firebaseUser.email === SYSTEM_ADMIN_EMAIL) {
+                        const sysAdminRef = doc(firestore, 'systemAdmins', firebaseUser.uid);
+                        const newSystemAdmin: SystemAdmin = { id: firebaseUser.uid, email: firebaseUser.email, role: 'system_admin' };
+                        await setDoc(sysAdminRef, newSystemAdmin);
+                        console.log('System Admin document created for:', firebaseUser.email);
+                        userProfile = newSystemAdmin;
+                    } else if (firebaseUser.email === SITE_ADMIN_EMAIL) {
+                        const adminRef = doc(firestore, 'admins', firebaseUser.uid);
+                        const newAdmin: Admin = { id: firebaseUser.uid, email: firebaseUser.email, role: 'admin' };
+                        await setDoc(adminRef, newAdmin);
+                        console.log('Site Admin document created for:', firebaseUser.email);
+                        userProfile = newAdmin;
+                    }
                 }
 
-
                 if (!userProfile) {
-                    // If no profile is found after checking all collections, the user might be unauthorized.
                     console.warn(`No profile found for user ${firebaseUser.uid} in any collection.`);
                 }
 
@@ -175,8 +176,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 setUserAuthState({ user: appUser, isUserLoading: false, userError: null });
 
             } catch (e) {
-               console.error("FirebaseProvider: Failed to fetch user profile:", e);
-               // Still provide the basic auth user even if profile fetching fails
+               console.error("FirebaseProvider: Failed to fetch/create user profile:", e);
                setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: e instanceof Error ? e : new Error('Failed to fetch user profile') });
             }
         } else {

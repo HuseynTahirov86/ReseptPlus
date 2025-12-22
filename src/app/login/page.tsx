@@ -41,22 +41,17 @@ function AuthForm() {
       if (action === 'login') {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
-        // For signup, create the user in Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         
-        // If the email is NOT the special admin email, then create a doctor profile server-side.
-        // The super admin profile is created automatically on the client by the FirebaseProvider logic.
-        if (userCredential.user && userCredential.user.email !== 'admin@sagliknet.az') {
+        // Special admin emails are handled by FirebaseProvider's onAuthStateChanged.
+        // We only create a doctor profile for non-admin emails.
+        if (userCredential.user && userCredential.user.email !== 'admin@sagliknet.az' && userCredential.user.email !== 'superadmin@reseptplus.az') {
           const result = await createDoctorUser(email, password);
           if ('error' in result) {
-            // This part is tricky, as the auth user is already created.
-            // For a production app, you might want to delete the auth user if the DB entry fails.
             setError(`Hesab yaradıldı, amma profil yaradıla bilmədi: ${result.error}`);
           }
         }
-        // After signup, signInWithEmailAndPassword will be triggered by onAuthStateChanged in FirebaseProvider.
       }
-      // Redirection is handled by FirebaseProvider
     } catch (e: any) {
        switch (e.code) {
           case 'auth/user-not-found':
@@ -96,14 +91,13 @@ function AuthForm() {
         <TabsTrigger value="signup">Qeydiyyat</TabsTrigger>
       </TabsList>
       
-      {/* --- ORTAK FORM İÇERİĞİ --- */}
       <Card>
         <CardHeader>
           <CardTitle>{activeTab === 'login' ? 'Hesabınıza daxil olun' : 'Yeni hesab yaradın'}</CardTitle>
           <CardDescription>
             {activeTab === 'login' 
               ? "İdarəetmə panelinə daxil olmaq üçün məlumatlarınızı daxil edin." 
-              : "Sistem Admini (`admin@sagliknet.az`) və ya test həkimi hesabı yaratmaq üçün qeydiyyatdan keçin."}
+              : "Admin və ya test həkimi hesabı yaratmaq üçün qeydiyyatdan keçin."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -131,7 +125,6 @@ function AuthForm() {
         </CardFooter>
       </Card>
       
-      {/* Boş TabsContent-ləri saxlayırıq ki, struktur pozulmasın */}
       <TabsContent value="login" />
       <TabsContent value="signup" />
     </Tabs>
