@@ -1,7 +1,6 @@
 'use server';
 
 import { db } from '@/firebase/server-init';
-import { doc, updateDoc } from 'firebase/firestore';
 
 export type FormState = {
   message: string;
@@ -18,8 +17,8 @@ export async function fulfillPrescription(
     }
 
     try {
-        const presRef = doc(db, 'prescriptions', prescriptionId);
-        await updateDoc(presRef, {
+        const presRef = db.collection('prescriptions').doc(prescriptionId);
+        await presRef.update({
             status: 'Təhvil verildi',
             totalCost: totalCost,
             paymentReceived: paymentReceived
