@@ -1,6 +1,6 @@
 'use client';
 import { useParams } from 'next/navigation';
-import { useDoc, useCollection, useFirebase, useMemoFirebase } from '@/firebase';
+import { useUser, useFirebase } from '@/firebase';
 import { doc, collection, query, where, orderBy } from 'firebase/firestore';
 import type { Patient, Prescription } from '@/lib/types';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -8,11 +8,12 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FilePlus2, Loader2, BrainCircuit } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PrescriptionForm } from './prescription-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { db } from '@/firebase/client-init';
 
 const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
     'Təhvil verildi': 'default',
@@ -32,25 +33,33 @@ export default function PatientDetailPage() {
     const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    useState(async () => {
-        setIsLoading(true);
-        if (id) {
-            const { getDoc, getDocs } = await import('firebase/firestore');
-            const patientDoc = await getDoc(doc(db, 'patients', id as string));
-            if (patientDoc.exists()) {
-                setPatient({ id: patientDoc.id, ...patientDoc.data() } as Patient);
-            }
+    useEffect(() => {
+        async function fetchData() {
+            setIsLoading(true);
+            if (id) {
+                try {
+                    const patientDoc = await getDoc(doc(db, 'patients', id as string));
+                    if (patientDoc.exists()) {
+                        setPatient({ id: patientDoc.id, ...patientDoc.data() } as Patient);
+                    } else {
+                         setPatient(null);
+                    }
 
-            const q = query(
-                collection(db, 'prescriptions'),
-                where('patientId', '==', id),
-                orderBy('datePrescribed', 'desc')
-            );
-            const presDocs = await getDocs(q);
-            setPrescriptions(presDocs.docs.map(d => d.data() as Prescription));
+                    const q = query(
+                        collection(db, 'prescriptions'),
+                        where('patientId', '==', id),
+                        orderBy('datePrescribed', 'desc')
+                    );
+                    const presDocs = await getDocs(q);
+                    setPrescriptions(presDocs.docs.map(d => d.data() as Prescription));
+                } catch(e) {
+                    console.error("Error fetching patient data: ", e);
+                }
+            }
+            setIsLoading(false);
         }
-        setIsLoading(false);
-    });
+        fetchData();
+    }, [id]);
     
     const onFormSubmit = (state: { type: 'success' | 'error', message: string }) => {
         toast({
@@ -170,3 +179,4 @@ export default function PatientDetailPage() {
         </div>
     );
 }
+    

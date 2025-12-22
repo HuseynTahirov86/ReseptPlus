@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useActionState, useEffect, useRef, useTransition } from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useActionState, useEffect, useRef } from 'react';
+import { useForm, useFormStatus } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { addPatient, type FormState } from './actions';
@@ -41,7 +41,8 @@ const PatientSchema = z.object({
 
 type PatientFormValues = z.infer<typeof PatientSchema>;
 
-function SubmitButton({ pending }: { pending: boolean }) {
+function SubmitButton() {
+  const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending} className="w-full">
       {pending ? (
@@ -62,23 +63,10 @@ interface PatientFormProps {
 }
 
 export function PatientForm({ initialFinCode, initialBirthDate, onFormSubmit }: PatientFormProps) {
-  // ✅ React 19/Next 15: üçüncü dəyər isPending olur
-  const [state, formAction, isPending] = useActionState(addPatient, {
+  const [state, formAction] = useActionState(addPatient, {
     message: '',
     type: 'error',
-  } as FormState);
-
-  // ✅ "called outside of a transition" fix
-  const [_, startTransition] = useTransition();
-
-  // ✅ parent-dən gələn callback renderdə dəyişsə belə loop olmasın
-  const onFormSubmitRef = useRef(onFormSubmit);
-  useEffect(() => {
-    onFormSubmitRef.current = onFormSubmit;
-  }, [onFormSubmit]);
-
-  // ✅ eyni state ilə təkrar işləməsin deyə (xüsusən Dialog loop-larında kömək edir)
-  const lastHandledMessageRef = useRef<string>('');
+  });
 
   const form = useForm<PatientFormValues>({
     resolver: zodResolver(PatientSchema),
@@ -87,63 +75,49 @@ export function PatientForm({ initialFinCode, initialBirthDate, onFormSubmit }: 
       lastName: '',
       finCode: initialFinCode || '',
       dateOfBirth: initialBirthDate || '',
-      gender: undefined as unknown as PatientFormValues['gender'],
+      gender: undefined,
       contactNumber: '',
       email: '',
       address: '',
     },
   });
 
-  // Server action nəticəsini handle et (loop-safe)
+  const onFormSubmitRef = useRef(onFormSubmit);
   useEffect(() => {
-    if (!state?.message) return;
+    onFormSubmitRef.current = onFormSubmit;
+  }, [onFormSubmit]);
 
-    // eyni mesajla təkrar-təkrar işləməsin
-    if (lastHandledMessageRef.current === state.message) return;
-    lastHandledMessageRef.current = state.message;
+  useEffect(() => {
+    if (state?.message) {
+      onFormSubmitRef.current(state);
 
-    onFormSubmitRef.current(state);
-
-    if (state.type === 'error' && state.issues) {
-      Object.entries(state.issues).forEach(([key, messages]) => {
-        const fieldName = key as keyof PatientFormValues;
-        if (messages && messages.length > 0) {
-          form.setError(fieldName, { type: 'server', message: messages[0] });
-        }
-      });
+      if (state.type === 'error' && state.issues) {
+        Object.entries(state.issues).forEach(([key, messages]) => {
+          const fieldName = key as keyof PatientFormValues;
+          if (messages && messages.length > 0) {
+            form.setError(fieldName, { type: 'server', message: messages[0] });
+          }
+        });
+      }
     }
   }, [state, form]);
 
-  // initial dəyərlər dəyişəndə reset
   useEffect(() => {
     form.reset({
       firstName: '',
       lastName: '',
       finCode: initialFinCode || '',
       dateOfBirth: initialBirthDate || '',
-      gender: undefined as unknown as PatientFormValues['gender'],
+      gender: undefined,
       contactNumber: '',
       email: '',
       address: '',
     });
   }, [initialFinCode, initialBirthDate, form]);
 
-  // ✅ RHF values -> FormData (event-dən asılı deyil)
-  const handleSubmit = form.handleSubmit((values) => {
-    const formData = new FormData();
-    (Object.entries(values) as Array<[keyof PatientFormValues, any]>).forEach(([key, value]) => {
-      formData.append(String(key), value ?? '');
-    });
-
-    // ✅ transition içində çağır
-    startTransition(() => {
-      formAction(formData);
-    });
-  });
-
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form action={formAction} className="space-y-4">
         {state.type === 'error' && state.message && !state.issues && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
@@ -218,7 +192,7 @@ export function PatientForm({ initialFinCode, initialBirthDate, onFormSubmit }: 
           render={({ field }) => (
             <FormItem>
               <FormLabel>Cins</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Cins seçin..." />
@@ -276,8 +250,9 @@ export function PatientForm({ initialFinCode, initialBirthDate, onFormSubmit }: 
           )}
         />
 
-        <SubmitButton pending={isPending} />
+        <SubmitButton />
       </form>
     </Form>
   );
 }
+    
