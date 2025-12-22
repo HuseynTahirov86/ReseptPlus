@@ -2,12 +2,6 @@
 
 import { z } from 'zod';
 import { db } from '@/firebase/server-init';
-// ❌ SƏHV: Client SDK
-// import { collection, doc, addDoc, setDoc, deleteDoc } from 'firebase/firestore';
-
-// ✅ DÜZGÜN: Admin SDK
-// Firebase Admin SDK-da collection() və addDoc() yoxdur
-// Bunun yerinə db.collection() istifadə edirik
 
 const BasePartnerSchema = z.object({
   name: z.string().min(2, 'Ad ən azı 2 simvol olmalıdır.'),
@@ -23,7 +17,7 @@ const UpdatePartnerSchema = BasePartnerSchema.extend({
 export type FormState = {
   message: string;
   fields?: Record<string, string>;
-  issues?: string[];
+  issues?: Record<string, string[] | undefined>;
   type: 'success' | 'error';
 };
 
@@ -37,20 +31,19 @@ export async function addPartner(
   );
 
   if (!validatedFields.success) {
+    const fieldErrors = validatedFields.error.flatten().fieldErrors;
     return {
       type: 'error',
       message: "Doğrulama uğursuz oldu. Zəhmət olmasa daxil etdiyiniz məlumatları yoxlayın.",
       fields: Object.fromEntries(formData.entries()),
-      issues: validatedFields.error.flatten().fieldErrors.name,
+      issues: fieldErrors,
     };
   }
   
   try {
-    // ✅ Firebase Admin SDK sintaksisi
     const collectionRef = db.collection(partnerType);
     const docRef = await collectionRef.add(validatedFields.data);
     
-    // ID-ni document-ə əlavə et
     await docRef.update({ id: docRef.id });
     
     return { type: 'success', message: 'Partnyor uğurla əlavə edildi.' };
@@ -74,18 +67,18 @@ export async function updatePartner(
   );
 
   if (!validatedFields.success) {
+    const fieldErrors = validatedFields.error.flatten().fieldErrors;
     return {
       type: 'error',
       message: "Doğrulama uğursuz oldu və ya ID təyin edilməyib.",
       fields: Object.fromEntries(formData.entries()),
-      issues: validatedFields.error?.flatten().fieldErrors.name,
+      issues: fieldErrors,
     };
   }
 
   const { id, ...dataToUpdate } = validatedFields.data;
 
   try {
-    // ✅ Firebase Admin SDK sintaksisi
     const docRef = db.collection(partnerType).doc(id);
     await docRef.set(dataToUpdate, { merge: true });
     
@@ -109,7 +102,6 @@ export async function deletePartner(
   }
   
   try {
-    // ✅ Firebase Admin SDK sintaksisi
     const docRef = db.collection(partnerType).doc(id);
     await docRef.delete();
     

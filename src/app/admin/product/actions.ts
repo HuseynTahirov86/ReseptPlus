@@ -15,7 +15,7 @@ const FeatureSchema = z.object({
 export type FormState = {
   message: string;
   fields?: Record<string, string>;
-  issues?: string[];
+  issues?: Record<string, string[] | undefined>;
   type: 'success' | 'error';
 };
 
@@ -28,11 +28,12 @@ export async function addFeature(
   );
 
   if (!validatedFields.success) {
+    const fieldErrors = validatedFields.error.flatten().fieldErrors;
     return {
       type: 'error',
       message: "Doğrulama uğursuz oldu. Zəhmət olmasa daxil etdiyiniz məlumatları yoxlayın.",
       fields: Object.fromEntries(formData.entries()),
-      issues: validatedFields.error.flatten().fieldErrors.name,
+      issues: fieldErrors,
     };
   }
   
@@ -58,16 +59,25 @@ export async function updateFeature(
         Object.fromEntries(formData.entries())
     );
 
-    if (!validatedFields.success || !validatedFields.data.id) {
+    if (!validatedFields.success) {
+        const fieldErrors = validatedFields.error.flatten().fieldErrors;
         return {
             type: 'error',
             message: "Doğrulama uğursuz oldu və ya ID təyin edilməyib.",
             fields: Object.fromEntries(formData.entries()),
-            issues: validatedFields.error?.flatten().fieldErrors.name,
+            issues: fieldErrors,
         };
     }
 
     const { id, ...dataToUpdate } = validatedFields.data;
+
+     if (!id) {
+        return {
+            type: 'error',
+            message: 'Yeniləmə üçün ID təyin edilməyib.',
+            fields: Object.fromEntries(formData.entries()),
+        };
+    }
 
     try {
         const docRef = doc(db, 'productFeatures', id);

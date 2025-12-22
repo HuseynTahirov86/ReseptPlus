@@ -33,7 +33,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +44,8 @@ export default function AdminDoctorsPage() {
     const { toast } = useToast();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [doctorToDelete, setDoctorToDelete] = useState<Doctor | null>(null);
 
     // Redirect if not a system admin
     useEffect(() => {
@@ -73,7 +74,6 @@ export default function AdminDoctorsPage() {
         }, {} as Record<string, string>);
     }, [hospitals]);
 
-
     const openFormForEdit = (doctor: Doctor) => {
         setSelectedDoctor(doctor);
         setIsFormOpen(true);
@@ -84,28 +84,40 @@ export default function AdminDoctorsPage() {
         setIsFormOpen(true);
     }
 
-    const onFormSubmit = (state: { type: 'success' | 'error', message: string }) => {
-        toast({
-            title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
-            description: state.message,
-            variant: state.type === 'success' ? 'default' : 'destructive',
-        });
+    const onFormSubmit = (state: { type: 'success' | 'error', message: string, issues?: any }) => {
+        if (state.type === 'success' || (state.type === 'error' && !state.issues)) {
+            toast({
+                title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
+                description: state.message,
+                variant: state.type === 'success' ? 'default' : 'destructive',
+            });
+        }
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedDoctor(null);
         }
     }
+
+    const openDeleteDialog = (doctor: Doctor) => {
+        setDoctorToDelete(doctor);
+        setDeleteDialogOpen(true);
+    }
     
-     const handleDelete = async (id: string) => {
-        const result = await deleteDoctor(id);
+    const handleDelete = async () => {
+        if (!doctorToDelete) return;
+        
+        const result = await deleteDoctor(doctorToDelete.id);
         toast({
             title: result.type === 'success' ? 'Uğurlu' : 'Xəta',
             description: result.message,
             variant: result.type === 'success' ? 'default' : 'destructive',
         });
+        
+        setDeleteDialogOpen(false);
+        setDoctorToDelete(null);
     };
     
-     if (user?.profile?.role !== 'system_admin') {
+    if (user?.profile?.role !== 'system_admin') {
         return null;
     }
 
@@ -116,7 +128,9 @@ export default function AdminDoctorsPage() {
             <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Microscope className="h-6 w-6"/> Həkim İdarəçiliyi</CardTitle>
+                        <CardTitle className="flex items-center gap-2">
+                            <Microscope className="h-6 w-6"/> Həkim İdarəçiliyi
+                        </CardTitle>
                         <CardDescription>
                             Sistemdəki həkimləri və baş həkimləri idarə edin.
                         </CardDescription>
@@ -143,10 +157,14 @@ export default function AdminDoctorsPage() {
                                 )}
                                 {!isLoading && doctors?.map((doctor) => (
                                     <TableRow key={doctor.id}>
-                                        <TableCell className="font-medium">{doctor.firstName} {doctor.lastName}</TableCell>
+                                        <TableCell className="font-medium">
+                                            {doctor.firstName} {doctor.lastName}
+                                        </TableCell>
                                         <TableCell>{doctor.email}</TableCell>
                                         <TableCell>{doctor.specialization}</TableCell>
-                                        <TableCell>{hospitalMap[doctor.hospitalId] || 'Təyin edilməyib'}</TableCell>
+                                        <TableCell>
+                                            {hospitalMap[doctor.hospitalId] || 'Təyin edilməyib'}
+                                        </TableCell>
                                         <TableCell>
                                             <Badge variant={doctor.role === 'head_doctor' ? 'default' : 'secondary'}>
                                                 {doctor.role === 'head_doctor' ? 'Baş Həkim' : 'Həkim'}
@@ -164,28 +182,13 @@ export default function AdminDoctorsPage() {
                                                         <Edit className="mr-2 h-4 w-4"/>
                                                         Redaktə et
                                                     </DropdownMenuItem>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                             <Button variant="ghost" className="text-destructive hover:text-destructive-foreground hover:bg-destructive w-full justify-start px-2 py-1.5 text-sm h-auto relative flex cursor-default select-none items-center rounded-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
-                                                                <Trash2 className="mr-2 h-4 w-4"/>
-                                                                Sil
-                                                            </Button>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                            <AlertDialogTitle>Əminsiniz?</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                Bu əməliyyat geri qaytarıla bilməz. Bu, Dr. {doctor.lastName} adlı həkimi və onun giriş hesabını sistemdən həmişəlik siləcək.
-                                                            </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                            <AlertDialogCancel>Ləğv et</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => handleDelete(doctor.id)} className="bg-destructive hover:bg-destructive/90">
-                                                                Bəli, Sil
-                                                            </AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
+                                                    <DropdownMenuItem 
+                                                        onSelect={() => openDeleteDialog(doctor)}
+                                                        className="text-destructive focus:text-destructive"
+                                                    >
+                                                        <Trash2 className="mr-2 h-4 w-4"/>
+                                                        Sil
+                                                    </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
@@ -201,19 +204,27 @@ export default function AdminDoctorsPage() {
                             </TableBody>
                         </Table>
                     </CardContent>
-                    <CardFooter>
+                    <CardFooter className="flex-col items-start gap-2">
                         <Button onClick={openFormForNew} disabled={!hospitals || hospitals.length === 0}>
                             <PlusCircle className="mr-2 h-4 w-4" /> Yeni Həkim Əlavə Et
                         </Button>
-                         {(!hospitals || hospitals.length === 0) && <p className="text-sm text-destructive ml-4">Həkim əlavə etmək üçün əvvəlcə xəstəxana yaratmalısınız.</p>}
+                        {(!hospitals || hospitals.length === 0) && (
+                            <p className="text-sm text-destructive">
+                                Həkim əlavə etmək üçün əvvəlcə xəstəxana yaratmalısınız.
+                            </p>
+                        )}
                     </CardFooter>
                 </Card>
 
                 <DialogContent className="sm:max-w-[625px]">
                     <DialogHeader>
-                        <DialogTitle>{selectedDoctor ? "Həkimi Redaktə Et" : "Yeni Həkim Yarat"}</DialogTitle>
+                        <DialogTitle>
+                            {selectedDoctor ? "Həkimi Redaktə Et" : "Yeni Həkim Yarat"}
+                        </DialogTitle>
                         <DialogDescription>
-                        {selectedDoctor ? `Dr. ${selectedDoctor.lastName} məlumatlarını yeniləyin.` : `Yeni həkim məlumatlarını və giriş hesabını yaradın.`}
+                            {selectedDoctor 
+                                ? `Dr. ${selectedDoctor.lastName} məlumatlarını yeniləyin.` 
+                                : `Yeni həkim məlumatlarını və giriş hesabını yaradın.`}
                         </DialogDescription>
                     </DialogHeader>
                     <DoctorForm 
@@ -223,6 +234,26 @@ export default function AdminDoctorsPage() {
                     />
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Əminsiniz?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Bu əməliyyat geri qaytarıla bilməz. Bu, Dr. {doctorToDelete?.lastName} adlı həkimi və onun giriş hesabını sistemdən həmişəlik siləcək.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Ləğv et</AlertDialogCancel>
+                        <AlertDialogAction 
+                            onClick={handleDelete} 
+                            className="bg-destructive hover:bg-destructive/90"
+                        >
+                            Bəli, Sil
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

@@ -28,7 +28,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
 type Partner = SupportingOrganization | ClientCompany;
@@ -49,12 +48,14 @@ function PartnersTable({ title, data, isLoading, type }: { title: string, data: 
         setIsFormOpen(true);
     }
 
-    const onFormSubmit = (state: { type: 'success' | 'error', message: string }) => {
-        toast({
-            title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
-            description: state.message,
-            variant: state.type === 'success' ? 'default' : 'destructive',
-        });
+    const onFormSubmit = (state: { type: 'success' | 'error', message: string, issues?: any }) => {
+        if (state.type === 'success' || (state.type === 'error' && !state.issues)) {
+            toast({
+                title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
+                description: state.message,
+                variant: state.type === 'success' ? 'default' : 'destructive',
+            });
+        }
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedPartner(null);

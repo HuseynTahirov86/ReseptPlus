@@ -76,12 +76,14 @@ export default function AdminTeamPage() {
         setIsFormOpen(true);
     }
 
-    const onFormSubmit = (state: { type: 'success' | 'error', message: string }) => {
-        toast({
-            title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
-            description: state.message,
-            variant: state.type === 'success' ? 'default' : 'destructive',
-        });
+    const onFormSubmit = (state: { type: 'success' | 'error', message: string, issues?: any }) => {
+        if (state.type === 'success' || (state.type === 'error' && !state.issues)) {
+            toast({
+                title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
+                description: state.message,
+                variant: state.type === 'success' ? 'default' : 'destructive',
+            });
+        }
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedMember(null);

@@ -10,14 +10,14 @@ const PlanSchema = z.object({
   description: z.string().min(10, 'Təsvir ən azı 10 simvol olmalıdır.'),
   price: z.string().min(1, 'Qiymət daxil edilməlidir.'),
   period: z.string().optional(),
-  features: z.preprocess((val) => typeof val === 'string' ? val.split('\n') : [], z.array(z.string()).min(1, "Ən azı bir xüsusiyyət daxil edin.")),
+  features: z.preprocess((val) => typeof val === 'string' ? val.split('\n').filter(s => s.trim() !== '') : [], z.array(z.string()).min(1, "Ən azı bir xüsusiyyət daxil edin.")),
   isPopular: z.preprocess((val) => val === 'on' || val === true, z.boolean()),
 });
 
 export type FormState = {
   message: string;
   fields?: Record<string, string | boolean | string[]>;
-  issues?: string[];
+  issues?: Record<string, string[] | undefined>;
   type: 'success' | 'error';
 };
 
@@ -29,6 +29,7 @@ export async function addPlan(
   const validatedFields = PlanSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
+    const fieldErrors = validatedFields.error.flatten().fieldErrors;
     return {
       type: 'error',
       message: "Doğrulama uğursuz oldu. Zəhmət olmasa daxil etdiyiniz məlumatları yoxlayın.",
@@ -37,7 +38,7 @@ export async function addPlan(
         isPopular: rawData.isPopular === 'on',
         features: (rawData.features as string).split('\n'),
       },
-      issues: validatedFields.error.flatten().fieldErrors.name,
+      issues: fieldErrors as any,
     };
   }
   
@@ -67,6 +68,7 @@ export async function updatePlan(
     const validatedFields = PlanSchema.safeParse(rawData);
 
     if (!validatedFields.success || !validatedFields.data.id) {
+        const fieldErrors = validatedFields.error?.flatten().fieldErrors;
         return {
             type: 'error',
             message: "Doğrulama uğursuz oldu və ya ID təyin edilməyib.",
@@ -75,7 +77,7 @@ export async function updatePlan(
                 isPopular: rawData.isPopular === 'on',
                 features: (rawData.features as string).split('\n'),
             },
-            issues: validatedFields.error?.flatten().fieldErrors.name,
+            issues: fieldErrors as any,
         };
     }
 

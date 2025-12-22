@@ -46,7 +46,6 @@ export async function addPost(
         datePublished: new Date().toISOString()
     };
     const docRef = await addDoc(collectionRef, dataToAdd);
-    // Add the auto-generated ID to the data before returning, if needed elsewhere
     await setDoc(docRef, { id: docRef.id }, { merge: true });
     
     return { type: 'success', message: 'Yazı uğurla əlavə edildi.' };
@@ -71,7 +70,7 @@ export async function updatePost(
         const fieldErrors = validatedFields.error.flatten().fieldErrors;
         return {
             type: 'error',
-            message: "Doğrulama uğursuz oldu və ya ID təyin edilməyib.",
+            message: "Doğrulama uğursuz oldu. Zəhmət olmasa daxil etdiyiniz məlumatları yoxlayın.",
             fields: Object.fromEntries(formData.entries()),
             issues: fieldErrors,
         };
@@ -89,7 +88,6 @@ export async function updatePost(
 
     try {
         const docRef = doc(db, 'blogPosts', id);
-        // We keep the original published date, only content is updated
         await setDoc(docRef, dataToUpdate, { merge: true });
         return { type: 'success', message: 'Yazı uğurla yeniləndi.' };
     } catch (error) {

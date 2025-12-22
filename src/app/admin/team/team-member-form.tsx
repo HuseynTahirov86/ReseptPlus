@@ -67,8 +67,18 @@ export function TeamMemberForm({ initialData, onFormSubmit }: TeamMemberFormProp
   useEffect(() => {
     if (state.message) {
       onFormSubmit(state);
+      if (state.type === 'error' && state.issues) {
+        const fieldErrors = state.issues;
+        Object.keys(fieldErrors).forEach((key) => {
+            const fieldName = key as keyof TeamMemberFormValues;
+            const message = (fieldErrors as any)[fieldName]?.[0];
+            if(message && form.getFieldState(fieldName).error?.type !== 'server') {
+              form.setError(fieldName, { type: 'server', message });
+            }
+        });
+      }
     }
-  }, [state, onFormSubmit]);
+  }, [state, onFormSubmit, form]);
   
   useEffect(() => {
     form.reset(initialData || { name: '', role: '', imageUrl: '', imageHint: '' });

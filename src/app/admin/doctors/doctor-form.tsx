@@ -5,7 +5,7 @@ import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import { addDoctor, updateDoctor, type FormState } from './actions';
 import { Button } from '@/components/ui/button';
@@ -30,12 +30,16 @@ const CreateDoctorSchema = z.object({
 });
 
 const UpdateDoctorSchema = CreateDoctorSchema.omit({ password: true }).extend({
-  id: z.string().optional(),
-  password: z.string().min(6, 'Şifrə ən azı 6 simvol olmalıdır.').optional().or(z.literal('')),
+  id: z.string().min(1, 'Həkim ID-si təyin edilməyib.').optional(),
+  password: z.union([
+    z.string().min(6, 'Şifrə ən azı 6 simvol olmalıdır.'),
+    z.literal('')
+  ]).optional(),
 });
 
-
-type DoctorFormValues = z.infer<typeof CreateDoctorSchema> | z.infer<typeof UpdateDoctorSchema>;
+type CreateDoctorFormValues = z.infer<typeof CreateDoctorSchema>;
+type UpdateDoctorFormValues = z.infer<typeof UpdateDoctorSchema>;
+type DoctorFormValues = CreateDoctorFormValues | UpdateDoctorFormValues;
 
 function SubmitButton({ isEditing }: { isEditing: boolean }) {
   const { pending } = useFormStatus();
@@ -54,17 +58,16 @@ function SubmitButton({ isEditing }: { isEditing: boolean }) {
 }
 
 interface DoctorFormProps {
-    initialData?: Doctor | null;
-    hospitals: Hospital[];
-    onFormSubmit: (state: FormState) => void;
+  initialData?: Doctor | null;
+  hospitals: Hospital[];
+  onFormSubmit: (state: FormState) => void;
 }
 
 export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormProps) {
   const isEditing = !!initialData;
-  
   const action = isEditing ? updateDoctor : addDoctor;
 
-  const [state, formAction] = useActionState(action, { message: '', type: 'error' });
+  const [state, formAction] = useActionState(action, { message: '', type: 'success' });
 
   const form = useForm<DoctorFormValues>({
     resolver: zodResolver(isEditing ? UpdateDoctorSchema : CreateDoctorSchema),
@@ -82,21 +85,29 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
   useEffect(() => {
     if (state.message) {
       onFormSubmit(state);
-    }
-    if (state.type === 'error' && state.issues) {
-      const fieldErrors = state.issues;
-      Object.keys(fieldErrors).forEach((key) => {
-          const fieldName = key as keyof DoctorFormValues;
-          const message = (fieldErrors as any)[fieldName]?.[0];
-          if(message && form.getFieldState(fieldName).error?.type !== 'server') {
-            form.setError(fieldName, { type: 'server', message });
-          }
-      });
+      if (state.type === 'error' && state.issues) {
+        const fieldErrors = state.issues;
+        Object.keys(fieldErrors).forEach((key) => {
+            const fieldName = key as keyof DoctorFormValues;
+            const message = (fieldErrors as any)[fieldName]?.[0];
+            if(message && form.getFieldState(fieldName).error?.type !== 'server') {
+              form.setError(fieldName, { type: 'server', message });
+            }
+        });
+      }
     }
   }, [state, onFormSubmit, form]);
-  
+
   useEffect(() => {
-    form.reset(initialData || { firstName: '', lastName: '', email: '', password: '', specialization: '', hospitalId: '', role: 'doctor'});
+    form.reset(initialData || {
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      specialization: '',
+      hospitalId: '',
+      role: 'doctor',
+    });
   }, [initialData, form]);
 
   return (
@@ -109,125 +120,128 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
             <AlertDescription>{state.message}</AlertDescription>
           </Alert>
         )}
-        
-        {isEditing && initialData?.id && <input type="hidden" name="id" value={initialData.id} />}
-        
+
+        {isEditing && initialData?.id && (
+          <input type="hidden" name="id" value={initialData.id} />
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormField
+          <FormField
             control={form.control}
             name="firstName"
             render={({ field }) => (
-                <FormItem>
+              <FormItem>
                 <FormLabel>Ad</FormLabel>
                 <FormControl>
-                    <Input placeholder="Məs., Elvin" {...field} />
+                  <Input placeholder="Məs., Elvin" {...field} />
                 </FormControl>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
-            />
-            <FormField
+          />
+          <FormField
             control={form.control}
             name="lastName"
             render={({ field }) => (
-                <FormItem>
+              <FormItem>
                 <FormLabel>Soyad</FormLabel>
                 <FormControl>
-                    <Input placeholder="Məs., Əliyev" {...field} />
+                  <Input placeholder="Məs., Əliyev" {...field} />
                 </FormControl>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
-            />
+          />
         </div>
-        
+
         <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                    <Input type="email" placeholder="hekim@example.com" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input type="email" placeholder="hekim@example.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
+
         <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>{isEditing ? 'Yeni Şifrə (dəyişdirmək üçün doldurun)' : 'Şifrə'}</FormLabel>
-                <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{isEditing ? 'Yeni Şifrə (dəyişdirmək üçün doldurun)' : 'Şifrə'}</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="••••••••" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        
+
         <FormField
-            control={form.control}
-            name="specialization"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>İxtisas</FormLabel>
-                <FormControl>
-                    <Input placeholder="Kardioloq" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
+          control={form.control}
+          name="specialization"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>İxtisas</FormLabel>
+              <FormControl>
+                <Input placeholder="Kardioloq" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-             <FormField
-                control={form.control}
-                name="hospitalId"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Xəstəxana</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Xəstəxana seçin..." />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {hospitals.map(hospital => (
-                            <SelectItem key={hospital.id} value={hospital.id}>
-                                {hospital.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Rol</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Rol seçin..." />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            <SelectItem value="doctor">Həkim</SelectItem>
-                            <SelectItem value="head_doctor">Baş Həkim</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
-            />
+          <FormField
+            control={form.control}
+            name="hospitalId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Xəstəxana</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Xəstəxana seçin..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {hospitals.map(hospital => (
+                      <SelectItem key={hospital.id} value={hospital.id}>
+                        {hospital.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="role"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Rol</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Rol seçin..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="doctor">Həkim</SelectItem>
+                    <SelectItem value="head_doctor">Baş Həkim</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         <SubmitButton isEditing={isEditing} />

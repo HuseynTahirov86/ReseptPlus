@@ -76,8 +76,18 @@ export function PlanForm({ initialData, onFormSubmit }: PlanFormProps) {
   useEffect(() => {
     if (state.message) {
       onFormSubmit(state as any);
+      if (state.type === 'error' && state.issues) {
+        const fieldErrors = state.issues;
+        Object.keys(fieldErrors).forEach((key) => {
+            const fieldName = key as keyof PlanFormValues;
+            const message = (fieldErrors as any)[fieldName]?.[0];
+            if(message && form.getFieldState(fieldName).error?.type !== 'server') {
+              form.setError(fieldName, { type: 'server', message });
+            }
+        });
+      }
     }
-  }, [state, onFormSubmit]);
+  }, [state, onFormSubmit, form]);
   
   useEffect(() => {
     const defaultVals = initialData ? { ...initialData, features: initialData.features.join('\n') } : { title: '', description: '', price: '', period: '/ay', features: '', isPopular: false };
