@@ -1,4 +1,5 @@
 
+
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { Users, Stethoscope, HeartPulse } from "lucide-react";
 
 
 export default function MarketingHomePage() {
-    // Direct access to image data to prevent hydration issues
+    
     const heroImage = PlaceHolderImages[0];
     const patientAvatar = PlaceHolderImages[1];
     const doctorAvatar = PlaceHolderImages[2];
