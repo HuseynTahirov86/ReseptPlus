@@ -1,11 +1,10 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect } from 'react';
 
 import { addPharmacist, updatePharmacist, type FormState } from './actions';
 import { Button } from '@/components/ui/button';
@@ -16,6 +15,7 @@ import { AlertCircle, Loader2 } from 'lucide-react';
 import type { Pharmacist, Pharmacy } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+// Validation schemas
 const CreatePharmacistSchema = z.object({
   firstName: z.string().min(2, 'Ad ən azı 2 simvol olmalıdır.'),
   lastName: z.string().min(2, 'Soyad ən azı 2 simvol olmalıdır.'),
@@ -29,9 +29,11 @@ const CreatePharmacistSchema = z.object({
 
 const UpdatePharmacistSchema = CreatePharmacistSchema.omit({ password: true }).extend({
   id: z.string().min(1, 'Əczaçı ID-si təyin edilməyib.'),
-  password: z.string().min(6, 'Şifrə ən azı 6 simvol olmalıdır.').optional().or(z.literal('')),
+  password: z.union([
+    z.string().min(6, 'Şifrə ən azı 6 simvol olmalıdır.'),
+    z.literal('')
+  ]).optional(),
 });
-
 
 type CreatePharmacistFormValues = z.infer<typeof CreatePharmacistSchema>;
 type UpdatePharmacistFormValues = z.infer<typeof UpdatePharmacistSchema>;
@@ -54,14 +56,13 @@ function SubmitButton({ isEditing }: { isEditing: boolean }) {
 }
 
 interface PharmacistFormProps {
-    initialData?: Pharmacist | null;
-    pharmacies: Pharmacy[];
-    onFormSubmit: (state: FormState) => void;
+  initialData?: Pharmacist | null;
+  pharmacies: Pharmacy[];
+  onFormSubmit: (state: FormState) => void;
 }
 
 export function PharmacistForm({ initialData, pharmacies, onFormSubmit }: PharmacistFormProps) {
   const isEditing = !!initialData;
-  
   const action = isEditing ? updatePharmacist : addPharmacist;
 
   const [state, formAction] = useActionState(action, { message: '', type: 'error' });
@@ -81,24 +82,46 @@ export function PharmacistForm({ initialData, pharmacies, onFormSubmit }: Pharma
     },
   });
 
+  // Handle server response
   useEffect(() => {
     if (state.message) {
       onFormSubmit(state);
-       if (state.type === 'error' && state.issues) {
-        const fieldErrors = state.issues;
-        Object.keys(fieldErrors).forEach((key) => {
-            const fieldName = key as keyof PharmacistFormValues;
-            const message = (fieldErrors as any)[fieldName]?.[0];
-            if(message && form.getFieldState(fieldName).error?.type !== 'server') {
-              form.setError(fieldName, { type: 'server', message });
-            }
+      
+      if (state.type === 'error' && state.issues) {
+        Object.entries(state.issues).forEach(([key, messages]) => {
+          const fieldName = key as keyof PharmacistFormValues;
+          if (messages && messages.length > 0 && form.getFieldState(fieldName).error?.type !== 'server') {
+            form.setError(fieldName, { 
+              type: 'server', 
+              message: messages[0] 
+            });
+          }
         });
       }
+      
+      if (state.type === 'success' && !isEditing) {
+        form.reset();
+      }
     }
-  }, [state, onFormSubmit, form]);
-  
+  }, [state, onFormSubmit, form, isEditing]);
+
+  // Reset form when initialData changes
   useEffect(() => {
-    form.reset(initialData ? { ...initialData, password: '' } : { firstName: '', lastName: '', email: '', password: '', pharmacyId: '', role: 'employee'});
+    if (initialData) {
+      form.reset({
+        ...initialData,
+        password: '',
+      });
+    } else {
+      form.reset({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        pharmacyId: '',
+        role: 'employee',
+      });
+    }
   }, [initialData, form]);
 
   return (
@@ -112,110 +135,113 @@ export function PharmacistForm({ initialData, pharmacies, onFormSubmit }: Pharma
           </Alert>
         )}
         
-        {isEditing && initialData?.id && <input type="hidden" name="id" value={initialData.id} />}
+        {isEditing && initialData?.id && (
+          <input type="hidden" name="id" value={initialData.id} />
+        )}
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormField
+          <FormField
             control={form.control}
             name="firstName"
             render={({ field }) => (
-                <FormItem>
+              <FormItem>
                 <FormLabel>Ad</FormLabel>
                 <FormControl>
-                    <Input placeholder="Məs., Aygün" {...field} />
+                  <Input placeholder="Məs., Aygün" {...field} />
                 </FormControl>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
-            />
-            <FormField
+          />
+          <FormField
             control={form.control}
             name="lastName"
             render={({ field }) => (
-                <FormItem>
+              <FormItem>
                 <FormLabel>Soyad</FormLabel>
                 <FormControl>
-                    <Input placeholder="Məs., Səmədova" {...field} />
+                  <Input placeholder="Məs., Səmədova" {...field} />
                 </FormControl>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
-            />
+          />
         </div>
         
         <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                    <Input type="email" placeholder="eczaci@example.com" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input type="email" placeholder="eczaci@example.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
+
         <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>{isEditing ? 'Yeni Şifrə (dəyişdirmək üçün doldurun)' : 'Şifrə'}</FormLabel>
-                <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{isEditing ? 'Yeni Şifrə (dəyişdirmək üçün doldurun)' : 'Şifrə'}</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="••••••••" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
                 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-             <FormField
-                control={form.control}
-                name="pharmacyId"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Aptek</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Aptek seçin..." />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {pharmacies.map(pharmacy => (
-                            <SelectItem key={pharmacy.id} value={pharmacy.id}>
-                                {pharmacy.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Rol</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Rol seçin..." />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            <SelectItem value="employee">Əczaçı</SelectItem>
-                            <SelectItem value="head_pharmacist">Baş Əczaçı</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
-            />
+          <FormField
+            control={form.control}
+            name="pharmacyId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Aptek</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Aptek seçin..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {pharmacies.map(pharmacy => (
+                      <SelectItem key={pharmacy.id} value={pharmacy.id}>
+                        {pharmacy.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="role"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Rol</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Rol seçin..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="employee">Əczaçı</SelectItem>
+                    <SelectItem value="head_pharmacist">Baş Əczaçı</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         <SubmitButton isEditing={isEditing} />

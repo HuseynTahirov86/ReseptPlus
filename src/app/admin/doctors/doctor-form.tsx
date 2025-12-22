@@ -1,11 +1,10 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect } from 'react';
 
 import { addDoctor, updateDoctor, type FormState } from './actions';
 import { Button } from '@/components/ui/button';
@@ -85,32 +84,47 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
     },
   });
 
+  // Handle server response
   useEffect(() => {
     if (state.message) {
       onFormSubmit(state);
+      
       if (state.type === 'error' && state.issues) {
-        const fieldErrors = state.issues;
-        Object.keys(fieldErrors).forEach((key) => {
-            const fieldName = key as keyof DoctorFormValues;
-            const message = (fieldErrors as any)[fieldName]?.[0];
-            if(message && form.getFieldState(fieldName).error?.type !== 'server') {
-              form.setError(fieldName, { type: 'server', message });
-            }
+        Object.entries(state.issues).forEach(([key, messages]) => {
+          const fieldName = key as keyof DoctorFormValues;
+          if (messages && messages.length > 0 && form.getFieldState(fieldName).error?.type !== 'server') {
+            form.setError(fieldName, { 
+              type: 'server', 
+              message: messages[0] 
+            });
+          }
         });
       }
+      
+      if (state.type === 'success' && !isEditing) {
+        form.reset();
+      }
     }
-  }, [state, onFormSubmit, form]);
+  }, [state, onFormSubmit, form, isEditing]);
 
+  // Reset form when initialData changes (e.g., when switching from edit to new)
   useEffect(() => {
-    form.reset(initialData ? { ...initialData, password: '' } : {
-      firstName: '',
-      lastName: '',
-      email: '',
-      password: '',
-      specialization: '',
-      hospitalId: '',
-      role: 'doctor',
-    });
+    if (initialData) {
+      form.reset({
+        ...initialData,
+        password: '',
+      });
+    } else {
+       form.reset({
+          firstName: '',
+          lastName: '',
+          email: '',
+          password: '',
+          specialization: '',
+          hospitalId: '',
+          role: 'doctor',
+        });
+    }
   }, [initialData, form]);
 
   return (
@@ -206,7 +220,7 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Xəstəxana</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Xəstəxana seçin..." />
@@ -230,7 +244,7 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Rol</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Rol seçin..." />
