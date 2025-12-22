@@ -84,11 +84,12 @@ export default function AdminPharmacistsPage() {
     }
 
     const onFormSubmit = (state: { type: 'success' | 'error', message: string }) => {
+        toast({
+            title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
+            description: state.message,
+            variant: state.type === 'success' ? 'default' : 'destructive',
+        });
         if (state.type === 'success') {
-            toast({
-                title: 'Uğurlu',
-                description: state.message,
-            });
             setIsFormOpen(false);
             setSelectedPharmacist(null);
         }
