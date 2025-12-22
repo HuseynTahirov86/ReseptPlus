@@ -1,7 +1,7 @@
 'use client';
 import { useParams } from 'next/navigation';
 import { useUser } from '@/firebase';
-import { doc, collection, query, where, orderBy, getDoc, getDocs } from 'firebase/firestore';
+import { doc, collection, query, where, getDoc, getDocs } from 'firebase/firestore';
 import type { Patient, Prescription } from '@/lib/types';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -47,11 +47,15 @@ export default function PatientDetailPage() {
 
                     const q = query(
                         collection(db, 'prescriptions'),
-                        where('patientId', '==', id),
-                        orderBy('datePrescribed', 'desc')
+                        where('patientId', '==', id)
                     );
                     const presDocs = await getDocs(q);
-                    setPrescriptions(presDocs.docs.map(d => d.data() as Prescription));
+                    const fetchedPrescriptions = presDocs.docs.map(d => d.data() as Prescription);
+                    
+                    // Sort prescriptions by date client-side
+                    fetchedPrescriptions.sort((a, b) => new Date(b.datePrescribed).getTime() - new Date(a.datePrescribed).getTime());
+
+                    setPrescriptions(fetchedPrescriptions);
                 } catch(e) {
                     console.error("Error fetching patient data: ", e);
                 }
