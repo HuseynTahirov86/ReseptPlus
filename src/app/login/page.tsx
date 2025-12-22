@@ -3,7 +3,6 @@
 
 import {
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
 } from 'firebase/auth';
 import { useAuth, useUser } from '@/firebase';
 import { useState, useEffect } from "react";
@@ -17,9 +16,6 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Logo } from '@/components/logo';
-import { createDoctorUser } from './actions';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
 
 function AuthForm() {
   const auth = useAuth();
@@ -28,30 +24,17 @@ function AuthForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState('login');
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const handleAuthAction = async (action: 'login' | 'signup') => {
+  const handleLogin = async () => {
     setLoading(true);
     setError(null);
     try {
-      if (action === 'login') {
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        
-        // Special admin emails are handled by FirebaseProvider's onAuthStateChanged.
-        // We only create a doctor profile for non-admin emails.
-        if (userCredential.user && userCredential.user.email !== 'admin@sagliknet.az' && userCredential.user.email !== 'superadmin@reseptplus.az') {
-          const result = await createDoctorUser(email, password);
-          if ('error' in result) {
-            setError(`Hesab yaradıldı, amma profil yaradıla bilmədi: ${result.error}`);
-          }
-        }
-      }
+      await signInWithEmailAndPassword(auth, email, password);
+      // Redirection is handled by the FirebaseProvider
     } catch (e: any) {
        switch (e.code) {
           case 'auth/user-not-found':
@@ -64,12 +47,6 @@ function AuthForm() {
         case 'auth/invalid-email':
           setError('Zəhmət olmasa, düzgün bir email adresi daxil edin.');
           break;
-        case 'auth/email-already-in-use':
-           setError('Bu email adresi artıq istifadə olunur.');
-           break;
-        case 'auth/weak-password':
-           setError('Şifrə çox zəifdir. Ən azı 6 simvol olmalıdır.');
-           break;
         default:
           setError('Gözlənilməz bir xəta baş verdi: ' + e.message);
           break;
@@ -85,19 +62,11 @@ function AuthForm() {
   }
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="login">Daxil Ol</TabsTrigger>
-        <TabsTrigger value="signup">Qeydiyyat</TabsTrigger>
-      </TabsList>
-      
-      <Card>
+      <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>{activeTab === 'login' ? 'Hesabınıza daxil olun' : 'Yeni hesab yaradın'}</CardTitle>
+          <CardTitle>Hesabınıza daxil olun</CardTitle>
           <CardDescription>
-            {activeTab === 'login' 
-              ? "İdarəetmə panelinə daxil olmaq üçün məlumatlarınızı daxil edin." 
-              : "Admin və ya test həkimi hesabı yaratmaq üçün qeydiyyatdan keçin."}
+            İdarəetmə panelinə daxil olmaq üçün məlumatlarınızı daxil edin.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -114,20 +83,16 @@ function AuthForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Şifrə</Label>
-            <Input id="password" type="password" placeholder="şifrə (ən az 6 simvol)" value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
+            <Input id="password" type="password" placeholder="şifrəniz" value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
           </div>
         </CardContent>
         <CardFooter>
-          <Button className="w-full" onClick={() => handleAuthAction(activeTab as 'login' | 'signup')} disabled={loading}>
+          <Button className="w-full" onClick={handleLogin} disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? "Gözləyin..." : (activeTab === 'login' ? 'Daxil Ol' : 'Qeydiyyatdan Keç')}
+              {loading ? "Gözləyin..." : 'Daxil Ol'}
           </Button>
         </CardFooter>
       </Card>
-      
-      <TabsContent value="login" />
-      <TabsContent value="signup" />
-    </Tabs>
   )
 }
 
