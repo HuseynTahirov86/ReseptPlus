@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Check, Zap, Server, BrainCircuit, ShieldCheck } from "lucide-react";
+import { Check, ShieldCheck, Zap, BrainCircuit, Server } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -8,10 +8,6 @@ import MarketingHeader from "@/components/marketing-header";
 import MarketingFooter from "@/components/marketing-footer";
 import type { BlogPost, PricingPlan } from "@/lib/types";
 import { db } from "@/firebase/server-init";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 
 async function getMarketingData() {
     try {
@@ -142,7 +138,7 @@ export default async function MarketingHomePage() {
          {/* Advantages Section */}
         <section id="advantages" className="w-full py-16 md:py-24 bg-secondary/50">
           <div className="container">
-            <div className="mx-auto mb-12 max-w-3xl text-center animate-fade-in-up">
+            <div className="mx-auto mb-12 max-w-3xl text-center animate-fade-in-up" style={{animationDuration: '0.9s'}}>
               <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
                 Niyə ReseptPlus?
               </h2>
@@ -155,7 +151,7 @@ export default async function MarketingHomePage() {
                 <div 
                   key={i} 
                   className="text-center animate-fade-in-up"
-                  style={{ animationDelay: `${''}${i * 0.15 + 0.2}s`}}
+                  style={{ animationDelay: `${i * 0.15 + 0.2}s`, animationDuration: '0.9s' }}
                 >
                   <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <adv.icon className="h-8 w-8" />
@@ -171,7 +167,7 @@ export default async function MarketingHomePage() {
         {/* Pricing Section */}
         <section className="py-16 md:py-24" id="pricing">
             <div className="container">
-                <div className="mx-auto mb-12 max-w-3xl text-center animate-fade-in-up">
+                <div className="mx-auto mb-12 max-w-3xl text-center animate-fade-in-up" style={{animationDuration: '0.9s'}}>
                     <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
                         Şəffaf Qiymətlər
                     </h2>
@@ -187,7 +183,7 @@ export default async function MarketingHomePage() {
                                 ${plan.isPopular ? "border-primary border-2 shadow-2xl shadow-primary/10" : "bg-card"} 
                                 flex flex-col rounded-2xl transition-transform duration-300 hover:-translate-y-2 animate-fade-in-up
                             `}
-                            style={{ animationDelay: `${''}${i * 0.15 + 0.3}s`, animationDuration: '0.9s' }}
+                            style={{ animationDelay: `${i * 0.15 + 0.3}s`, animationDuration: '0.9s' }}
                         >
                             {plan.isPopular && <div className="absolute top-0 right-4 -mt-3 bg-primary text-primary-foreground px-3 py-1 text-sm font-semibold rounded-full">POPULYAR</div>}
                             <CardHeader className="flex-grow">
@@ -225,7 +221,7 @@ export default async function MarketingHomePage() {
         {/* Blog Section */}
         <section className="py-16 md:py-24 bg-secondary/50" id="blog">
              <div className="container">
-                <div className="mx-auto mb-12 max-w-3xl text-center animate-fade-in-up">
+                <div className="mx-auto mb-12 max-w-3xl text-center animate-fade-in-up" style={{animationDuration: '0.9s'}}>
                     <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
                         Ən Son Yeniliklər
                     </h2>
@@ -237,10 +233,10 @@ export default async function MarketingHomePage() {
                 {blogPosts.length === 0 ? (
                     <p className="col-span-full text-center text-muted-foreground">Heç bir blog yazısı tapılmadı.</p>
                 ) : blogPosts.map((post, i) => (
-                    <Link key={post.id} href={`/blog/${''}${post.id}`} className="group block">
+                    <Link key={post.id} href={`/blog/${post.id}`} className="group block">
                     <Card 
                         className="overflow-hidden h-full flex flex-col rounded-xl shadow-md transition-all duration-300 hover:shadow-primary/20 hover:-translate-y-2 animate-fade-in-up"
-                        style={{ animationDelay: `${''}${i * 0.1 + 0.3}s`, animationDuration: '0.9s' }}
+                        style={{ animationDelay: `${i * 0.1 + 0.3}s`, animationDuration: '0.9s' }}
                     >
                         <div className="relative h-48 w-full">
                             <Image src={post.imageUrl} alt={post.title} fill className="object-cover" data-ai-hint={post.imageHint} />
@@ -265,41 +261,6 @@ export default async function MarketingHomePage() {
                     </Button>
                 </div>
             </div>
-        </section>
-
-        {/* Contact Section */}
-        <section id="contact" className="py-16 md:py-24 lg:py-32">
-          <div className="container grid gap-16 md:grid-cols-2 items-start max-w-6xl mx-auto">
-             <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">Bizimlə Əlaqə</h2>
-                <p className="mt-4 text-lg text-muted-foreground">
-                    Suallarınız, təklifləriniz və ya partnyorluq imkanları üçün bizə yazın. Komandamız sizə kömək etməyə hazırdır.
-                </p>
-             </div>
-             <Card 
-                className="animate-fade-in-up"
-                style={{ animationDelay: '0.4s' }}
-              >
-                <CardHeader>
-                    <CardTitle>Mesaj Göndərin</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="name">Adınız</Label>
-                        <Input id="name" placeholder="Adınız və Soyadınız" />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" placeholder="email@nümunə.com" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="message">Mesajınız</Label>
-                        <Textarea id="message" placeholder="Mesajınızı buraya yazın..." className="min-h-[120px]" />
-                    </div>
-                    <Button className="w-full">Göndər</Button>
-                </CardContent>
-             </Card>
-          </div>
         </section>
 
       </main>

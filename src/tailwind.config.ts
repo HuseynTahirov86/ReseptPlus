@@ -97,10 +97,10 @@ export default {
             height: '0',
           },
         },
-        'fade-in-up': {
+         'fade-in-up': {
           '0%': {
             opacity: '0',
-            transform: 'translateY(24px)'
+            transform: 'translateY(20px)'
           },
           '100%': {
             opacity: '1',
@@ -111,7 +111,7 @@ export default {
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        'fade-in-up': 'fade-in-up 0.9s ease-out forwards',
+        'fade-in-up': 'fade-in-up ease-out both',
       },
     },
   },

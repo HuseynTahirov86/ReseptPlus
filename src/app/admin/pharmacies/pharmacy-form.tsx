@@ -1,11 +1,10 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect } from 'react';
 
 import { addPharmacy, updatePharmacy, type FormState } from './actions';
 import { Button } from '@/components/ui/button';
@@ -71,11 +70,18 @@ export function PharmacyForm({ initialData, onFormSubmit }: PharmacyFormProps) {
   useEffect(() => {
     if (state.message) {
       onFormSubmit(state);
+      if (state.type === 'error' && state.issues) {
+        Object.entries(state.issues).forEach(([key, messages]) => {
+          if (messages && messages.length > 0) {
+            form.setError(key as keyof PharmacyFormValues, { type: 'server', message: messages[0] });
+          }
+        });
+      }
     }
-  }, [state, onFormSubmit]);
+  }, [state, onFormSubmit, form]);
   
   useEffect(() => {
-    form.reset(initialData || { name: '', address: '', contactNumber: '', email: '', latitude: 0, longitude: 0 });
+    form.reset(initialData || { name: '', address: '', contactNumber: '', email: '', latitude: 40.4093, longitude: 49.8671 });
   }, [initialData, form]);
 
   return (

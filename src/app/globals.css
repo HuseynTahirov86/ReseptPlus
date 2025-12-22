@@ -25,8 +25,8 @@
     --ring: 215 20.2% 65.1%;
     --radius: 0.75rem;
 
-    --glass-bg: rgba(255, 255, 255, 0.6); /* Slightly transparent white */
-    --glass-border: rgba(0, 0, 0, 0.05); /* Faint gray border */
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --glass-border: rgba(0, 0, 0, 0.05);
   }
 
   .dark {
@@ -47,34 +47,11 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-
-    --glass-bg: rgba(23, 33, 53, 0.6); /* Slightly transparent dark blue */
-    --glass-border: rgba(45, 83, 151, 0.2); /* Faint blue border */
+    
+    --glass-bg: rgba(23, 33, 53, 0.6);
+    --glass-border: rgba(45, 83, 151, 0.2);
   }
 }
-
-@layer utilities {
-    .text-shadow-glow {
-        text-shadow: 0 0 8px hsl(var(--primary) / 0.5), 0 0 20px hsl(var(--primary) / 0.3);
-    }
-    .hover-glow-border {
-        box-shadow: 0 0 0 1px transparent;
-        transition: box-shadow 0.3s ease-in-out;
-    }
-    .hover-glow-border:hover {
-        box-shadow: 0 0 15px 1px hsl(var(--primary) / 0.6);
-    }
-    .animate-gradient-xy {
-        animation: gradient-xy 15s ease infinite;
-        background-size: 200% 200%;
-    }
-    .bg-grid-pattern {
-        background-image: linear-gradient(to right, hsl(var(--primary) / 0.1) 1px, transparent 1px),
-                          linear-gradient(to bottom, hsl(var(--primary) / 0.1) 1px, transparent 1px);
-        background-size: 40px 40px;
-    }
-}
-
 
 @layer base {
   * {
@@ -84,15 +61,6 @@
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
-
-  @keyframes gradient-xy {
-    0%, 100% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
   }
 
   @keyframes fade-in-up {
@@ -109,6 +77,5 @@
   .animate-fade-in-up {
     animation: fade-in-up ease-out;
     animation-fill-mode: both;
-    animation-duration: 0.8s;
   }
 }
