@@ -1,12 +1,12 @@
 'use client';
 
-import { useUser, useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useFirebase } from '@/firebase';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { BarChart, Users, Building, FileText, Hospital, Microscope, Pill, ShieldCheck } from 'lucide-react';
+import { BarChart, Users, Building, FileText, Hospital, Pill, ShieldCheck, Microscope } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { collection, getCountFromServer } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-
+import Link from 'next/link';
 
 function StatCard({ title, icon, value, description, isLoading }: { title: string, icon: React.ReactNode, value: string | number, description: string, isLoading: boolean }) {
   return (
@@ -76,10 +76,29 @@ function SiteAdminDashboard() {
       </div>
        <div>
         <h2 className="text-2xl font-bold tracking-tight">Sürətli Keçidlər</h2>
-        <p className="text-muted-foreground">
-            Tez-tez istifadə olunan bölmələrə sürətli keçid.
-        </p>
-        {/* Future Quick Links will go here */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+          <Link href="/admin/blog">
+            <Card className="hover:bg-muted/50 transition-colors">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> Blog</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
+          <Link href="/admin/partners">
+             <Card className="hover:bg-muted/50 transition-colors">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2"><Building className="h-5 w-5 text-primary" /> Partnyorlar</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
+           <Link href="/admin/pricing">
+             <Card className="hover:bg-muted/50 transition-colors">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> Qiymətlər</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
+        </div>
       </div>
      </div>
   );
@@ -130,10 +149,43 @@ function SystemAdminDashboard() {
       </div>
        <div>
         <h2 className="text-2xl font-bold tracking-tight">Əsas İdarəetmə Funksiyaları</h2>
-        <p className="text-muted-foreground">
-           Sistemin əsas varlıqlarını yaratmaq və idarə etmək üçün aşağıdakı bölmələrə keçin.
-        </p>
-        {/* Future Quick Links will go here */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+          <Link href="/admin/hospitals">
+            <Card className="hover:bg-muted/50 transition-colors">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2"><Hospital className="h-5 w-5 text-primary" /> Xəstəxanalar</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
+          <Link href="/admin/doctors">
+             <Card className="hover:bg-muted/50 transition-colors">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2"><Microscope className="h-5 w-5 text-primary" /> Həkimlər</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
+           <Link href="/admin/pharmacies">
+             <Card className="hover:bg-muted/50 transition-colors">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2"><Pill className="h-5 w-5 text-primary" /> Apteklər</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
+           <Link href="/admin/users">
+             <Card className="hover:bg-muted/50 transition-colors">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> İstifadəçilər</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
+           <Link href="/admin/security">
+             <Card className="hover:bg-muted/50 transition-colors">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-primary" /> Təhlükəsizlik</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -143,18 +195,40 @@ function SystemAdminDashboard() {
 export default function AdminDashboardPage() {
   const { user } = useUser();
 
+  // Sistem admini həm də sayt admini funksiyalarına giriş əldə edə bilər,
+  // lakin onun üçün əsas panel sistem panelidir.
   if (user?.profile?.role === 'system_admin') {
     return <SystemAdminDashboard />;
   }
 
+  // Sayt admini yalnız öz panelini görür.
   if (user?.profile?.role === 'admin') {
     return <SiteAdminDashboard />;
   }
 
-  // Default fallback or a skeleton loader
+  // Yüklənərkən və ya rol təyin edilməyibsə göstəriləcək skelet.
   return (
-    <div className="flex h-full items-center justify-center">
-      <Skeleton className="h-64 w-full" />
+    <div className="space-y-8">
+       <div>
+        <Skeleton className="h-10 w-1/3 mb-4" />
+        <Skeleton className="h-6 w-2/3" />
+      </div>
+       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-32 w-full" />
+      </div>
+       <div>
+        <Skeleton className="h-8 w-1/4 mb-4" />
+         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+         </div>
+      </div>
     </div>
   );
 }
+
+    
