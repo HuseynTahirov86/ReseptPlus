@@ -67,7 +67,7 @@ export async function updatePost(
         Object.fromEntries(formData.entries())
     );
 
-    if (!validatedFields.success || !validatedFields.data.id) {
+    if (!validatedFields.success) {
         const fieldErrors = validatedFields.error.flatten().fieldErrors;
         return {
             type: 'error',
@@ -78,6 +78,14 @@ export async function updatePost(
     }
 
     const { id, ...dataToUpdate } = validatedFields.data;
+
+    if (!id) {
+        return {
+            type: 'error',
+            message: 'Yeniləmə üçün ID təyin edilməyib.',
+            fields: Object.fromEntries(formData.entries()),
+        };
+    }
 
     try {
         const docRef = doc(db, 'blogPosts', id);

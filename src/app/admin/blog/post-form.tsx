@@ -21,7 +21,7 @@ const PostSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(3, 'Başlıq ən azı 3 simvol olmalıdır.'),
   description: z.string().min(10, 'Qısa təsvir ən azı 10 simvol olmalıdır.'),
-  content: z.string().min(50, 'Məzmun ən azı 50 simvol olmalıdır.'),
+  content: z.string().min(20, 'Məzmun ən azı 20 simvol olmalıdır.'),
   author: z.string().min(3, 'Müəllif adı ən azı 3 simvol olmalıdır.'),
   imageUrl: z.string().url('Düzgün bir şəkil URL-i daxil edin.'),
   imageHint: z.string().optional().default(''),
@@ -72,8 +72,19 @@ export function PostForm({ initialData, onFormSubmit }: PostFormProps) {
   useEffect(() => {
     if (state.message) {
       onFormSubmit(state);
+
+      if (state.type === 'error' && state.issues) {
+        const fieldErrors = state.issues;
+        Object.keys(fieldErrors).forEach((key) => {
+            const fieldName = key as keyof PostFormValues;
+            const message = (fieldErrors as any)[fieldName]?.[0];
+            if(message && form.getFieldState(fieldName).error?.type !== 'server') {
+              form.setError(fieldName, { type: 'server', message });
+            }
+        });
+      }
     }
-  }, [state, onFormSubmit]);
+  }, [state, onFormSubmit, form]);
   
   useEffect(() => {
     form.reset(initialData || { title: '', description: '', content: '', author: '', imageUrl: '', imageHint: '' });
