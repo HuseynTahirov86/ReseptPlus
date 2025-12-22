@@ -82,7 +82,7 @@ export function PharmacistForm({ initialData, pharmacies, onFormSubmit }: Pharma
     },
   });
 
-  // Handle server response
+  // Handle server response and errors
   useEffect(() => {
     if (state.message) {
       onFormSubmit(state);
@@ -98,20 +98,13 @@ export function PharmacistForm({ initialData, pharmacies, onFormSubmit }: Pharma
           }
         });
       }
-      
-      if (state.type === 'success' && !isEditing) {
-        form.reset();
-      }
     }
-  }, [state, onFormSubmit, form, isEditing]);
+  }, [state, onFormSubmit, form]);
 
   // Reset form when initialData changes
   useEffect(() => {
     if (initialData) {
-      form.reset({
-        ...initialData,
-        password: '',
-      });
+      form.reset({ ...initialData, password: '' });
     } else {
       form.reset({
         firstName: '',

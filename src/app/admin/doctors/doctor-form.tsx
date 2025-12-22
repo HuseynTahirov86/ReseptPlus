@@ -83,8 +83,8 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
       role: 'doctor',
     },
   });
-
-  // Handle server response
+  
+  // Handle server response and errors
   useEffect(() => {
     if (state.message) {
       onFormSubmit(state);
@@ -100,20 +100,13 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
           }
         });
       }
-      
-      if (state.type === 'success' && !isEditing) {
-        form.reset();
-      }
     }
-  }, [state, onFormSubmit, form, isEditing]);
+  }, [state, onFormSubmit, form]);
 
   // Reset form when initialData changes (e.g., when switching from edit to new)
   useEffect(() => {
     if (initialData) {
-      form.reset({
-        ...initialData,
-        password: '',
-      });
+      form.reset({ ...initialData, password: '' });
     } else {
        form.reset({
           firstName: '',
@@ -123,7 +116,7 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
           specialization: '',
           hospitalId: '',
           role: 'doctor',
-        });
+       });
     }
   }, [initialData, form]);
 

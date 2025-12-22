@@ -33,7 +33,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +44,9 @@ export default function AdminPharmacistsPage() {
     const { toast } = useToast();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedPharmacist, setSelectedPharmacist] = useState<Pharmacist | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [pharmacistToDelete, setPharmacistToDelete] = useState<Pharmacist | null>(null);
+
 
     useEffect(() => {
         if (user && user.profile?.role !== 'system_admin') {
@@ -84,28 +86,32 @@ export default function AdminPharmacistsPage() {
     }
 
     const onFormSubmit = (state: { type: 'success' | 'error', message: string, issues?: any }) => {
-        // Show a toast only on success or if there's a general error without field issues.
-        if (state.type === 'success' || (state.type === 'error' && !state.issues)) {
-             toast({
-                title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
-                description: state.message,
-                variant: state.type === 'success' ? 'default' : 'destructive',
-            });
-        }
-
+        toast({
+            title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
+            description: state.message,
+            variant: state.type === 'success' ? 'default' : 'destructive',
+        });
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedPharmacist(null);
         }
     }
     
-     const handleDelete = async (id: string) => {
-        const result = await deletePharmacist(id);
+     const openDeleteDialog = (pharmacist: Pharmacist) => {
+        setPharmacistToDelete(pharmacist);
+        setDeleteDialogOpen(true);
+    }
+
+    const handleDelete = async () => {
+        if (!pharmacistToDelete) return;
+        const result = await deletePharmacist(pharmacistToDelete.id);
         toast({
             title: result.type === 'success' ? 'Uğurlu' : 'Xəta',
             description: result.message,
             variant: result.type === 'success' ? 'default' : 'destructive',
         });
+        setDeleteDialogOpen(false);
+        setPharmacistToDelete(null);
     };
     
      if (user?.profile?.role !== 'system_admin') {
@@ -165,28 +171,13 @@ export default function AdminPharmacistsPage() {
                                                         <Edit className="mr-2 h-4 w-4"/>
                                                         Redaktə et
                                                     </DropdownMenuItem>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                             <Button variant="ghost" className="text-destructive hover:text-destructive-foreground hover:bg-destructive w-full justify-start px-2 py-1.5 text-sm h-auto relative flex cursor-default select-none items-center rounded-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
-                                                                <Trash2 className="mr-2 h-4 w-4"/>
-                                                                Sil
-                                                            </Button>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                            <AlertDialogTitle>Əminsiniz?</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                Bu əməliyyat geri qaytarıla bilməz. Bu, {pharmacist.firstName} {pharmacist.lastName} adlı əczaçını və onun giriş hesabını sistemdən həmişəlik siləcək.
-                                                            </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                            <AlertDialogCancel>Ləğv et</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => handleDelete(pharmacist.id)} className="bg-destructive hover:bg-destructive/90">
-                                                                Bəli, Sil
-                                                            </AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
+                                                    <DropdownMenuItem 
+                                                        onSelect={() => openDeleteDialog(pharmacist)}
+                                                        className="text-destructive focus:text-destructive"
+                                                    >
+                                                        <Trash2 className="mr-2 h-4 w-4"/>
+                                                        Sil
+                                                    </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
@@ -224,6 +215,26 @@ export default function AdminPharmacistsPage() {
                     />
                 </DialogContent>
             </Dialog>
+
+             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Əminsiniz?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Bu əməliyyat geri qaytarıla bilməz. Bu, {pharmacistToDelete?.firstName} {pharmacistToDelete?.lastName} adlı əczaçını və onun giriş hesabını sistemdən həmişəlik siləcək.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Ləğv et</AlertDialogCancel>
+                        <AlertDialogAction 
+                            onClick={handleDelete} 
+                            className="bg-destructive hover:bg-destructive/90"
+                        >
+                            Bəli, Sil
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

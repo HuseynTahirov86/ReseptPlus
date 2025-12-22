@@ -5,7 +5,7 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
-import type { Doctor, Admin, UserProfile, SystemAdmin } from '@/lib/types';
+import type { Doctor, Admin, UserProfile, SystemAdmin, Pharmacist } from '@/lib/types';
 import { usePathname, useRouter } from 'next/navigation';
 
 
@@ -61,9 +61,29 @@ export interface UserHookResult {
 // React Context
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
 
-// Special emails for admin roles
-const SITE_ADMIN_EMAIL = 'admin@sagliknet.az';
-const SYSTEM_ADMIN_EMAIL = 'superadmin@reseptplus.az';
+// Special emails for admin/test roles
+const SPECIAL_ACCOUNTS: Record<string, Partial<UserProfile>> = {
+    'admin@sagliknet.az': { role: 'admin' },
+    'superadmin@reseptplus.az': { role: 'system_admin' },
+    'bashekim@ndu.edu.az': { role: 'head_doctor', firstName: 'Baş', lastName: 'Həkim', specialization: 'Ümumi Cərrah', hospitalId: 'ndu_hospital' },
+    'hekim@ndu.edu.az': { role: 'doctor', firstName: 'Test', lastName: 'Həkim', specialization: 'Kardioloq', hospitalId: 'ndu_hospital' },
+    'basecza@ndu.edu.az': { role: 'head_pharmacist', firstName: 'Baş', lastName: 'Əczaçı', pharmacyId: 'ndu_pharmacy' },
+    'eczaci@ndu.edu.az': { role: 'employee', firstName: 'Test', lastName: 'Əczaçı', pharmacyId: 'ndu_pharmacy' }
+};
+
+const getCollectionForRole = (role: string) => {
+    switch (role) {
+        case 'system_admin': return 'systemAdmins';
+        case 'admin': return 'admins';
+        case 'head_doctor':
+        case 'doctor': return 'doctors';
+        case 'head_pharmacist':
+        case 'employee': return 'pharmacists';
+        case 'patient': return 'patients';
+        default: return null;
+    }
+};
+
 
 const RedirectHandler = () => {
   const { user, isUserLoading } = useUser();
@@ -150,35 +170,22 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                     }
                 }
                 
-                // If no profile found, check if it's a special admin email for first-time setup.
-                if (!profileFound && firebaseUser.email) {
-                    if (firebaseUser.email === SYSTEM_ADMIN_EMAIL) {
-                        const sysAdminRef = doc(firestore, 'systemAdmins', firebaseUser.uid);
-                        const newSystemAdmin: SystemAdmin = { id: firebaseUser.uid, email: firebaseUser.email, role: 'system_admin' };
-                        await setDoc(sysAdminRef, newSystemAdmin);
-                        console.log('System Admin document created for:', firebaseUser.email);
-                        userProfile = newSystemAdmin;
-                    } else if (firebaseUser.email === SITE_ADMIN_EMAIL) {
-                        const adminRef = doc(firestore, 'admins', firebaseUser.uid);
-                        const newAdmin: Admin = { id: firebaseUser.uid, email: firebaseUser.email, role: 'admin' };
-                        await setDoc(adminRef, newAdmin);
-                        console.log('Site Admin document created for:', firebaseUser.email);
-                        userProfile = newAdmin;
-                    } else {
-                         // Default to creating a 'doctor' for any other new user in dev/test setup
-                        const doctorRef = doc(firestore, 'doctors', firebaseUser.uid);
-                        const newDoctor: Partial<Doctor> = { 
-                            id: firebaseUser.uid, 
-                            email: firebaseUser.email!,
-                            role: 'doctor', 
-                            firstName: firebaseUser.email?.split('@')[0] || 'Yeni',
-                            lastName: 'Həkim',
-                            specialization: 'Ümumi',
-                            hospitalId: 'test_hospital_id' // Placeholder
+                // If no profile found, check if it's a special test/admin email for first-time setup.
+                if (!profileFound && firebaseUser.email && SPECIAL_ACCOUNTS[firebaseUser.email]) {
+                    const specialProfile = SPECIAL_ACCOUNTS[firebaseUser.email];
+                    const role = specialProfile.role;
+                    const collectionName = role ? getCollectionForRole(role) : null;
+                    
+                    if (collectionName) {
+                        const docRef = doc(firestore, collectionName, firebaseUser.uid);
+                        const newProfileData = {
+                            id: firebaseUser.uid,
+                            email: firebaseUser.email,
+                            ...specialProfile
                         };
-                        await setDoc(doctorRef, newDoctor);
-                        console.log('Default doctor document created for:', firebaseUser.email);
-                        userProfile = newDoctor;
+                        await setDoc(docRef, newProfileData);
+                        console.log(`${role} document created for:`, firebaseUser.email);
+                        userProfile = newProfileData;
                     }
                 }
 
