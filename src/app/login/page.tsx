@@ -121,19 +121,9 @@ function AuthForm() {
 
 export default function LoginPage() {
     const { user, isUserLoading } = useUser();
-    const router = useRouter();
-
-    useEffect(() => {
-        if (!isUserLoading && user) {
-            const role = user.profile?.role;
-            if (role === 'admin' || role === 'system_admin') {
-                router.push('/admin/dashboard');
-            } else if (role === 'doctor' || role === 'head_doctor' || role === 'pharmacist' || role === 'head_pharmacist') {
-                router.push('/dashboard');
-            }
-        }
-    }, [user, isUserLoading, router]);
     
+    // The redirection logic is now in FirebaseProvider/RedirectHandler, 
+    // so we just show a loader here while the user state is being determined.
     if (isUserLoading || user) {
         return (
             <div className="flex h-screen w-full items-center justify-center">
