@@ -26,7 +26,7 @@ const UpdatePharmacistSchema = CreatePharmacistSchema.omit({ password: true }).e
 export type FormState = {
   message: string;
   fields?: Record<string, string>;
-  issues?: string[];
+  issues?: Record<string, string[] | undefined>;
   type: 'success' | 'error';
 };
 
@@ -39,11 +39,12 @@ export async function addPharmacist(
   );
 
   if (!validatedFields.success) {
+    const fieldErrors = validatedFields.error.flatten().fieldErrors;
     return {
       type: 'error',
       message: 'Doğrulama uğursuz oldu. Zəhmət olmasa daxil etdiyiniz məlumatları yoxlayın.',
       fields: Object.fromEntries(formData.entries()),
-      issues: validatedFields.error.flatten().fieldErrors.name,
+      issues: fieldErrors,
     };
   }
   
@@ -92,11 +93,12 @@ export async function updatePharmacist(
     );
 
     if (!validatedFields.success) {
+        const fieldErrors = validatedFields.error.flatten().fieldErrors;
         return {
             type: 'error',
             message: "Doğrulama uğursuz oldu. Zəhmət olmasa daxil etdiyiniz məlumatları yoxlayın.",
             fields: Object.fromEntries(formData.entries()),
-            issues: validatedFields.error.flatten().fieldErrors.name,
+            issues: fieldErrors,
         };
     }
 

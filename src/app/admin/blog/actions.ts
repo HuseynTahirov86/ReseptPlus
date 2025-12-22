@@ -8,7 +8,7 @@ const PostSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(3, 'Başlıq ən azı 3 simvol olmalıdır.'),
   description: z.string().min(10, 'Qısa təsvir ən azı 10 simvol olmalıdır.'),
-  content: z.string().min(50, 'Məzmun ən azı 50 simvol olmalıdır.'),
+  content: z.string().min(20, 'Məzmun ən azı 20 simvol olmalıdır.'),
   author: z.string().min(3, 'Müəllif adı ən azı 3 simvol olmalıdır.'),
   imageUrl: z.string().url('Düzgün bir şəkil URL-i daxil edin.'),
   imageHint: z.string().optional().default(''),
@@ -17,7 +17,7 @@ const PostSchema = z.object({
 export type FormState = {
   message: string;
   fields?: Record<string, string>;
-  issues?: string[];
+  issues?: Record<string, string[] | undefined>;
   type: 'success' | 'error';
 };
 
@@ -30,11 +30,12 @@ export async function addPost(
   );
 
   if (!validatedFields.success) {
+    const fieldErrors = validatedFields.error.flatten().fieldErrors;
     return {
       type: 'error',
       message: "Doğrulama uğursuz oldu. Zəhmət olmasa daxil etdiyiniz məlumatları yoxlayın.",
       fields: Object.fromEntries(formData.entries()),
-      issues: validatedFields.error.flatten().fieldErrors.name,
+      issues: fieldErrors,
     };
   }
   
@@ -67,11 +68,12 @@ export async function updatePost(
     );
 
     if (!validatedFields.success || !validatedFields.data.id) {
+        const fieldErrors = validatedFields.error.flatten().fieldErrors;
         return {
             type: 'error',
             message: "Doğrulama uğursuz oldu və ya ID təyin edilməyib.",
             fields: Object.fromEntries(formData.entries()),
-            issues: validatedFields.error?.flatten().fieldErrors.name,
+            issues: fieldErrors,
         };
     }
 

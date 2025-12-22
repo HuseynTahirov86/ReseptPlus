@@ -10,7 +10,7 @@ const CreateDoctorSchema = z.object({
   lastName: z.string().min(2, 'Soyad ən azı 2 simvol olmalıdır.'),
   email: z.string().email('Düzgün email daxil edin.'),
   password: z.string().min(6, 'Şifrə ən azı 6 simvol olmalıdır.'),
-  specialization: z.string().min(3, 'İxtisas ən azı 3 simvol olmalıdır.'),
+  specialization: z.string().min(2, 'İxtisas ən azı 2 simvol olmalıdır.'),
   hospitalId: z.string().min(1, 'Xəstəxana seçilməlidir.'),
   role: z.enum(['doctor', 'head_doctor'], {
     errorMap: () => ({ message: 'Rol seçilməlidir.' }),
@@ -27,7 +27,7 @@ const UpdateDoctorSchema = CreateDoctorSchema.omit({ password: true }).extend({
 export type FormState = {
   message: string;
   fields?: Record<string, string>;
-  issues?: string[];
+  issues?: Record<string, string[] | undefined>;
   type: 'success' | 'error';
 };
 
@@ -40,11 +40,12 @@ export async function addDoctor(
   );
 
   if (!validatedFields.success) {
+    const fieldErrors = validatedFields.error.flatten().fieldErrors;
     return {
       type: 'error',
       message: 'Doğrulama uğursuz oldu. Zəhmət olmasa daxil etdiyiniz məlumatları yoxlayın.',
       fields: Object.fromEntries(formData.entries()),
-      issues: validatedFields.error.flatten().fieldErrors.name,
+      issues: fieldErrors,
     };
   }
   
@@ -93,11 +94,12 @@ export async function updateDoctor(
     );
 
     if (!validatedFields.success) {
+        const fieldErrors = validatedFields.error.flatten().fieldErrors;
         return {
             type: 'error',
             message: "Doğrulama uğursuz oldu. Zəhmət olmasa daxil etdiyiniz məlumatları yoxlayın.",
             fields: Object.fromEntries(formData.entries()),
-            issues: validatedFields.error.flatten().fieldErrors.name,
+            issues: fieldErrors,
         };
     }
 

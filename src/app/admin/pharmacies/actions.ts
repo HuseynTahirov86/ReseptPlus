@@ -5,8 +5,8 @@ import { db } from '@/firebase/server-init';
 
 const PharmacySchema = z.object({
   id: z.string().optional(),
-  name: z.string().min(3, 'Ad ən azı 3 simvol olmalıdır.'),
-  address: z.string().min(10, 'Ünvan ən azı 10 simvol olmalıdır.'),
+  name: z.string().min(2, 'Ad ən azı 2 simvol olmalıdır.'),
+  address: z.string().min(3, 'Ünvan ən azı 3 simvol olmalıdır.'),
   contactNumber: z.string().min(9, 'Nömrə düzgün formatda olmalıdır.'),
   email: z.string().email('Düzgün email daxil edin.'),
 });
@@ -14,7 +14,7 @@ const PharmacySchema = z.object({
 export type FormState = {
   message: string;
   fields?: Record<string, string>;
-  issues?: string[];
+  issues?: Record<string, string[] | undefined>;
   type: 'success' | 'error';
 };
 
@@ -28,11 +28,12 @@ async function addOrUpdatePharmacy(
   );
 
   if (!validatedFields.success) {
+     const fieldErrors = validatedFields.error.flatten().fieldErrors;
     return {
       type: 'error',
-      message: 'Doğrulama uğursuz oldu.',
+      message: 'Doğrulama uğursuz oldu. Zəhmət olmasa, sahələri yoxlayın.',
       fields: Object.fromEntries(formData.entries()),
-      issues: validatedFields.error.flatten().fieldErrors.name,
+      issues: fieldErrors,
     };
   }
 
