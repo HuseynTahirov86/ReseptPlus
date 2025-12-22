@@ -54,11 +54,11 @@ export async function addPrescription(
 
   // Manually construct the medications array from FormData
   let i = 0;
-  while(formData.get(`medications[${i}].medicationName`) !== null) {
+  while(formData.get(`medications.${i}.medicationName`) !== null) {
       rawData.medications.push({
-          medicationName: formData.get(`medications[${i}].medicationName`),
-          dosage: formData.get(`medications[${i}].dosage`),
-          instructions: formData.get(`medications[${i}].instructions`),
+          medicationName: formData.get(`medications.${i}.medicationName`),
+          dosage: formData.get(`medications.${i}.dosage`),
+          instructions: formData.get(`medications.${i}.instructions`),
       });
       i++;
   }
