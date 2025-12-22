@@ -43,10 +43,14 @@ export default function DashboardPage() {
 
   // Query for prescriptions based on user role
   const prescriptionsQuery = useMemoFirebase(() => {
-    // Wait until we have all necessary data
-    if (!firestore || !userId || !userRole) return null;
-
-    if (userRole === 'head_doctor' && hospitalId) {
+    // CRITICAL: Wait until we have all necessary data before creating a query.
+    if (!firestore || !userId || !userRole) {
+        return null;
+    }
+    
+    if (userRole === 'head_doctor') {
+        // A head_doctor must have a hospitalId to see prescriptions.
+        if (!hospitalId) return null;
         return query(collection(firestore, "prescriptions"), where("hospitalId", "==", hospitalId));
     }
     
@@ -54,7 +58,7 @@ export default function DashboardPage() {
         return query(collection(firestore, "prescriptions"), where("doctorId", "==", userId));
     }
     
-    // For other roles or if conditions aren't met, don't query
+    // For other roles or if conditions aren't met, explicitly return null.
     return null;
   }, [firestore, userId, userRole, hospitalId]);
   
@@ -63,15 +67,15 @@ export default function DashboardPage() {
   // Fetch stats separately
    useEffect(() => {
     const fetchStats = async () => {
-      if (!firestore || !userRole || isUserLoading) return;
+      if (!firestore || isUserLoading || !userRole) return;
+      
       setLoadingStats(true);
       
       try {
         let presCount = 0;
         let patientCount = 0;
         let docCount = 0;
-        
-        // Use the same logic as the query to count prescriptions
+
         if (userRole === 'doctor' && userId) {
             const presQuery = query(collection(firestore, "prescriptions"), where("doctorId", "==", userId));
             presCount = (await getCountFromServer(presQuery)).data().count;
