@@ -161,16 +161,16 @@ export function PatientForm({ initialFinCode, initialBirthDate, onFormSubmit }: 
             render={({ field }) => (
                 <FormItem>
                     <FormLabel>Cins</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                        <SelectTrigger>
-                        <SelectValue placeholder="Cins seçin..." />
-                        </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        <SelectItem value="Kişi">Kişi</SelectItem>
-                        <SelectItem value="Qadın">Qadın</SelectItem>
-                    </SelectContent>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                            <SelectTrigger>
+                            <SelectValue placeholder="Cins seçin..." />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            <SelectItem value="Kişi">Kişi</SelectItem>
+                            <SelectItem value="Qadın">Qadın</SelectItem>
+                        </SelectContent>
                     </Select>
                     <FormMessage />
                 </FormItem>
