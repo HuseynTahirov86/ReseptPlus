@@ -143,33 +143,35 @@ export function PharmacyForm({ initialData, onFormSubmit }: PharmacyFormProps) {
                 <FormMessage />
                 </FormItem>
             )}
+            />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
-            control={form.control}
-            name="latitude"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Enlik (Latitude)</FormLabel>
-                <FormControl>
-                    <Input type="number" placeholder="40.4093" {...field} />
-                </FormControl>
-                 <FormMessage />
-                </FormItem>
-            )}
+                control={form.control}
+                name="latitude"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Enlik (Latitude)</FormLabel>
+                    <FormControl>
+                        <Input type="number" placeholder="40.4093" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
             />
              <FormField
-            control={form.control}
-            name="longitude"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Uzunluq (Longitude)</FormLabel>
-                <FormControl>
-                    <Input type="number" placeholder="49.8671" {...field} />
-                </FormControl>
-                 <FormMessage />
-                </FormItem>
-            )}
+                control={form.control}
+                name="longitude"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Uzunluq (Longitude)</FormLabel>
+                    <FormControl>
+                        <Input type="number" placeholder="49.8671" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+            />
         </div>
         
         <SubmitButton isEditing={isEditing} />
@@ -177,5 +179,3 @@ export function PharmacyForm({ initialData, onFormSubmit }: PharmacyFormProps) {
     </Form>
   );
 }
-
-    
