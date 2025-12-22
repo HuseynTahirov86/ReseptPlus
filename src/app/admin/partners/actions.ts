@@ -5,9 +5,9 @@ import { db } from '@/firebase/server-init';
 import { collection, doc, addDoc, setDoc, deleteDoc } from 'firebase/firestore';
 
 const BasePartnerSchema = z.object({
-  name: z.string().min(3, 'Ad ən azı 3 simvol olmalıdır.'),
+  name: z.string().min(2, 'Ad ən azı 2 simvol olmalıdır.'),
   description: z.string().min(3, 'Təsvir ən azı 3 simvol olmalıdır.'),
-  logoUrl: z.string().min(1, 'Loqo URL-i boş ola bilməz.'),
+  logoUrl: z.string().url('Düzgün bir URL daxil edin.'),
 });
 
 const AddPartnerSchema = BasePartnerSchema;
@@ -43,8 +43,12 @@ export async function addPartner(
   
   try {
     const collectionRef = collection(db, partnerType);
-    const docRef = await addDoc(collectionRef, validatedFields.data);
+    // Use the validated data directly
+    const dataToAdd = validatedFields.data;
+    const docRef = await addDoc(collectionRef, dataToAdd);
+    // Now, update the newly created document with its own ID
     await setDoc(docRef, { id: docRef.id }, { merge: true });
+    
     return { type: 'success', message: 'Partnyor uğurla əlavə edildi.' };
   } catch (error) {
     console.error("Add Partner Error:", error);
