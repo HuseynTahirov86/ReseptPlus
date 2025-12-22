@@ -57,7 +57,7 @@ const defaultPricingPlans: PricingPlan[] = [
       "Satış tarixçəsi və hesabatlar",
       "Aptek admin paneli (filial qeydiyyatı və izləmə)"
     ],
-    isPopular: false
+    isPopular: true
   },
   {
     id: "plan-corporate",
