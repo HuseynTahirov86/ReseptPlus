@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { ArrowRight, Handshake, BrainCircuit, FilePlus2, MapPin, ShieldCheck, Pill, Check, Zap, Server, MessageSquare, Mail, Phone, Users, Stethoscope, HeartPulse } from "lucide-react";
+import { ArrowRight, Check, Zap, Server, BrainCircuit, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { PlaceHolderImages, type ImagePlaceholder } from "@/lib/placeholder-images";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 import MarketingHeader from "@/components/marketing-header";
 import MarketingFooter from "@/components/marketing-footer";
-import type { ClientCompany, SupportingOrganization, PricingPlan, BlogPost } from "@/lib/types";
+import type { BlogPost, PricingPlan } from "@/lib/types";
 import { db } from "@/firebase/server-init";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -29,9 +29,60 @@ async function getMarketingData() {
     }
 }
 
+const defaultPricingPlans: PricingPlan[] = [
+  {
+    id: "plan-hospital",
+    title: "🏥 Xəstəxana Paketi",
+    description: "İlkin Ödəniş: 50 USD (bir həkim üçün lisenziya)",
+    price: "20 USD",
+    period: "/ həkim / ay",
+    features: [
+      "Biometrik E-resept sistemi",
+      "Həkim paneli (giriş, resept yazma, xəstə qeydiyyatı)",
+      "Pasiyent tarixçəsi görüntüləmə",
+      "Admin panel (xəstəxana üzrə izləmə)",
+      "Analitika və hesabatlar"
+    ],
+    isPopular: true
+  },
+  {
+    id: "plan-pharmacy",
+    title: "🏪 Aptek Paketi",
+    description: "İlkin Ödəniş: 50 USD",
+    price: "3%",
+    period: "/ satılan dərmanlardan",
+    features: [
+      "Resept doğrulama və qeydiyyat",
+      "Çevik resept idarəsi",
+      "Satış tarixçəsi və hesabatlar",
+      "Aptek admin paneli (filial qeydiyyatı və izləmə)"
+    ],
+    isPopular: false
+  },
+  {
+    id: "plan-corporate",
+    title: "Korporativ",
+    description: "Böyük xəstəxanalar və səhiyyə şəbəkələri üçün fərdi həllər.",
+    price: "Xüsusi",
+    period: "",
+    features: [
+      "Limitsiz həkim və aptek filialı",
+      "Bütün paketlərin xüsusiyyətləri",
+      "Fərdi inteqrasiyalar (API)",
+      "Genişləndirilmiş analitika",
+      "Xüsusi dəstək meneceri"
+    ],
+    isPopular: false
+  }
+];
+
 
 export default async function MarketingHomePage() {
-  const { pricingPlans, blogPosts } = await getMarketingData();
+  let { pricingPlans, blogPosts } = await getMarketingData();
+
+  if (pricingPlans.length === 0) {
+    pricingPlans = defaultPricingPlans;
+  }
 
   const heroImage = PlaceHolderImages.find(img => img.id === 'hero-image');
 
@@ -157,8 +208,8 @@ export default async function MarketingHomePage() {
                                 </ul>
                             </CardContent>
                             <CardFooter>
-                                <Button className="w-full" variant={plan.isPopular ? 'default' : 'outline'}>
-                                    {plan.price === 'Xüsusi' ? "Əlaqə Saxlayın" : "Planı Seçin"}
+                                <Button className="w-full" variant={plan.price === 'Xüsusi' ? 'outline' : (plan.isPopular ? 'default' : 'secondary')}>
+                                    {plan.price === 'Xüsusi' ? "Əlaqə Saxlayın" : "Seçmək"}
                                 </Button>
                             </CardFooter>
                         </Card>
@@ -223,26 +274,6 @@ export default async function MarketingHomePage() {
                 <p className="mt-4 text-lg text-muted-foreground">
                     Suallarınız, təklifləriniz və ya partnyorluq imkanları üçün bizə yazın. Komandamız sizə kömək etməyə hazırdır.
                 </p>
-                <div className="mt-8 space-y-6">
-                    <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                            <Mail className="h-6 w-6"/>
-                        </div>
-                        <div>
-                            <h3 className="font-semibold">Email</h3>
-                            <a href="mailto:info@reseptplus.az" className="text-muted-foreground hover:text-primary">info@reseptplus.az</a>
-                        </div>
-                    </div>
-                     <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                            <Phone className="h-6 w-6"/>
-                        </div>
-                        <div>
-                            <h3 className="font-semibold">Telefon</h3>
-                            <p className="text-muted-foreground">+994 (12) 345 67 89</p>
-                        </div>
-                    </div>
-                </div>
              </div>
              <Card 
                 className="animate-fade-in-up"

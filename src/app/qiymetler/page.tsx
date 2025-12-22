@@ -17,6 +17,53 @@ async function getPricingPlans() {
     }
 }
 
+const defaultPricingPlans: PricingPlan[] = [
+  {
+    id: "plan-hospital",
+    title: "🏥 Xəstəxana Paketi",
+    description: "İlkin Ödəniş: 50 USD (bir həkim üçün lisenziya)",
+    price: "20 USD",
+    period: "/ həkim / ay",
+    features: [
+      "Biometrik E-resept sistemi",
+      "Həkim paneli (giriş, resept yazma, xəstə qeydiyyatı)",
+      "Pasiyent tarixçəsi görüntüləmə",
+      "Admin panel (xəstəxana üzrə izləmə)",
+      "Analitika və hesabatlar"
+    ],
+    isPopular: true
+  },
+  {
+    id: "plan-pharmacy",
+    title: "🏪 Aptek Paketi",
+    description: "İlkin Ödəniş: 50 USD",
+    price: "3%",
+    period: "/ satılan dərmanlardan",
+    features: [
+      "Resept doğrulama və qeydiyyat",
+      "Çevik resept idarəsi",
+      "Satış tarixçəsi və hesabatlar",
+      "Aptek admin paneli (filial qeydiyyatı və izləmə)"
+    ],
+    isPopular: false
+  },
+  {
+    id: "plan-corporate",
+    title: "Korporativ",
+    description: "Böyük xəstəxanalar və səhiyyə şəbəkələri üçün fərdi həllər.",
+    price: "Xüsusi",
+    period: "",
+    features: [
+      "Limitsiz həkim və aptek filialı",
+      "Bütün paketlərin xüsusiyyətləri",
+      "Fərdi inteqrasiyalar (API)",
+      "Genişləndirilmiş analitika",
+      "Xüsusi dəstək meneceri"
+    ],
+    isPopular: false
+  }
+];
+
 const faqItems = [
     {
         question: "Sınaq müddəti varmı?",
@@ -37,7 +84,11 @@ const faqItems = [
 ];
 
 export default async function PricingPage() {
-    const plans = await getPricingPlans();
+    let plans = await getPricingPlans();
+
+    if (plans.length === 0) {
+      plans = defaultPricingPlans;
+    }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -53,12 +104,12 @@ export default async function PricingPage() {
         </section>
         <section className="py-16 md:py-24">
           <div className="container">
-             <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:items-start">
+             <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:items-start max-w-5xl mx-auto">
                 {plans.map((plan, i) => (
                     <Card 
                         key={plan.id} 
                         className={`
-                            ${plan.isPopular ? "border-primary border-2 shadow-2xl shadow-primary/20" : "bg-glass-bg border-glass-border"} 
+                            ${plan.isPopular ? "border-primary border-2 shadow-2xl shadow-primary/10" : "bg-card"} 
                             flex flex-col rounded-2xl transition-transform duration-300 hover:-translate-y-2 animate-fade-in-up
                         `}
                         style={{ animationDelay: `${i * 0.15}s`, animationDuration: '0.9s' }}
@@ -83,8 +134,8 @@ export default async function PricingPage() {
                             </ul>
                         </CardContent>
                         <CardFooter>
-                            <Button className="w-full" variant={plan.isPopular ? 'default' : 'outline'}>
-                                {plan.price === 'Xüsusi' ? "Əlaqə Saxlayın" : "Planı Seçin"}
+                            <Button className="w-full" variant={plan.price === 'Xüsusi' ? 'outline' : (plan.isPopular ? 'default' : 'secondary')}>
+                                 {plan.price === 'Xüsusi' ? "Əlaqə Saxlayın" : "Seçmək"}
                             </Button>
                         </CardFooter>
                     </Card>
