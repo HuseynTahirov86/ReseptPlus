@@ -12,9 +12,10 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface PatientListProps {
     patients: Patient[] | null;
+    onRegisterNew: () => void;
 }
 
-export function PatientList({ patients }: PatientListProps) {
+export function PatientList({ patients, onRegisterNew }: PatientListProps) {
     const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
     const [otp, setOtp] = useState<string>('');
     const [generatedOtp, setGeneratedOtp] = useState<string>('');
@@ -37,12 +38,6 @@ export function PatientList({ patients }: PatientListProps) {
             setOtpError('Yanlış təsdiq kodu. Zəhmət olmasa, yenidən cəhd edin.');
         }
     };
-
-    const handleRegisterNewPatient = () => {
-        // Bu funksiya gələcəkdə yeni xəstə qeydiyyat formasına yönləndirəcək
-        // Hazırda implementasiya edilməyib
-        alert("Yeni xəstə qeydiyyatı funksionallığı hazırlanır.");
-    }
 
     return (
         <>
@@ -76,7 +71,7 @@ export function PatientList({ patients }: PatientListProps) {
                                 <TableRow>
                                     <TableCell colSpan={4} className="h-24 text-center">
                                         <p className='mb-4'>Axtarışa uyğun xəstə tapılmadı.</p>
-                                        <Button onClick={handleRegisterNewPatient}>
+                                        <Button onClick={onRegisterNew}>
                                             <UserPlus className="mr-2 h-4 w-4" />
                                             Yeni Xəstə Qeydiyyatdan Keçir
                                         </Button>
