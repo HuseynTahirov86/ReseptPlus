@@ -18,7 +18,7 @@ const PatientSchema = z.object({
   lastName: z.string().min(2, 'Soyad ən azı 2 hərfdən ibarət olmalıdır.'),
   finCode: z.string().length(7, 'FİN kod 7 simvol olmalıdır.'),
   dateOfBirth: z.string().nonempty('Doğum tarixi tələb olunur.'),
-  gender: z.enum(['Kişi', 'Qadın'], { errorMap: () => ({ message: 'Cins seçilməlidir.' }) }),
+  gender: z.enum(['Kişi', 'Qadın'], { required_error: 'Cins seçilməlidir.' }),
   contactNumber: z.string().min(9, 'Nömrə düzgün formatda olmalıdır.'),
   email: z.string().email('Düzgün email daxil edin.').optional().or(z.literal('')),
   address: z.string().min(3, 'Ünvan ən azı 3 simvol olmalıdır.').optional().or(z.literal('')),
@@ -156,25 +156,25 @@ export function PatientForm({ initialFinCode, initialBirthDate, onFormSubmit }: 
         </div>
 
         <FormField
-            control={form.control}
-            name="gender"
-            render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Cins</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
-                        <FormControl>
-                            <SelectTrigger>
-                            <SelectValue placeholder="Cins seçin..." />
-                            </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            <SelectItem value="Kişi">Kişi</SelectItem>
-                            <SelectItem value="Qadın">Qadın</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                </FormItem>
-            )}
+          control={form.control}
+          name="gender"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cins</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Cins seçin..." />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Kişi">Kişi</SelectItem>
+                  <SelectItem value="Qadın">Qadın</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
         />
 
         <FormField
