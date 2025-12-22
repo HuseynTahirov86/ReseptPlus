@@ -33,47 +33,47 @@ const defaultPricingPlans: PricingPlan[] = [
   {
     id: "plan-hospital",
     title: "🏥 Xəstəxana Paketi",
-    description: "Orta və kiçik klinikalar üçün ideal həll.",
+    description: "Rəqəmsal səhiyyəyə keçid üçün hərtərəfli həll yolu. Həkimlərin işini asanlaşdırın, xəstə məmnuniyyətini artırın.",
     price: "20 AZN",
-    period: "/ həkim / ay",
+    period: "/həkim/ay",
     features: [
-      "Təhlükəsiz və sürətli e-resept yazma",
-      "Xəstə axtarışı və qeydiyyatı",
+      "Təhlükəsiz və sürətli e-resept sistemi",
+      "İnteqrasiya olunmuş xəstə qeydiyyatı və axtarış",
       "Süni intellekt dəstəkli konsultasiya (AI)",
-      "Baş həkim üçün idarəetmə paneli",
-      "Xəstənin resept tarixçəsinə tam baxış"
+      "Baş həkim üçün geniş analitika paneli",
+      "Xəstənin tam resept tarixçəsinə çıxış",
     ],
-    isPopular: true
+    isPopular: true,
   },
   {
     id: "plan-pharmacy",
     title: "🏪 Aptek Paketi",
-    description: "Rəqəmsal resept dövriyyəsinə qoşulun.",
+    description: "Resept dövriyyəsini sürətləndirin və müştəri xidmətini yeni səviyyəyə qaldırın.",
     price: "3%",
-    period: "/ təhvil verilən reseptdən",
+    period: "/hər reseptdən",
     features: [
-      "İki faktorlu resept yoxlama (FIN və OTP)",
-      "Satışların qeydiyyatı və analizi",
+      "İki faktorlu resept doğrulama (FIN və OTP)",
+      "Anlıq satış qeydiyyatı və maliyyə hesabatları",
       "Baş əczaçı üçün inventar idarəçiliyi",
-      "Aptek filiallarının idarə edilməsi",
-      "Maliyyə hesabatları"
+      "Aptek filiallarının vahid idarə edilməsi",
+      "Platformadakı xəstəxanalarla birbaşa əlaqə",
     ],
-    isPopular: true
+    isPopular: true,
   },
   {
     id: "plan-corporate",
     title: "Korporativ",
-    description: "Böyük səhiyyə şəbəkələri üçün fərdi həllər.",
+    description: "Böyük səhiyyə şəbəkələri üçün fərdi ehtiyaclara uyğunlaşdırılmış xüsusi həllər.",
     price: "Xüsusi",
     period: "",
     features: [
       "Limitsiz həkim və aptek filialı",
       "Bütün standart funksiyalar",
       "Mövcud sistemlərlə fərdi inteqrasiya (API)",
-      "Genişləndirilmiş analitika və hesabatlar",
-      "Xüsusi texniki dəstək meneceri"
+      "Genişləndirilmiş və fərdi hesabatlar",
+      "Xüsusi texniki dəstək meneceri (24/7)",
     ],
-    isPopular: false
+    isPopular: false,
   }
 ];
 
