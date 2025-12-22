@@ -1,10 +1,11 @@
 import MarketingHeader from "@/components/marketing-header";
 import MarketingFooter from "@/components/marketing-footer";
-import { Check } from "lucide-react";
+import { Check, Plus, Minus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { db } from "@/firebase/server-init";
 import type { PricingPlan } from "@/lib/types";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 async function getPricingPlans() {
     try {
@@ -15,6 +16,25 @@ async function getPricingPlans() {
         return [];
     }
 }
+
+const faqItems = [
+    {
+        question: "Sınaq müddəti varmı?",
+        answer: "Bəli, seçilmiş planlar üçün 14 günlük pulsuz sınaq müddəti təklif edirik. Bu müddət ərzində platformanın bütün xüsusiyyətlərindən məhdudiyyətsiz istifadə edə bilərsiniz."
+    },
+    {
+        question: "İstənilən vaxt planımı dəyişə və ya ləğv edə bilərəmmi?",
+        answer: "Bəli, istənilən vaxt planınızı təkmilləşdirə, aşağı sala və ya ləğv edə bilərsiniz. Dəyişikliklər növbəti faktura dövrünüzdə qüvvəyə minəcək."
+    },
+    {
+        question: "Xüsusi (Custom) plan nə deməkdir?",
+        answer: "Böyük həcmli xəstəxanalar və ya unikal tələbləri olan təşkilatlar üçün xüsusi həllər və qiymət təklifləri hazırlayırıq. Ehtiyaclarınızı müzakirə etmək üçün bizimlə əlaqə saxlayın."
+    },
+     {
+        question: "Ödəniş üçün hansı metodları qəbul edirsiniz?",
+        answer: "Bütün əsas kredit kartlarını (Visa, MasterCard) və bank köçürmələrini qəbul edirik."
+    }
+];
 
 export default async function PricingPage() {
     const plans = await getPricingPlans();
@@ -75,6 +95,27 @@ export default async function PricingPage() {
             </div>
           </div>
         </section>
+
+         <section className="py-16 md:py-24 bg-secondary/30">
+            <div className="container max-w-4xl">
+                 <div className="mx-auto mb-12 text-center animate-fade-in-up" style={{ animationDuration: '0.9s' }}>
+                    <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
+                        Tez-tez Verilən Suallar
+                    </h2>
+                </div>
+                <Accordion type="single" collapsible className="w-full animate-fade-in-up" style={{ animationDelay: '0.2s', animationDuration: '0.9s' }}>
+                    {faqItems.map((item, i) => (
+                        <AccordionItem key={i} value={`item-${i}`}>
+                            <AccordionTrigger className="text-lg text-left">{item.question}</AccordionTrigger>
+                            <AccordionContent className="text-base text-muted-foreground">
+                               {item.answer}
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
+            </div>
+        </section>
+
       </main>
       <MarketingFooter />
     </div>

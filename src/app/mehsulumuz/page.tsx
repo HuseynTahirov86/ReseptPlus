@@ -34,11 +34,21 @@ export default async function ProductPage() {
           <div className="container text-center animate-fade-in-up" style={{ animationDuration: '0.9s' }}>
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Məhsulumuz</h1>
             <p className="mt-4 text-lg text-muted-foreground md:text-xl">
-              ReseptPlus-ın səhiyyə idarəçiliyini necə dəyişdirdiyini kəşf edin.
+              ReseptPlus-ın səhiyyə idarəçiliyini necə sadələşdirdiyini və təkmilləşdirdiyini kəşf edin.
             </p>
           </div>
         </section>
-        <section className="py-16 md:py-24">
+         <section className="py-16 md:py-24">
+            <div className="container max-w-5xl">
+                <div className="text-center animate-fade-in-up" style={{ animationDuration: '0.9s' }}>
+                    <h2 className="text-3xl font-bold">Problemdən Həllə</h2>
+                    <p className="mt-4 text-lg text-muted-foreground max-w-3xl mx-auto">
+                        Ənənəvi resept prosesi səhvlərə, vaxt itkisinə və xəstə məmnuniyyətsizliyinə səbəb olur. ReseptPlus, bu problemləri aradan qaldırmaq üçün həkim, xəstə və əczaçını vahid, rəqəmsal bir platformada birləşdirərək səhiyyə xidmətlərinin gələcəyini formalaşdırır.
+                    </p>
+                </div>
+            </div>
+        </section>
+        <section className="pb-16 md:pb-24">
           <div className="container">
              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               {productFeatures.map((feature, i) => (

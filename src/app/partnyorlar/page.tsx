@@ -33,7 +33,7 @@ export default async function PartnersPage() {
           <div className="container text-center animate-fade-in-up" style={{ animationDuration: '0.9s' }}>
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Partnyorlarımız</h1>
             <p className="mt-4 text-lg text-muted-foreground md:text-xl">
-              Missiyamızı dəstəkləyən və bizə etimad edən qurumlar.
+              Missiyamızı dəstəkləyən və platformamıza etimad edən qurumlarla fəxr edirik.
             </p>
           </div>
         </section>
@@ -46,7 +46,7 @@ export default async function PartnersPage() {
                         Dəstəkçilərimiz
                     </h2>
                     <p className="mt-4 text-lg text-muted-foreground">
-                        Səhiyyənin rəqəmsal transformasiyası yolunda bizə dəstək olan təşkilatlar.
+                        Səhiyyənin rəqəmsal transformasiyası yolunda bizə dəstək olan və innovasiyaları təşviq edən təşkilatlar.
                     </p>
                 </div>
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -80,7 +80,7 @@ export default async function PartnersPage() {
                         Müştərilərimiz
                     </h2>
                     <p className="mt-4 text-lg text-muted-foreground">
-                        ReseptPlus platformasına etimad edərək fəaliyyətlərini gücləndirən şirkətlər.
+                        ReseptPlus platformasına etimad edərək öz fəaliyyətlərini gücləndirən və xəstə məmnuniyyətini artıran klinikalar və apteklər.
                     </p>
                 </div>
                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">

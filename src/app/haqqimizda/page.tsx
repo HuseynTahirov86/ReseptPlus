@@ -28,7 +28,7 @@ export default async function AboutUsPage() {
           <div className="container text-center animate-fade-in-up" style={{ animationDuration: '0.9s' }}>
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Haqqımızda</h1>
             <p className="mt-4 text-lg text-muted-foreground md:text-xl">
-              ReseptPlus-ın arxasındakı missiya və komanda ilə tanış olun.
+              ReseptPlus-ın arxasındakı missiya, vizyon və komanda ilə tanış olun.
             </p>
           </div>
         </section>
@@ -36,8 +36,8 @@ export default async function AboutUsPage() {
           <div className="container grid gap-16 md:grid-cols-2 items-center">
             <div className="animate-fade-in-up" style={{ animationDelay: '0.2s', animationDuration: '0.9s' }}>
               <h2 className="text-3xl font-bold">Missiyamız</h2>
-              <p className="mt-4 text-muted-foreground">
-                Bizim missiyamız səhiyyə sistemində inqilab etməkdir. Texnologiyadan istifadə edərək həkimlər, xəstələr və apteklər arasında qüsursuz, səmərəli və təhlükəsiz bir körpü yaratmağı hədəfləyirik. Hər kəs üçün səhiyyə xidmətlərini daha əlçatan və idarəolunan etmək üçün çalışırıq.
+              <p className="mt-4 text-muted-foreground text-lg">
+                Səhiyyə xidmətlərinin göstərilməsində inqilab etmək üçün texnologiyanın gücündən istifadə edərək, həkimlər, əczaçılar və xəstələr arasında qüsursuz, təhlükəsiz və səmərəli bir ekosistem yaratmaq. Biz, hər kəs üçün səhiyyə xidmətlərini daha əlçatan, şəffaf və idarəolunan etməyi hədəfləyirik.
               </p>
             </div>
             <div className="flex items-center justify-center animate-fade-in-up" style={{ animationDelay: '0.4s', animationDuration: '0.9s' }}>
@@ -52,17 +52,17 @@ export default async function AboutUsPage() {
               <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.2s', animationDuration: '0.9s' }}>
                 <Building className="mx-auto h-12 w-12 text-primary" />
                 <h3 className="mt-4 text-xl font-semibold">İnnovasiya</h3>
-                <p className="mt-2 text-muted-foreground">Səhiyyənin problemlərini həll etmək üçün daim yeni yollar axtarırıq.</p>
+                <p className="mt-2 text-muted-foreground">Səhiyyənin mürəkkəb problemlərini həll etmək üçün daim yeni texnoloji yollar axtarırıq və tətbiq edirik.</p>
               </div>
               <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.4s', animationDuration: '0.9s' }}>
                 <Users className="mx-auto h-12 w-12 text-primary" />
                 <h3 className="mt-4 text-xl font-semibold">İstifadəçi Mərkəzlilik</h3>
-                <p className="mt-2 text-muted-foreground">Platformamızın hər bir istifadəçisinin ehtiyaclarını ön planda tuturuq.</p>
+                <p className="mt-2 text-muted-foreground">Platformamızın hər bir istifadəçisinin – həkim, xəstə və əczaçının – ehtiyaclarını və təcrübəsini ön planda tuturuq.</p>
               </div>
               <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.6s', animationDuration: '0.9s' }}>
                 <Target className="mx-auto h-12 w-12 text-primary" />
                 <h3 className="mt-4 text-xl font-semibold">Etibarlılıq</h3>
-                <p className="mt-2 text-muted-foreground">Təhlükəsizlik və məlumatların məxfiliyi bizim üçün ən yüksək prioritetdir.</p>
+                <p className="mt-2 text-muted-foreground">Məlumatların təhlükəsizliyi, məxfiliyi və sistemin dayanıqlılığı bizim üçün ən yüksək və güzəştsiz prioritetdir.</p>
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import MarketingHeader from "@/components/marketing-header";
 import MarketingFooter from "@/components/marketing-footer";
-import { Mail, MessageSquare } from "lucide-react";
+import { Mail, MessageSquare, Phone } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,12 +60,12 @@ export default function ContactPage() {
                     <CardHeader className="flex-row items-center gap-4">
                         <Mail className="h-8 w-8 text-primary"/>
                         <div>
-                            <CardTitle>Email</CardTitle>
-                            <CardDescription>Ümumi suallar üçün</CardDescription>
+                            <CardTitle>Ümumi Sorğular</CardTitle>
+                            <CardDescription>Satış və partnyorluq üçün</CardDescription>
                         </div>
                     </CardHeader>
                      <CardContent>
-                        <a href="mailto:info@sagliknet.az" className="font-semibold text-primary hover:underline">info@sagliknet.az</a>
+                        <a href="mailto:info@reseptplus.az" className="font-semibold text-primary hover:underline">info@reseptplus.az</a>
                     </CardContent>
                 </Card>
                  <Card 
@@ -76,11 +76,26 @@ export default function ContactPage() {
                         <MessageSquare className="h-8 w-8 text-primary"/>
                         <div>
                             <CardTitle>Texniki Dəstək</CardTitle>
-                            <CardDescription>Texniki yardım üçün</CardDescription>
+                            <CardDescription>Platforma ilə bağlı yardım üçün</CardDescription>
                         </div>
                     </CardHeader>
                      <CardContent>
-                        <a href="mailto:destek@sagliknet.az" className="font-semibold text-primary hover:underline">destek@sagliknet.az</a>
+                        <a href="mailto:destek@reseptplus.az" className="font-semibold text-primary hover:underline">destek@reseptplus.az</a>
+                    </CardContent>
+                </Card>
+                 <Card 
+                  className="animate-fade-in-up bg-glass-bg border-glass-border backdrop-blur-lg"
+                  style={{ animationDelay: '0.8s', animationDuration: '0.9s' }}
+                 >
+                    <CardHeader className="flex-row items-center gap-4">
+                        <Phone className="h-8 w-8 text-primary"/>
+                        <div>
+                            <CardTitle>Telefon</CardTitle>
+                            <CardDescription>İş saatları ərzində (09:00 - 18:00)</CardDescription>
+                        </div>
+                    </CardHeader>
+                     <CardContent>
+                        <a href="tel:+994123456789" className="font-semibold text-primary hover:underline">+994 (12) 345 67 89</a>
                     </CardContent>
                 </Card>
              </div>
