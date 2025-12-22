@@ -24,7 +24,9 @@ const CreateDoctorSchema = z.object({
   password: z.string().min(6, 'Şifrə ən azı 6 simvol olmalıdır.'),
   specialization: z.string().min(2, 'İxtisas ən azı 2 simvol olmalıdır.'),
   hospitalId: z.string().min(1, 'Xəstəxana seçilməlidir.'),
-  role: z.enum(['doctor', 'head_doctor']),
+  role: z.enum(['doctor', 'head_doctor'], {
+    errorMap: () => ({ message: 'Rol seçilməlidir.' }),
+  }),
 });
 
 const UpdateDoctorSchema = CreateDoctorSchema.omit({ password: true }).extend({
@@ -85,8 +87,8 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
       const fieldErrors = state.issues;
       Object.keys(fieldErrors).forEach((key) => {
           const fieldName = key as keyof DoctorFormValues;
-          const message = fieldErrors[fieldName]?.[0];
-          if(message) {
+          const message = (fieldErrors as any)[fieldName]?.[0];
+          if(message && form.getFieldState(fieldName).error?.type !== 'server') {
             form.setError(fieldName, { type: 'server', message });
           }
       });

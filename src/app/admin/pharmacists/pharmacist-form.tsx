@@ -22,7 +22,9 @@ const CreatePharmacistSchema = z.object({
   email: z.string().email('Düzgün email daxil edin.'),
   password: z.string().min(6, 'Şifrə ən azı 6 simvol olmalıdır.'),
   pharmacyId: z.string().min(1, 'Aptek seçilməlidir.'),
-  role: z.enum(['employee', 'head_pharmacist']),
+  role: z.enum(['employee', 'head_pharmacist'], {
+    errorMap: () => ({ message: 'Rol seçilməlidir.' }),
+  }),
 });
 
 const UpdatePharmacistSchema = CreatePharmacistSchema.omit({ password: true }).extend({
