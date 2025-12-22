@@ -9,7 +9,6 @@ import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
 import { collection } from "firebase/firestore";
 import type { SupportingOrganization, ClientCompany } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 function PartnerSkeleton() {
     return (
@@ -33,9 +32,6 @@ export default function PartnersPage() {
     const { data: supportingOrganizations, isLoading: loadingSupporters } = useCollection<SupportingOrganization>(supportingOrgsQuery);
     const { data: clientCompanies, isLoading: loadingClients } = useCollection<ClientCompany>(clientCompaniesQuery);
     
-    const partnerImages = PlaceHolderImages.filter(p => p.id.startsWith("partner-"));
-
-
   return (
     <div className="flex min-h-screen flex-col">
       <MarketingHeader />
@@ -62,12 +58,11 @@ export default function PartnersPage() {
                 </div>
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
                     {loadingSupporters && Array.from({ length: 3 }).map((_, i) => <PartnerSkeleton key={i} />)}
-                    {supportingOrganizations?.map((org, index) => {
-                        const img = partnerImages[index % partnerImages.length];
+                    {supportingOrganizations?.map((org) => {
                         return (
                         <Card key={org.id} className="flex flex-col items-center text-center p-6 bg-background rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20">
                             <div className="relative w-48 h-24 mb-4">
-                                <Image src={img.imageUrl} alt={`${org.name} logo`} layout="fill" objectFit="contain" data-ai-hint={img.imageHint}/>
+                                <Image src={org.logoUrl} alt={`${org.name} logo`} layout="fill" objectFit="contain" />
                             </div>
                             <CardContent className="p-0">
                                 <h3 className="font-semibold text-lg">{org.name}</h3>
@@ -95,12 +90,11 @@ export default function PartnersPage() {
                 </div>
                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
                     {loadingClients && Array.from({ length: 4 }).map((_, i) => <PartnerSkeleton key={i} />)}
-                    {clientCompanies?.map((company, index) => {
-                        const img = partnerImages[(index + supportingOrganizations.length) % partnerImages.length];
+                    {clientCompanies?.map((company) => {
                         return (
                          <Card key={company.id} className="flex flex-col items-center text-center p-6 bg-background rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20">
                             <div className="relative w-40 h-20 mb-4">
-                                <Image src={img.imageUrl} alt={`${company.name} logo`} layout="fill" objectFit="contain" data-ai-hint={img.imageHint} />
+                                <Image src={company.logoUrl} alt={`${company.name} logo`} layout="fill" objectFit="contain" />
                             </div>
                              <CardContent className="p-0">
                                 <h3 className="font-semibold text-lg">{company.name}</h3>
