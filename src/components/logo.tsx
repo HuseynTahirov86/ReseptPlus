@@ -1,10 +1,10 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { HeartPulse } from "lucide-react";
 
 export function Logo({ className }: { className?: string }) {
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <HeartPulse className="h-7 w-7 text-primary" />
+      <Image src="/logo.png" alt="ReseptPlus Logo" width={28} height={28} />
       <div className="text-2xl font-bold tracking-tight">
         <span className="font-medium">Resept</span>
         <span className="text-primary">Plus</span>
