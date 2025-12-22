@@ -131,7 +131,7 @@ export default function MarketingHomePage() {
         </section>
 
         {/* How It Works Section */}
-        <section id="how-it-works" className="py-16 md:py-24 lg:py-32 bg-secondary/50">
+        <section id="how-it-works" className="py-16 md:py-24 lg:py-32 bg-secondary/30">
           <div className="container">
             <div className="mx-auto mb-16 max-w-3xl text-center animate-fade-in-up">
               <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
