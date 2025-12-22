@@ -8,7 +8,7 @@ const PartnerSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, 'Ad ən azı 2 simvol olmalıdır.'),
   description: z.string().min(10, 'Təsvir ən azı 10 simvol olmalıdır.'),
-  logoUrl: z.string().url('Düzgün bir URL daxil edin.'),
+  logoUrl: z.string().min(1, 'Loqo URL-i boş ola bilməz.'),
 });
 
 export type FormState = {

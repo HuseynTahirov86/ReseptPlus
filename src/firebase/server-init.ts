@@ -1,4 +1,4 @@
-'use server';
+// 'use server'; satırını SİL
 
 import { initializeApp, getApps, getApp, App } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
