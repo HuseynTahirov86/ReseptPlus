@@ -320,6 +320,14 @@
           "items": {
             "$ref": "#/entities/PrescribedMedication"
           }
+        },
+        "totalCost": {
+            "type": "number",
+            "description": "Total cost of the medications in the prescription."
+        },
+        "paymentReceived": {
+            "type": "number",
+            "description": "Amount paid by the patient."
         }
       },
       "required": [ "id", "patientId", "doctorId", "datePrescribed", "diagnosis", "medications" ]

@@ -15,12 +15,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { fulfillPrescription } from '../actions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { db } from '@/firebase/client-init';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import { Label } from '@/components/ui/label';
 
 
 const searchSchema = z.object({
@@ -29,6 +31,13 @@ const searchSchema = z.object({
 });
 
 type SearchFormValues = z.infer<typeof searchSchema>;
+
+const FulfillFormSchema = z.object({
+  totalCost: z.coerce.number().min(0, "Məbləğ mənfi ola bilməz."),
+  paymentReceived: z.coerce.number().min(0, "Məbləğ mənfi ola bilməz."),
+});
+type FulfillFormValues = z.infer<typeof FulfillFormSchema>;
+
 
 export default function VerifyPrescriptionPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -44,11 +53,19 @@ export default function VerifyPrescriptionPage() {
   
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [loadingPrescriptions, setLoadingPrescriptions] = useState(false);
+
+  const [fulfillModalOpen, setFulfillModalOpen] = useState(false);
+  const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
+  const [isFulfilling, setIsFulfilling] = useState(false);
   
   const { toast } = useToast();
 
-  const { register, handleSubmit, formState: { errors } } = useForm<SearchFormValues>({
+  const { register, handleSubmit: handleSearchSubmit, formState: { errors: searchErrors } } = useForm<SearchFormValues>({
     resolver: zodResolver(searchSchema),
+  });
+
+  const { register: registerFulfill, handleSubmit: handleFulfillSubmit, formState: { errors: fulfillErrors }, reset: resetFulfillForm } = useForm<FulfillFormValues>({
+    resolver: zodResolver(FulfillFormSchema),
   });
   
 
@@ -76,7 +93,6 @@ export default function VerifyPrescriptionPage() {
         const foundPatient = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() } as Patient;
         setPatient(foundPatient);
         
-        // OTP generation and modal opening
         const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
         setGeneratedOtp(newOtp);
         setOtp('');
@@ -123,17 +139,31 @@ export default function VerifyPrescriptionPage() {
     }
   };
 
-  const handleFulfill = async (prescriptionId: string) => {
-    const result = await fulfillPrescription(prescriptionId);
+  const openFulfillDialog = (prescription: Prescription) => {
+    setSelectedPrescription(prescription);
+    resetFulfillForm({ totalCost: 0, paymentReceived: 0 });
+    setFulfillModalOpen(true);
+  };
+
+  const onFulfillSubmit: SubmitHandler<FulfillFormValues> = async (data) => {
+    if (!selectedPrescription) return;
+
+    setIsFulfilling(true);
+    const result = await fulfillPrescription(selectedPrescription.id, data.totalCost, data.paymentReceived);
+    
     toast({
         title: result.type === 'success' ? 'Uğurlu' : 'Xəta',
         description: result.message,
         variant: result.type === 'success' ? 'default' : 'destructive'
     });
-    if (result.type === 'success' && verifiedPatient?.id) {
-        // Refresh the list
-        fetchPrescriptions(verifiedPatient.id);
+
+    if (result.type === 'success') {
+      setFulfillModalOpen(false);
+      if (verifiedPatient?.id) {
+          fetchPrescriptions(verifiedPatient.id);
+      }
     }
+    setIsFulfilling(false);
   }
 
   return (
@@ -146,14 +176,14 @@ export default function VerifyPrescriptionPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSearch)} className="flex flex-col sm:flex-row gap-4 items-start">
+          <form onSubmit={handleSearchSubmit(onSearch)} className="flex flex-col sm:flex-row gap-4 items-start">
             <div className='flex-1 w-full'>
               <Input {...register('finCode')} placeholder="FİN Kod (məs., 1ABC2DE)" />
-              {errors.finCode && <p className="text-destructive text-sm mt-1">{errors.finCode.message}</p>}
+              {searchErrors.finCode && <p className="text-destructive text-sm mt-1">{searchErrors.finCode.message}</p>}
             </div>
             <div className='flex-1 w-full'>
               <Input {...register('birthDate')} type="date" />
-              {errors.birthDate && <p className="text-destructive text-sm mt-1">{errors.birthDate.message}</p>}
+              {searchErrors.birthDate && <p className="text-destructive text-sm mt-1">{searchErrors.birthDate.message}</p>}
             </div>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
@@ -174,28 +204,26 @@ export default function VerifyPrescriptionPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Yazılma Tarixi</TableHead>
-                            <TableHead>Həkim</TableHead>
-                            <TableHead>Dərman</TableHead>
                             <TableHead>Diaqnoz</TableHead>
+                            <TableHead>Dərmanlar</TableHead>
                             <TableHead className='text-right'>Əməliyyat</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {loadingPrescriptions && (
                             <TableRow>
-                                <TableCell colSpan={5} className="h-24 text-center">
-                                    Reseptlər yüklənir...
+                                <TableCell colSpan={4} className="h-24 text-center">
+                                    <Loader2 className='mx-auto h-6 w-6 animate-spin' />
                                 </TableCell>
                             </TableRow>
                         )}
                         {!loadingPrescriptions && prescriptions?.map(p => (
                             <TableRow key={p.id}>
                                 <TableCell>{new Date(p.datePrescribed).toLocaleDateString()}</TableCell>
-                                <TableCell>Dr. Placeholder</TableCell>
-                                <TableCell className='font-medium'>{p.medicationName}</TableCell>
                                 <TableCell>{p.diagnosis}</TableCell>
+                                <TableCell className='font-medium'>{p.medications.map(m => m.medicationName).join(', ')}</TableCell>
                                 <TableCell className='text-right'>
-                                    <Button size="sm" onClick={() => handleFulfill(p.id)}>
+                                    <Button size="sm" onClick={() => openFulfillDialog(p)}>
                                         <CheckCircle className="mr-2 h-4 w-4"/>
                                         Təhvil Ver
                                     </Button>
@@ -239,6 +267,38 @@ export default function VerifyPrescriptionPage() {
             {otpError && <p className="text-destructive text-sm">{otpError}</p>}
             <Button className="w-full" onClick={handleVerifyOtp}>Təsdiqlə</Button>
             </div>
+        </DialogContent>
+      </Dialog>
+      
+       <Dialog open={fulfillModalOpen} onOpenChange={setFulfillModalOpen}>
+        <DialogContent>
+            <form onSubmit={handleFulfillSubmit(onFulfillSubmit)}>
+                <DialogHeader>
+                    <DialogTitle>Resepti Təhvil Ver</DialogTitle>
+                    <DialogDescription>
+                        Dərmanların ümumi məbləğini və alınan ödənişi qeyd edin.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="totalCost">Dərmanların Ümumi Məbləği (AZN)</Label>
+                        <Input id="totalCost" type="number" step="0.01" {...registerFulfill('totalCost')} />
+                        {fulfillErrors.totalCost && <p className="text-destructive text-sm">{fulfillErrors.totalCost.message}</p>}
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="paymentReceived">Alınan Ödəniş (AZN)</Label>
+                        <Input id="paymentReceived" type="number" step="0.01" {...registerFulfill('paymentReceived')} />
+                        {fulfillErrors.paymentReceived && <p className="text-destructive text-sm">{fulfillErrors.paymentReceived.message}</p>}
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button type="button" variant="ghost" onClick={() => setFulfillModalOpen(false)} disabled={isFulfilling}>Ləğv et</Button>
+                    <Button type="submit" disabled={isFulfilling}>
+                        {isFulfilling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Təsdiqlə
+                    </Button>
+                </DialogFooter>
+            </form>
         </DialogContent>
       </Dialog>
     </div>

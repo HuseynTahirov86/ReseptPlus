@@ -32,6 +32,8 @@ export type Prescription = {
   complaint?: string;
   diagnosis?: string;
   medications: PrescribedMedication[];
+  totalCost?: number;
+  paymentReceived?: number;
 };
 
 export type Doctor = {
