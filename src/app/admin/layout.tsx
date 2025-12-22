@@ -30,8 +30,11 @@ export default function AdminLayout({
   const auth = useAuth();
 
   useEffect(() => {
-    if (!isUserLoading && (!user || user.profile?.role !== 'admin')) {
-      router.push('/login'); 
+    if (!isUserLoading) {
+        const userRole = user?.profile?.role;
+        if (userRole !== 'admin' && userRole !== 'system_admin') {
+            router.push('/login'); 
+        }
     }
   }, [user, isUserLoading, router]);
 
@@ -41,7 +44,8 @@ export default function AdminLayout({
     }
   };
 
-  if (isUserLoading || !user || user.profile?.role !== 'admin') {
+  const userRole = user?.profile?.role;
+  if (isUserLoading || (userRole !== 'admin' && userRole !== 'system_admin')) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

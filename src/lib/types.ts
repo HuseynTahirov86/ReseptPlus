@@ -9,6 +9,7 @@ export type Patient = {
     email: string;
     address: string;
     finCode: string;
+    role: 'patient';
 };
 
 export type Prescription = {
