@@ -2,7 +2,12 @@
 
 import { z } from 'zod';
 import { db } from '@/firebase/server-init';
-import { collection, doc, addDoc, setDoc, deleteDoc } from 'firebase/firestore';
+// ❌ SƏHV: Client SDK
+// import { collection, doc, addDoc, setDoc, deleteDoc } from 'firebase/firestore';
+
+// ✅ DÜZGÜN: Admin SDK
+// Firebase Admin SDK-da collection() və addDoc() yoxdur
+// Bunun yerinə db.collection() istifadə edirik
 
 const BasePartnerSchema = z.object({
   name: z.string().min(2, 'Ad ən azı 2 simvol olmalıdır.'),
@@ -14,7 +19,6 @@ const AddPartnerSchema = BasePartnerSchema;
 const UpdatePartnerSchema = BasePartnerSchema.extend({
   id: z.string().min(1, "ID təyin edilməyib."),
 });
-
 
 export type FormState = {
   message: string;
@@ -42,58 +46,59 @@ export async function addPartner(
   }
   
   try {
-    const collectionRef = collection(db, partnerType);
-    // Use the validated data directly
-    const dataToAdd = validatedFields.data;
-    const docRef = await addDoc(collectionRef, dataToAdd);
-    // Now, update the newly created document with its own ID
-    await setDoc(docRef, { id: docRef.id }, { merge: true });
+    // ✅ Firebase Admin SDK sintaksisi
+    const collectionRef = db.collection(partnerType);
+    const docRef = await collectionRef.add(validatedFields.data);
+    
+    // ID-ni document-ə əlavə et
+    await docRef.update({ id: docRef.id });
     
     return { type: 'success', message: 'Partnyor uğurla əlavə edildi.' };
   } catch (error) {
     console.error("Add Partner Error:", error);
     return {
       type: 'error',
-      message: 'Gözlənilməz bir xəta baş verdi.',
+      message: `Gözlənilməz bir xəta baş verdi: ${error instanceof Error ? error.message : 'Unknown'}`,
       fields: Object.fromEntries(formData.entries()),
     };
   }
 }
 
 export async function updatePartner(
-    partnerType: 'supportingOrganizations' | 'clientCompanies',
-    prevState: FormState,
-    formData: FormData
+  partnerType: 'supportingOrganizations' | 'clientCompanies',
+  prevState: FormState,
+  formData: FormData
 ): Promise<FormState> {
-    const validatedFields = UpdatePartnerSchema.safeParse(
-        Object.fromEntries(formData.entries())
-    );
+  const validatedFields = UpdatePartnerSchema.safeParse(
+    Object.fromEntries(formData.entries())
+  );
 
-    if (!validatedFields.success) {
-        return {
-            type: 'error',
-            message: "Doğrulama uğursuz oldu və ya ID təyin edilməyib.",
-            fields: Object.fromEntries(formData.entries()),
-            issues: validatedFields.error?.flatten().fieldErrors.name,
-        };
-    }
+  if (!validatedFields.success) {
+    return {
+      type: 'error',
+      message: "Doğrulama uğursuz oldu və ya ID təyin edilməyib.",
+      fields: Object.fromEntries(formData.entries()),
+      issues: validatedFields.error?.flatten().fieldErrors.name,
+    };
+  }
 
-    const { id, ...dataToUpdate } = validatedFields.data;
+  const { id, ...dataToUpdate } = validatedFields.data;
 
-    try {
-        const docRef = doc(db, partnerType, id);
-        await setDoc(docRef, dataToUpdate, { merge: true });
-        return { type: 'success', message: 'Partnyor uğurla yeniləndi.' };
-    } catch (error) {
-       console.error("Update Partner Error:", error);
-        return {
-            type: 'error',
-            message: 'Gözlənilməz bir xəta baş verdi.',
-            fields: Object.fromEntries(formData.entries()),
-        };
-    }
+  try {
+    // ✅ Firebase Admin SDK sintaksisi
+    const docRef = db.collection(partnerType).doc(id);
+    await docRef.set(dataToUpdate, { merge: true });
+    
+    return { type: 'success', message: 'Partnyor uğurla yeniləndi.' };
+  } catch (error) {
+    console.error("Update Partner Error:", error);
+    return {
+      type: 'error',
+      message: `Gözlənilməz bir xəta baş verdi: ${error instanceof Error ? error.message : 'Unknown'}`,
+      fields: Object.fromEntries(formData.entries()),
+    };
+  }
 }
-
 
 export async function deletePartner(
   partnerType: 'supportingOrganizations' | 'clientCompanies',
@@ -104,11 +109,16 @@ export async function deletePartner(
   }
   
   try {
-    const docRef = doc(db, partnerType, id);
-    await deleteDoc(docRef);
+    // ✅ Firebase Admin SDK sintaksisi
+    const docRef = db.collection(partnerType).doc(id);
+    await docRef.delete();
+    
     return { type: 'success', message: 'Partnyor uğurla silindi.' };
   } catch (error) {
     console.error("Delete Partner Error:", error);
-    return { type: 'error', message: 'Partnyoru silmək mümkün olmadı.' };
+    return { 
+      type: 'error', 
+      message: `Partnyoru silmək mümkün olmadı: ${error instanceof Error ? error.message : 'Unknown'}` 
+    };
   }
 }

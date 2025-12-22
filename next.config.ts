@@ -28,6 +28,18 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: '9000-firebase-studio-*.cloudworkstations.dev',
+        port: '',
+        pathname: '/**',
+      },
+       {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9002',
+        pathname: '/**',
+      },
     ],
   },
 };
