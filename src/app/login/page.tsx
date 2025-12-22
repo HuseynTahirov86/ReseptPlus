@@ -1,8 +1,8 @@
-
 'use client';
 
 import {
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
 } from 'firebase/auth';
 import { useAuth, useUser } from '@/firebase';
 import { useState, useEffect } from "react";
@@ -29,33 +29,53 @@ function AuthForm() {
     setIsMounted(true);
   }, []);
 
-  const handleLogin = async () => {
+  const handleAuthAction = async () => {
     setLoading(true);
     setError(null);
     try {
+      // First, try to sign in
       await signInWithEmailAndPassword(auth, email, password);
       // Redirection is handled by the FirebaseProvider
     } catch (e: any) {
-       switch (e.code) {
-          case 'auth/user-not-found':
-          case 'auth/invalid-credential':
-            setError('Bu email ilə hesab tapılmadı və ya şifrə yanlışdır.');
-            break;
-        case 'auth/wrong-password':
-          setError('Yanlış şifrə. Zəhmət olmasa, yenidən cəhd edin.');
-          break;
-        case 'auth/invalid-email':
-          setError('Zəhmət olmasa, düzgün bir email adresi daxil edin.');
-          break;
-        default:
-          setError('Gözlənilməz bir xəta baş verdi: ' + e.message);
-          break;
+      if (e.code === 'auth/user-not-found') {
+        // If user not found, try to create a new user (for initial setup)
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+            // Redirection is handled by the FirebaseProvider after creation
+        } catch (creationError: any) {
+            handleFirebaseAuthError(creationError);
+        }
+      } else {
+        handleFirebaseAuthError(e);
       }
     } finally {
       setLoading(false);
     }
   };
   
+  const handleFirebaseAuthError = (e: any) => {
+     switch (e.code) {
+        case 'auth/user-not-found':
+        case 'auth/invalid-credential':
+          setError('Bu email ilə hesab tapılmadı və ya şifrə yanlışdır.');
+          break;
+        case 'auth/wrong-password':
+          setError('Yanlış şifrə. Zəhmət olmasa, yenidən cəhd edin.');
+          break;
+        case 'auth/invalid-email':
+          setError('Zəhmət olmasa, düzgün bir email adresi daxil edin.');
+          break;
+        case 'auth/email-already-in-use':
+          setError('Bu email artıq mövcuddur. Zəhmət olmasa, daxil olun.');
+          break;
+        case 'auth/weak-password':
+          setError('Şifrə çox zəifdir. Ən azı 6 simvol olmalıdır.');
+          break;
+        default:
+          setError('Gözlənilməz bir xəta baş verdi: ' + e.message);
+          break;
+      }
+  }
 
   if (!isMounted) {
     return null;
@@ -64,9 +84,9 @@ function AuthForm() {
   return (
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Hesabınıza daxil olun</CardTitle>
+          <CardTitle>Daxil Ol və ya Qeydiyyatdan Keç</CardTitle>
           <CardDescription>
-            İdarəetmə panelinə daxil olmaq üçün məlumatlarınızı daxil edin.
+            Hesabınız yoxdursa, daxil etdiyiniz məlumatlarla yeni hesab yaradılacaq (yalnız adminlər üçün).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -87,9 +107,9 @@ function AuthForm() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button className="w-full" onClick={handleLogin} disabled={loading}>
+          <Button className="w-full" onClick={handleAuthAction} disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? "Gözləyin..." : 'Daxil Ol'}
+              {loading ? "Gözləyin..." : 'Davam Et'}
           </Button>
         </CardFooter>
       </Card>
@@ -105,7 +125,7 @@ export default function LoginPage() {
             const role = user.profile?.role;
             if (role === 'admin' || role === 'system_admin') {
                 router.push('/admin/dashboard');
-            } else if (role === 'doctor' || role === 'head_doctor') {
+            } else if (role === 'doctor' || role === 'head_doctor' || role === 'pharmacist' || role === 'head_pharmacist') {
                 router.push('/dashboard');
             }
         }

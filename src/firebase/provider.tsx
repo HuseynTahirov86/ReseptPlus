@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
@@ -165,6 +164,21 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                         await setDoc(adminRef, newAdmin);
                         console.log('Site Admin document created for:', firebaseUser.email);
                         userProfile = newAdmin;
+                    } else {
+                         // Default to creating a 'doctor' for any other new user in dev/test setup
+                        const doctorRef = doc(firestore, 'doctors', firebaseUser.uid);
+                        const newDoctor: Partial<Doctor> = { 
+                            id: firebaseUser.uid, 
+                            email: firebaseUser.email!,
+                            role: 'doctor', 
+                            firstName: firebaseUser.email?.split('@')[0] || 'Yeni',
+                            lastName: 'Həkim',
+                            specialization: 'Ümumi',
+                            hospitalId: 'test_hospital_id' // Placeholder
+                        };
+                        await setDoc(doctorRef, newDoctor);
+                        console.log('Default doctor document created for:', firebaseUser.email);
+                        userProfile = newDoctor;
                     }
                 }
 
