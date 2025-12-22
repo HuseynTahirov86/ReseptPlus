@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import Link from "next/link";
 import { useRouter, usePathname } from 'next/navigation';
 import { useUser, useAuth } from '@/firebase';
-import { Loader2, Home, Handshake, FileText, DollarSign, Package, Upload, Library, Users, LogOut, Hospital, Microscope, Pill, ShieldCheck } from 'lucide-react';
+import { Loader2, Home, Handshake, FileText, DollarSign, Package, Upload, Library, Users, LogOut, Hospital, Microscope, Pill, ShieldCheck, Building } from 'lucide-react';
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 
@@ -23,7 +23,8 @@ const systemAdminNavItems = [
   { href: "/admin/dashboard", label: "İdarə Paneli", icon: Home },
   { href: "/admin/hospitals", label: "Xəstəxanalar", icon: Hospital },
   { href: "/admin/doctors", label: "Həkimlər", icon: Microscope },
-  { href: "/admin/pharmacies", label: "Apteklər", icon: Pill },
+  { href: "/admin/pharmacies", label: "Apteklər", icon: Building },
+  { href: "/admin/pharmacists", label: "Əczaçılar", icon: Pill },
   { href: "/admin/users", label: "İstifadəçilər", icon: Users },
   { href: "/admin/security", label: "Təhlükəsizlik", icon: ShieldCheck },
 ];

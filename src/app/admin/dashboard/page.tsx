@@ -144,7 +144,7 @@ function SystemAdminDashboard() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Xəstəxanalar" icon={<Hospital className="h-4 w-4 text-muted-foreground" />} value={counts.hospitals} description="sistemdə qeydiyyatda" isLoading={isLoading} />
         <StatCard title="Həkimlər" icon={<Microscope className="h-4 w-4 text-muted-foreground" />} value={counts.doctors} description="sistemdə qeydiyyatda" isLoading={isLoading} />
-        <StatCard title="Apteklər" icon={<Pill className="h-4 w-4 text-muted-foreground" />} value={counts.pharmacies} description="sistemdə qeydiyyatda" isLoading={isLoading} />
+        <StatCard title="Apteklər" icon={<Building className="h-4 w-4 text-muted-foreground" />} value={counts.pharmacies} description="sistemdə qeydiyyatda" isLoading={isLoading} />
         <StatCard title="Xəstələr" icon={<Users className="h-4 w-4 text-muted-foreground" />} value={counts.patients} description="sistemdə qeydiyyatda" isLoading={isLoading} />
       </div>
        <div>
@@ -167,7 +167,14 @@ function SystemAdminDashboard() {
            <Link href="/admin/pharmacies">
              <Card className="hover:bg-muted/50 transition-colors">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2"><Pill className="h-5 w-5 text-primary" /> Apteklər</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2"><Building className="h-5 w-5 text-primary" /> Apteklər</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
+           <Link href="/admin/pharmacists">
+             <Card className="hover:bg-muted/50 transition-colors">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2"><Pill className="h-5 w-5 text-primary" /> Əczaçılar</CardTitle>
               </CardHeader>
             </Card>
           </Link>
@@ -230,5 +237,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-
-    

@@ -70,6 +70,14 @@ export type Hospital = {
     email: string;
 };
 
+export type Pharmacy = {
+    id: string;
+    name: string;
+    address: string;
+    contactNumber: string;
+    email: string;
+};
+
 
 // Marketing site content types
 export type SupportingOrganization = {
@@ -124,4 +132,4 @@ export type TeamMember = {
 
 
 // Represents the combined user profile, which could be any of the defined roles.
-export type UserProfile = (Doctor | Admin | SystemAdmin | Pharmacist | Patient | Hospital | SupportingOrganization | ClientCompany | BlogPost | PricingPlan | ProductFeature | TeamMember);
+export type UserProfile = (Doctor | Admin | SystemAdmin | Pharmacist | Patient | Hospital | Pharmacy | SupportingOrganization | ClientCompany | BlogPost | PricingPlan | ProductFeature | TeamMember);
