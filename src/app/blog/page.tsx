@@ -1,13 +1,21 @@
-'use client';
 import MarketingHeader from "@/components/marketing-header";
 import MarketingFooter from "@/components/marketing-footer";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
-import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
-import { collection, query, orderBy } from "firebase/firestore";
+import { db } from "@/firebase/server-init";
 import type { BlogPost } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
+
+async function getBlogPosts() {
+    try {
+        const snapshot = await db.collection('blogPosts').orderBy('datePublished', 'desc').get();
+        return snapshot.docs.map(doc => doc.data() as BlogPost);
+    } catch (error) {
+        console.error("Error fetching blog posts:", error);
+        return [];
+    }
+}
 
 function PostSkeleton() {
     return (
@@ -30,10 +38,8 @@ function PostSkeleton() {
 }
 
 
-export default function BlogPage() {
-    const { firestore } = useFirebase();
-    const blogPostsQuery = useMemoFirebase(() => firestore && query(collection(firestore, 'blogPosts'), orderBy('datePublished', 'desc')), [firestore]);
-    const { data: blogPosts, isLoading } = useCollection<BlogPost>(blogPostsQuery);
+export default async function BlogPage() {
+    const blogPosts = await getBlogPosts();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -50,8 +56,9 @@ export default function BlogPage() {
         <section className="py-16 md:py-24">
           <div className="container">
              <div className="grid gap-8 lg:grid-cols-3">
-              {isLoading && Array.from({length: 3}).map((_, i) => <PostSkeleton key={i} />)}
-              {!isLoading && blogPosts?.map((post) => (
+              {blogPosts.length === 0 ? (
+                <p className="col-span-full text-center text-muted-foreground">Heç bir blog yazısı tapılmadı.</p>
+              ) : blogPosts.map((post) => (
                 <Link key={post.id} href={`/blog/${post.id}`} className="group block">
                   <Card className="overflow-hidden h-full flex flex-col">
                     <div className="relative h-48 w-full">
@@ -70,9 +77,6 @@ export default function BlogPage() {
                   </Card>
                 </Link>
               ))}
-               {!isLoading && blogPosts?.length === 0 && (
-                <p className="col-span-full text-center text-muted-foreground">Heç bir blog yazısı tapılmadı.</p>
-               )}
             </div>
           </div>
         </section>

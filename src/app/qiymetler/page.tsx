@@ -1,44 +1,23 @@
-'use client';
-
 import MarketingHeader from "@/components/marketing-header";
 import MarketingFooter from "@/components/marketing-footer";
 import { Check } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
-import { collection, orderBy, query } from "firebase/firestore";
+import { db } from "@/firebase/server-init";
 import type { PricingPlan } from "@/lib/types";
-import { Skeleton } from "@/components/ui/skeleton";
 
-function PlanSkeleton() {
-    return (
-        <Card>
-            <CardHeader>
-                <Skeleton className="h-7 w-3/5" />
-                <Skeleton className="h-4 w-4/5 mt-2" />
-                <div className="pt-4">
-                    <Skeleton className="h-10 w-2/5" />
-                </div>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-3">
-                    <Skeleton className="h-5 w-full" />
-                    <Skeleton className="h-5 w-full" />
-                    <Skeleton className="h-5 w-2/3" />
-                </div>
-            </CardContent>
-            <CardFooter>
-                <Skeleton className="h-10 w-full" />
-            </CardFooter>
-        </Card>
-    );
+async function getPricingPlans() {
+    try {
+        const snapshot = await db.collection('pricingPlans').orderBy('price').get();
+        return snapshot.docs.map(doc => doc.data() as PricingPlan);
+    } catch (error) {
+        console.error("Error fetching pricing plans:", error);
+        return [];
+    }
 }
 
-export default function PricingPage() {
-    const { firestore } = useFirebase();
-    const plansQuery = useMemoFirebase(() => firestore && query(collection(firestore, 'pricingPlans'), orderBy('price')), [firestore]);
-    const { data: plans, isLoading } = useCollection<PricingPlan>(plansQuery);
-
+export default async function PricingPage() {
+    const plans = await getPricingPlans();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -55,8 +34,7 @@ export default function PricingPage() {
         <section className="py-16 md:py-24">
           <div className="container">
              <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:items-start">
-                {isLoading && Array.from({length: 3}).map((_, i) => <PlanSkeleton key={i} />)}
-                {!isLoading && plans?.map(plan => (
+                {plans.map(plan => (
                     <Card key={plan.id} className={plan.isPopular ? "border-primary border-2 shadow-lg relative" : ""}>
                          {plan.isPopular && <div className="absolute top-0 right-4 -mt-3 bg-primary text-primary-foreground px-3 py-1 text-sm font-semibold rounded-full">POPULYAR</div>}
                         <CardHeader>
@@ -82,7 +60,7 @@ export default function PricingPage() {
                         </CardFooter>
                     </Card>
                 ))}
-                 {!isLoading && plans?.length === 0 && (
+                 {plans.length === 0 && (
                     <p className="col-span-full text-center text-muted-foreground">Hazırda heç bir qiymət planı mövcud deyil.</p>
                  )}
             </div>

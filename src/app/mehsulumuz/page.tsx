@@ -1,13 +1,19 @@
-'use client';
-
 import MarketingHeader from "@/components/marketing-header";
 import MarketingFooter from "@/components/marketing-footer";
 import * as LucideIcons from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
-import { collection, orderBy, query } from "firebase/firestore";
+import { db } from "@/firebase/server-init";
 import type { ProductFeature } from "@/lib/types";
-import { Skeleton } from "@/components/ui/skeleton";
+
+async function getProductFeatures() {
+    try {
+        const snapshot = await db.collection("productFeatures").orderBy("title").get();
+        return snapshot.docs.map(doc => doc.data() as ProductFeature);
+    } catch (error) {
+        console.error("Error fetching product features:", error);
+        return [];
+    }
+}
 
 const IconComponent = ({ iconName, className }: { iconName: string, className?: string }) => {
     const Icon = (LucideIcons as any)[iconName];
@@ -17,28 +23,9 @@ const IconComponent = ({ iconName, className }: { iconName: string, className?: 
     return <Icon className={className} />;
 };
 
-function FeatureSkeleton() {
-    return (
-        <Card className="flex flex-col text-center items-center rounded-xl border-transparent bg-background shadow-lg p-6">
-            <div className="mb-4 rounded-full bg-muted p-4">
-                <Skeleton className="h-10 w-10" />
-            </div>
-            <CardHeader className="p-0">
-                 <Skeleton className="h-6 w-32 mx-auto" />
-            </CardHeader>
-            <CardContent className="p-0 mt-2 w-full">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-5/6 mx-auto mt-2" />
-            </CardContent>
-        </Card>
-    );
-}
 
-
-export default function ProductPage() {
-    const { firestore } = useFirebase();
-    const featuresQuery = useMemoFirebase(() => firestore && query(collection(firestore, "productFeatures"), orderBy("title")), [firestore]);
-    const { data: productFeatures, isLoading } = useCollection<ProductFeature>(featuresQuery);
+export default async function ProductPage() {
+    const productFeatures = await getProductFeatures();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -55,8 +42,7 @@ export default function ProductPage() {
         <section className="py-16 md:py-24">
           <div className="container">
              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {isLoading && Array.from({length: 6}).map((_, i) => <FeatureSkeleton key={i} />)}
-              {!isLoading && productFeatures?.map((feature) => (
+              {productFeatures.map((feature) => (
                 <Card key={feature.id} className="flex flex-col text-center items-center rounded-xl border-transparent bg-background shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20 p-6">
                   <div className="mb-4 rounded-full bg-primary/10 p-4">
                       <IconComponent iconName={feature.icon} className="h-10 w-10 text-primary" />
@@ -69,7 +55,7 @@ export default function ProductPage() {
                   </CardContent>
                 </Card>
               ))}
-               {!isLoading && productFeatures?.length === 0 && (
+               {productFeatures.length === 0 && (
                 <p className="col-span-full text-center text-muted-foreground">Heç bir məhsul xüsusiyyəti tapılmadı.</p>
                )}
             </div>

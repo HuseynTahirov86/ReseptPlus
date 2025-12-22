@@ -1,36 +1,29 @@
-'use client';
-
 import MarketingHeader from "@/components/marketing-header";
 import MarketingFooter from "@/components/marketing-footer";
 import { Handshake, Building } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
-import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { db } from "@/firebase/server-init";
 import type { SupportingOrganization, ClientCompany } from "@/lib/types";
-import { Skeleton } from "@/components/ui/skeleton";
 
-function PartnerSkeleton() {
-    return (
-        <Card className="flex flex-col items-center text-center p-6 bg-background rounded-xl shadow-lg">
-            <Skeleton className="relative w-48 h-24 mb-4" />
-            <CardContent className="p-0 w-full">
-                <Skeleton className="h-6 w-3/4 mx-auto" />
-                <Skeleton className="h-4 w-full mt-2 mx-auto" />
-            </CardContent>
-        </Card>
-    );
+async function getPartners() {
+    try {
+        const supportingOrgsSnapshot = await db.collection("supportingOrganizations").get();
+        const supportingOrganizations = supportingOrgsSnapshot.docs.map(doc => doc.data() as SupportingOrganization);
+
+        const clientCompaniesSnapshot = await db.collection("clientCompanies").get();
+        const clientCompanies = clientCompaniesSnapshot.docs.map(doc => doc.data() as ClientCompany);
+        
+        return { supportingOrganizations, clientCompanies };
+    } catch (error) {
+        console.error("Error fetching partners:", error);
+        return { supportingOrganizations: [], clientCompanies: [] };
+    }
 }
 
 
-export default function PartnersPage() {
-    const { firestore } = useFirebase();
-
-    const supportingOrgsQuery = useMemoFirebase(() => firestore && collection(firestore, "supportingOrganizations"), [firestore]);
-    const clientCompaniesQuery = useMemoFirebase(() => firestore && collection(firestore, "clientCompanies"), [firestore]);
-
-    const { data: supportingOrganizations, isLoading: loadingSupporters } = useCollection<SupportingOrganization>(supportingOrgsQuery);
-    const { data: clientCompanies, isLoading: loadingClients } = useCollection<ClientCompany>(clientCompaniesQuery);
+export default async function PartnersPage() {
+    const { supportingOrganizations, clientCompanies } = await getPartners();
     
   return (
     <div className="flex min-h-screen flex-col">
@@ -57,8 +50,7 @@ export default function PartnersPage() {
                     </p>
                 </div>
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-                    {loadingSupporters && Array.from({ length: 3 }).map((_, i) => <PartnerSkeleton key={i} />)}
-                    {supportingOrganizations?.map((org) => {
+                    {supportingOrganizations.map((org) => {
                         return (
                         <Card key={org.id} className="flex flex-col items-center text-center p-6 bg-background rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20">
                             <div className="relative w-48 h-24 mb-4">
@@ -70,7 +62,7 @@ export default function PartnersPage() {
                             </CardContent>
                         </Card>
                     )})}
-                    {!loadingSupporters && supportingOrganizations?.length === 0 && (
+                    {supportingOrganizations.length === 0 && (
                         <p className="col-span-full text-center text-muted-foreground">Hazırda heç bir dəstəkçi təşkilat yoxdur.</p>
                     )}
                 </div>
@@ -89,8 +81,7 @@ export default function PartnersPage() {
                     </p>
                 </div>
                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-                    {loadingClients && Array.from({ length: 4 }).map((_, i) => <PartnerSkeleton key={i} />)}
-                    {clientCompanies?.map((company) => {
+                    {clientCompanies.map((company) => {
                         return (
                          <Card key={company.id} className="flex flex-col items-center text-center p-6 bg-background rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20">
                             <div className="relative w-40 h-20 mb-4">
@@ -102,7 +93,7 @@ export default function PartnersPage() {
                             </CardContent>
                         </Card>
                     )})}
-                     {!loadingClients && clientCompanies?.length === 0 && (
+                     {clientCompanies.length === 0 && (
                         <p className="col-span-full text-center text-muted-foreground">Hazırda heç bir müştəri şirkət yoxdur.</p>
                     )}
                 </div>

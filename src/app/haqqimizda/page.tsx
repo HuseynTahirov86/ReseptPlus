@@ -1,14 +1,21 @@
-'use client';
-
 import MarketingHeader from "@/components/marketing-header";
 import MarketingFooter from "@/components/marketing-footer";
 import { Building, Target, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
-import { collection, orderBy, query } from "firebase/firestore";
+import { db } from "@/firebase/server-init";
 import type { TeamMember } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
+
+async function getTeamMembers() {
+    try {
+        const snapshot = await db.collection("teamMembers").orderBy("name").get();
+        return snapshot.docs.map(doc => doc.data() as TeamMember);
+    } catch (error) {
+        console.error("Error fetching team members:", error);
+        return [];
+    }
+}
 
 function TeamMemberSkeleton() {
     return (
@@ -22,10 +29,8 @@ function TeamMemberSkeleton() {
     );
 }
 
-export default function AboutUsPage() {
-    const { firestore } = useFirebase();
-    const teamQuery = useMemoFirebase(() => firestore && query(collection(firestore, "teamMembers"), orderBy("name")), [firestore]);
-    const { data: teamMembers, isLoading } = useCollection<TeamMember>(teamQuery);
+export default async function AboutUsPage() {
+    const teamMembers = await getTeamMembers();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -86,8 +91,7 @@ export default function AboutUsPage() {
                 </p>
                 </div>
                 <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                {isLoading && Array.from({ length: 3 }).map((_, i) => <TeamMemberSkeleton key={i} />)}
-                {!isLoading && teamMembers?.map((member) => (
+                {teamMembers.map((member) => (
                     <Card key={member.id} className="text-center p-6 bg-background rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20">
                         <Avatar className="h-28 w-28 mx-auto mb-4 border-4 border-primary/20">
                             <AvatarImage src={member.imageUrl} alt={member.name} data-ai-hint={member.imageHint} />
@@ -99,7 +103,7 @@ export default function AboutUsPage() {
                         </CardContent>
                     </Card>
                 ))}
-                 {!isLoading && teamMembers?.length === 0 && (
+                 {teamMembers.length === 0 && (
                     <p className="col-span-full text-center text-muted-foreground">Heç bir komanda üzvü tapılmadı.</p>
                 )}
                 </div>
