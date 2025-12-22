@@ -83,6 +83,17 @@ export type Pharmacy = {
     email: string;
 };
 
+export type Inventory = {
+    id: string;
+    pharmacyId: string;
+    name: string;
+    dosage: string;
+    unit: string;
+    form: string;
+    quantity: number;
+    expirationDate: string; // ISO date string
+};
+
 
 // Marketing site content types
 export type SupportingOrganization = {
@@ -137,7 +148,7 @@ export type TeamMember = {
 
 
 // Represents the combined user profile, which could be any of the defined roles.
-export type UserProfile = (Doctor | Admin | SystemAdmin | Pharmacist | Patient | Hospital | Pharmacy | SupportingOrganization | ClientCompany | BlogPost | PricingPlan | ProductFeature | TeamMember);
+export type UserProfile = (Doctor | Admin | SystemAdmin | Pharmacist | Patient | Hospital | Pharmacy | SupportingOrganization | ClientCompany | BlogPost | PricingPlan | ProductFeature | TeamMember | Inventory);
 
 
 // Custom user data including role
