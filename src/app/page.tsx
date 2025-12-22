@@ -14,10 +14,10 @@ import { Users, Stethoscope, HeartPulse } from "lucide-react";
 
 export default function MarketingHomePage() {
     
-    const heroImage = PlaceHolderImages[0];
-    const patientAvatar = PlaceHolderImages[1];
-    const doctorAvatar = PlaceHolderImages[2];
-    const pharmacistAvatar = PlaceHolderImages[3];
+    const heroImage = PlaceHolderImages.find(img => img.id === 'hero-image');
+    const patientAvatar = PlaceHolderImages.find(img => img.id === 'testimonial-patient');
+    const doctorAvatar = PlaceHolderImages.find(img => img.id === 'testimonial-doctor');
+    const pharmacistAvatar = PlaceHolderImages.find(img => img.id === 'testimonial-pharmacist');
 
     const features = [
     {

@@ -31,21 +31,15 @@ function AuthForm() {
     setLoading(true);
     setError(null);
     try {
-      // First, try to sign in
       await signInWithEmailAndPassword(auth, email, password);
-      // Redirection is handled by the FirebaseProvider
     } catch (e: any) {
-      // If user is not found, it's likely a first-time user (e.g. admin) being created
       if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
         try {
             await createUserWithEmailAndPassword(auth, email, password);
-            // Redirection is handled by the FirebaseProvider after creation
         } catch (creationError: any) {
-            // Handle errors during creation (e.g., weak password)
             handleFirebaseAuthError(creationError);
         }
       } else {
-        // Handle other sign-in errors (e.g., wrong password)
         handleFirebaseAuthError(e);
       }
     } finally {
