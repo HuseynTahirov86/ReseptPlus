@@ -25,7 +25,7 @@ export default async function BlogPage() {
       <MarketingHeader />
       <main className="flex-1">
         <section className="py-16 md:py-24 lg:py-32 bg-secondary/30">
-          <div className="container text-center animate-fade-in-up">
+          <div className="container text-center animate-fade-in-up" style={{ animationDuration: '0.9s' }}>
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Blog</h1>
             <p className="mt-4 text-lg text-muted-foreground md:text-xl">
               Səhiyyə texnologiyaları və ReseptPlus yenilikləri haqqında ən son məqalələr.
@@ -41,7 +41,7 @@ export default async function BlogPage() {
                 <Link key={post.id} href={`/blog/${post.id}`} className="group block">
                   <Card 
                     className="overflow-hidden h-full flex flex-col bg-glass-bg border-glass-border rounded-xl shadow-lg transition-all duration-300 hover:shadow-primary/20 hover:-translate-y-2 animate-fade-in-up"
-                    style={{ animationDelay: `${i * 0.1}s` }}
+                    style={{ animationDelay: `${i * 0.1}s`, animationDuration: '0.9s' }}
                   >
                     <div className="relative h-48 w-full">
                         <Image src={post.imageUrl} alt={post.title} fill className="object-cover" data-ai-hint={post.imageHint} />

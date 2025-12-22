@@ -31,7 +31,7 @@ export default async function ProductPage() {
       <MarketingHeader />
       <main className="flex-1">
         <section className="py-16 md:py-24 lg:py-32 bg-secondary/30">
-          <div className="container text-center animate-fade-in-up">
+          <div className="container text-center animate-fade-in-up" style={{ animationDuration: '0.9s' }}>
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Məhsulumuz</h1>
             <p className="mt-4 text-lg text-muted-foreground md:text-xl">
               ReseptPlus-ın səhiyyə idarəçiliyini necə dəyişdirdiyini kəşf edin.
@@ -45,7 +45,7 @@ export default async function ProductPage() {
                 <Card 
                   key={feature.id} 
                   className="flex flex-col text-center items-center rounded-xl border-glass-border bg-glass-bg p-6 shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20 animate-fade-in-up"
-                  style={{ animationDelay: `${i * 0.1 + 0.2}s` }}
+                  style={{ animationDelay: `${i * 0.1 + 0.2}s`, animationDuration: '0.9s' }}
                 >
                   <div className="mb-4 rounded-full bg-primary/10 p-4">
                       <IconComponent iconName={feature.icon} className="h-10 w-10 text-primary" />

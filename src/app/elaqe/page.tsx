@@ -13,7 +13,7 @@ export default function ContactPage() {
       <MarketingHeader />
       <main className="flex-1">
         <section className="py-16 md:py-24 lg:py-32 bg-secondary/30">
-          <div className="container text-center animate-fade-in-up">
+          <div className="container text-center animate-fade-in-up" style={{ animationDuration: '0.9s' }}>
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Əlaqə</h1>
             <p className="mt-4 text-lg text-muted-foreground md:text-xl">
               Suallarınız var? Komandamız sizə kömək etməyə hazırdır.
@@ -24,7 +24,7 @@ export default function ContactPage() {
           <div className="container grid gap-16 md:grid-cols-2 items-start">
              <Card 
                 className="animate-fade-in-up bg-glass-bg border-glass-border backdrop-blur-lg"
-                style={{ animationDelay: '0.2s' }}
+                style={{ animationDelay: '0.2s', animationDuration: '0.9s' }}
               >
                 <CardHeader>
                     <CardTitle>Mesaj Göndərin</CardTitle>
@@ -55,7 +55,7 @@ export default function ContactPage() {
              <div className="space-y-8">
                 <Card 
                   className="animate-fade-in-up bg-glass-bg border-glass-border backdrop-blur-lg"
-                  style={{ animationDelay: '0.4s' }}
+                  style={{ animationDelay: '0.4s', animationDuration: '0.9s' }}
                 >
                     <CardHeader className="flex-row items-center gap-4">
                         <Mail className="h-8 w-8 text-primary"/>
@@ -70,7 +70,7 @@ export default function ContactPage() {
                 </Card>
                  <Card 
                   className="animate-fade-in-up bg-glass-bg border-glass-border backdrop-blur-lg"
-                  style={{ animationDelay: '0.6s' }}
+                  style={{ animationDelay: '0.6s', animationDuration: '0.9s' }}
                  >
                     <CardHeader className="flex-row items-center gap-4">
                         <MessageSquare className="h-8 w-8 text-primary"/>

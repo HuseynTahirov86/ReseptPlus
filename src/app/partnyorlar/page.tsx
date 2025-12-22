@@ -30,7 +30,7 @@ export default async function PartnersPage() {
       <MarketingHeader />
       <main className="flex-1">
         <section className="py-16 md:py-24 lg:py-32 bg-secondary/30">
-          <div className="container text-center animate-fade-in-up">
+          <div className="container text-center animate-fade-in-up" style={{ animationDuration: '0.9s' }}>
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Partnyorlarımız</h1>
             <p className="mt-4 text-lg text-muted-foreground md:text-xl">
               Missiyamızı dəstəkləyən və bizə etimad edən qurumlar.
@@ -40,7 +40,7 @@ export default async function PartnersPage() {
 
         <section id="supporters" className="py-16 md:py-24">
             <div className="container">
-                <div className="mx-auto mb-12 max-w-3xl text-center animate-fade-in-up">
+                <div className="mx-auto mb-12 max-w-3xl text-center animate-fade-in-up" style={{ animationDuration: '0.9s' }}>
                     <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl flex items-center justify-center gap-3">
                         <Handshake className="h-10 w-10 text-primary" />
                         Dəstəkçilərimiz
@@ -54,7 +54,7 @@ export default async function PartnersPage() {
                         <Card 
                             key={org.id} 
                             className="flex flex-col items-center text-center p-6 bg-glass-bg border-glass-border rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20 animate-fade-in-up"
-                            style={{ animationDelay: `${i * 0.1 + 0.2}s` }}
+                            style={{ animationDelay: `${i * 0.1 + 0.2}s`, animationDuration: '0.9s' }}
                         >
                             <div className="relative w-48 h-24 mb-4">
                                 <Image src={org.logoUrl} alt={`${org.name} logo`} fill className="object-contain" />
@@ -74,7 +74,7 @@ export default async function PartnersPage() {
 
         <section id="clients" className="py-16 md:py-24 bg-secondary/50">
             <div className="container">
-                <div className="mx-auto mb-12 max-w-3xl text-center animate-fade-in-up">
+                <div className="mx-auto mb-12 max-w-3xl text-center animate-fade-in-up" style={{ animationDuration: '0.9s' }}>
                      <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl flex items-center justify-center gap-3">
                         <Building className="h-10 w-10 text-primary" />
                         Müştərilərimiz
@@ -88,7 +88,7 @@ export default async function PartnersPage() {
                          <Card 
                             key={company.id} 
                             className="flex flex-col items-center text-center p-6 bg-glass-bg border-glass-border rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20 animate-fade-in-up"
-                            style={{ animationDelay: `${i * 0.1 + 0.2}s` }}
+                            style={{ animationDelay: `${i * 0.1 + 0.2}s`, animationDuration: '0.9s' }}
                         >
                             <div className="relative w-40 h-20 mb-4">
                                 <Image src={company.logoUrl} alt={`${company.name} logo`} fill className="object-contain" />

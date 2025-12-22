@@ -10,14 +10,14 @@
     --card-foreground: 222 84% 5%;
     --popover: 210 40% 98%;
     --popover-foreground: 222 84% 5%;
-    --primary: 212 100% 40%;
+    --primary: 212 100% 40%; /* #005dcd */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 91%;
     --secondary-foreground: 222 47% 11%;
     --muted: 210 40% 91%;
     --muted-foreground: 215 20% 65%;
-    --accent: 210 40% 91%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 160 70% 45%;
+    --accent-foreground: 222 84% 5%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
     --border: 214 32% 91%;
@@ -36,13 +36,13 @@
     --card-foreground: 210 40% 98%;
     --popover: 222 83% 6%;
     --popover-foreground: 210 40% 98%;
-    --primary: 212 100% 40%;
+    --primary: 212 100% 40%; /* #005dcd */
     --primary-foreground: 210 40% 98%;
     --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 17%;
+    --accent: 160 70% 45%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
@@ -66,7 +66,7 @@
   .animate-fade-in-up {
     animation-fill-mode: both;
     animation-name: fade-in-up;
-    animation-duration: 0.8s;
+    animation-duration: 0.9s;
     animation-timing-function: ease-out;
   }
 }

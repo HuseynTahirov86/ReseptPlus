@@ -24,7 +24,7 @@ export default async function PricingPage() {
       <MarketingHeader />
       <main className="flex-1">
         <section className="py-16 md:py-24 lg:py-32 bg-secondary/30">
-          <div className="container text-center animate-fade-in-up">
+          <div className="container text-center animate-fade-in-up" style={{ animationDuration: '0.9s' }}>
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Şəffaf Qiymətlər</h1>
             <p className="mt-4 text-lg text-muted-foreground md:text-xl">
               Fəaliyyətinizə uyğun ən yaxşı planı seçin. Heç bir gizli ödəniş yoxdur.
@@ -41,7 +41,7 @@ export default async function PricingPage() {
                             ${plan.isPopular ? "border-primary border-2 shadow-2xl shadow-primary/20" : "bg-glass-bg border-glass-border"} 
                             flex flex-col rounded-2xl transition-transform duration-300 hover:-translate-y-2 animate-fade-in-up
                         `}
-                        style={{ animationDelay: `${i * 0.15}s` }}
+                        style={{ animationDelay: `${i * 0.15}s`, animationDuration: '0.9s' }}
                     >
                          {plan.isPopular && <div className="absolute top-0 right-4 -mt-3 bg-primary text-primary-foreground px-3 py-1 text-sm font-semibold rounded-full">POPULYAR</div>}
                         <CardHeader className="flex-grow">
