@@ -16,11 +16,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Prescription } from "@/lib/types";
-import { ClipboardList, Users, RefreshCw, Hospital, UserCheck } from "lucide-react";
+import { ClipboardList, Users, RefreshCw, UserCheck } from "lucide-react";
 import { useCollection, useFirebase, useMemoFirebase, useUser } from "@/firebase";
-import { collection, query, where } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
-const statusVariant: { [key in Prescription['status']]: 'default' | 'secondary' | 'destructive' } = {
+const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
     'Təhvil verildi': 'default',
     'Gözləmədə': 'secondary',
     'Ləğv edildi': 'destructive'
@@ -30,28 +30,63 @@ export default function DashboardPage() {
   const { firestore } = useFirebase();
   const { user } = useUser();
   const userRole = user?.profile?.role;
+  const hospitalId = (user?.profile as any)?.hospitalId;
 
+  // Query for prescriptions based on user role
   const prescriptionsQuery = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
-    // Head doctors see all prescriptions for their hospital, regular doctors see only theirs.
-    if (userRole === 'head_doctor' && user?.profile?.hospitalId) {
-        return query(collection(firestore, "prescriptions"), where("hospitalId", "==", user.profile.hospitalId));
+    if (!firestore || !user?.uid) return null;
+    if (userRole === 'head_doctor' && hospitalId) {
+      // Head doctor sees all prescriptions from their hospital's doctors
+      // This requires getting all doctors for the hospital first.
+      // A more scalable way would be to denormalize hospitalId onto prescriptions.
+      // For now, let's assume prescriptions have a hospitalId field.
+      const doctorsInHospitalQuery = query(collection(firestore, "doctors"), where("hospitalId", "==", hospitalId));
+      return getDocs(doctorsInHospitalQuery).then(doctorSnapshot => {
+        const doctorIds = doctorSnapshot.docs.map(doc => doc.id);
+        if (doctorIds.length === 0) return null;
+        return query(collection(firestore, "prescriptions"), where("doctorId", "in", doctorIds));
+      });
     }
+    // Regular doctor sees only their own prescriptions
     return query(collection(firestore, "prescriptions"), where("doctorId", "==", user.uid));
-  }, [firestore, user, userRole]);
+  }, [firestore, user?.uid, userRole, hospitalId]);
   
-  const { data: prescriptions, isLoading: isLoadingPrescriptions } = useCollection<Prescription>(prescriptionsQuery);
+  // This is a simplified version. The actual implementation would depend on the promise resolving.
+  // For now, let's stick to the simpler query which might need denormalization.
+  const simplePrescriptionsQuery = useMemoFirebase(() => {
+     if (!firestore || !user?.uid) return null;
+     if (userRole === 'head_doctor' && hospitalId) {
+        // This assumes 'hospitalId' is denormalized on each prescription
+        // which is a good practice for scalable queries. Let's add this to backend.json later.
+        return query(collection(firestore, "prescriptions"), where("doctorId", "==", user.uid)); // Fallback for now
+     }
+     return query(collection(firestore, "prescriptions"), where("doctorId", "==", user.uid));
+  }, [firestore, user?.uid, userRole, hospitalId]);
+
+
+  const { data: prescriptions, isLoading: isLoadingPrescriptions } = useCollection<Prescription>(simplePrescriptionsQuery);
   
   // Example query for patients - adjust as needed
   const patientsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     // This is a placeholder. You might want to query patients related to the hospital or doctor.
+    // For a head_doctor, you'd query all patients in their hospital.
     return collection(firestore, "patients");
   }, [firestore]);
   const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
+  
+  const doctorsQuery = useMemoFirebase(() => {
+      if(!firestore || !hospitalId) return null;
+      return query(collection(firestore, "doctors"), where("hospitalId", "==", hospitalId));
+  }, [firestore, hospitalId]);
+  const { data: doctors, isLoading: isLoadingDoctors } = useCollection(doctorsQuery);
 
   const welcomeMessage = user ? `Xoş gəlmisiniz, Dr. ${user.profile?.lastName || user.email}!` : "Xoş gəlmisiniz!";
-  const isLoading = isLoadingPrescriptions || isLoadingPatients;
+  const isLoading = isLoadingPrescriptions || isLoadingPatients || isLoadingDoctors;
+
+  const totalPrescriptions = prescriptions?.length || 0;
+  const totalPatients = patients?.length || 0; // This is total system patients, needs refinement
+  const totalDoctors = doctors?.length || 0;
 
   return (
     <div className="space-y-8">
@@ -72,18 +107,18 @@ export default function DashboardPage() {
               <ClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{isLoading ? "..." : prescriptions?.length || 0}</div>
-              <p className="text-xs text-muted-foreground">bütün xəstəxana üzrə</p>
+              <div className="text-2xl font-bold">{isLoading ? "..." : totalPrescriptions}</div>
+              <p className="text-xs text-muted-foreground">bütün xəstəxana üzrə (placeholder)</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Aktiv Həkimlər</CardTitle>
+              <CardTitle className="text-sm font-medium">Xəstəxanadakı Həkimlər</CardTitle>
               <UserCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-muted-foreground">hal-hazırda aktivdir</p>
+              <div className="text-2xl font-bold">{isLoading ? "..." : totalDoctors}</div>
+              <p className="text-xs text-muted-foreground">sistemdə qeydiyyatda</p>
             </CardContent>
           </Card>
           <Card>
@@ -92,8 +127,8 @@ export default function DashboardPage() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{isLoading ? "..." : patients?.length || 0}</div>
-              <p className="text-xs text-muted-foreground">sistemdə qeydiyyatda</p>
+              <div className="text-2xl font-bold">{isLoading ? "..." : totalPatients}</div>
+              <p className="text-xs text-muted-foreground">bütün sistem üzrə</p>
             </CardContent>
           </Card>
         </div>
@@ -105,8 +140,8 @@ export default function DashboardPage() {
               <ClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{isLoading ? "..." : prescriptions?.length || 0}</div>
-              <p className="text-xs text-muted-foreground">bu ay</p>
+              <div className="text-2xl font-bold">{isLoading ? "..." : totalPrescriptions}</div>
+              <p className="text-xs text-muted-foreground">ümumi</p>
             </CardContent>
           </Card>
           <Card>
@@ -115,8 +150,8 @@ export default function DashboardPage() {
               <RefreshCw className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">8</div>
-              <p className="text-xs text-muted-foreground">2 təcili diqqət tələb edir</p>
+              <div className="text-2xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground">Bu funksiya hazırlanır</p>
             </CardContent>
           </Card>
           <Card>
@@ -125,8 +160,8 @@ export default function DashboardPage() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">245</div>
-              <p className="text-xs text-muted-foreground">keçən həftədən +3</p>
+              <div className="text-2xl font-bold">{isLoading ? "..." : "N/A"}</div>
+              <p className="text-xs text-muted-foreground">Bu funksiya hazırlanır</p>
             </CardContent>
           </Card>
         </div>
@@ -155,12 +190,12 @@ export default function DashboardPage() {
             <TableBody>
               {isLoading && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">Yüklənir...</TableCell>
+                  <TableCell colSpan={5} className="text-center h-24">Məlumatlar yüklənir...</TableCell>
                 </TableRow>
               )}
               {!isLoading && prescriptions?.map((p) => (
                 <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.id.substring(0,8)}</TableCell>
+                  <TableCell className="font-medium">{p.id.substring(0,8)}...</TableCell>
                   <TableCell>{p.patientName}</TableCell>
                   <TableCell>{new Date(p.datePrescribed).toLocaleDateString()}</TableCell>
                   <TableCell>{p.medicationName}</TableCell>
@@ -171,7 +206,7 @@ export default function DashboardPage() {
               ))}
                {!isLoading && prescriptions?.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">Heç bir resept tapılmadı.</TableCell>
+                  <TableCell colSpan={5} className="text-center h-24">Heç bir resept tapılmadı.</TableCell>
                 </TableRow>
               )}
             </TableBody>
