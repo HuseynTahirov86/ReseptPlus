@@ -37,15 +37,18 @@ function AuthForm() {
       await signInWithEmailAndPassword(auth, email, password);
       // Redirection is handled by the FirebaseProvider
     } catch (e: any) {
-      if (e.code === 'auth/user-not-found') {
-        // If user not found, try to create a new user (for initial setup)
+      // If user is not found, it means it's the first time for a special user (like superadmin)
+      // or a user being created by an admin. Let's try to create an account.
+      if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
         try {
             await createUserWithEmailAndPassword(auth, email, password);
             // Redirection is handled by the FirebaseProvider after creation
         } catch (creationError: any) {
+            // Handle errors during creation (e.g., weak password)
             handleFirebaseAuthError(creationError);
         }
       } else {
+        // Handle other sign-in errors (e.g., wrong password)
         handleFirebaseAuthError(e);
       }
     } finally {
@@ -84,9 +87,9 @@ function AuthForm() {
   return (
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Daxil Ol və ya Qeydiyyatdan Keç</CardTitle>
+          <CardTitle>Sistemə Giriş</CardTitle>
           <CardDescription>
-            Hesabınız yoxdursa, daxil etdiyiniz məlumatlarla yeni hesab yaradılacaq (yalnız adminlər üçün).
+            Hesabınıza daxil olmaq üçün məlumatlarınızı daxil edin.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
