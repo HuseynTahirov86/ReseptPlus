@@ -20,7 +20,6 @@ async function getPost(id: string) {
     }
 }
 
-
 export default async function BlogPostPage({ params }: { params: { id: string } }) {
   const post = await getPost(params.id);
 
@@ -29,10 +28,10 @@ export default async function BlogPostPage({ params }: { params: { id: string } 
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <MarketingHeader />
       <main className="flex-1 py-16 md:py-24">
-        <div className="container max-w-4xl">
+        <div className="container max-w-4xl animate-fade-in-up">
             <article>
               <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-4">{post.title}</h1>
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-muted-foreground mb-8">
@@ -48,7 +47,7 @@ export default async function BlogPostPage({ params }: { params: { id: string } 
                 </div>
               </div>
               
-              <div className="relative w-full h-64 md:h-96 mb-8 rounded-lg overflow-hidden">
+              <div className="relative w-full aspect-video mb-8 rounded-lg overflow-hidden shadow-xl">
                 <Image
                   src={post.imageUrl}
                   alt={post.title}
@@ -60,7 +59,7 @@ export default async function BlogPostPage({ params }: { params: { id: string } 
 
               <div
                 className="prose prose-lg dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br />') }} // Simple newline to <br> conversion for now
+                dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br />') }}
               />
             </article>
         </div>

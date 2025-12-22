@@ -23,15 +23,14 @@ const IconComponent = ({ iconName, className }: { iconName: string, className?: 
     return <Icon className={className} />;
 };
 
-
 export default async function ProductPage() {
     const productFeatures = await getProductFeatures();
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <MarketingHeader />
       <main className="flex-1">
-        <section className="py-16 md:py-24 lg:py-32 bg-secondary/50">
+        <section className="py-16 md:py-24 lg:py-32 bg-secondary/30 animate-fade-in-up">
           <div className="container text-center">
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Məhsulumuz</h1>
             <p className="mt-4 text-lg text-muted-foreground md:text-xl">
@@ -42,8 +41,12 @@ export default async function ProductPage() {
         <section className="py-16 md:py-24">
           <div className="container">
              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {productFeatures.map((feature) => (
-                <Card key={feature.id} className="flex flex-col text-center items-center rounded-xl border-transparent bg-background shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20 p-6">
+              {productFeatures.map((feature, i) => (
+                <Card 
+                  key={feature.id} 
+                  className="flex flex-col text-center items-center rounded-xl border bg-glass-bg p-6 shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20 animate-fade-in-up"
+                  style={{ animationDelay: `${i * 0.1 + 0.2}s`, animationFillMode: 'both' }}
+                >
                   <div className="mb-4 rounded-full bg-primary/10 p-4">
                       <IconComponent iconName={feature.icon} className="h-10 w-10 text-primary" />
                   </div>

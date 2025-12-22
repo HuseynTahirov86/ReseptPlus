@@ -17,26 +17,14 @@ async function getTeamMembers() {
     }
 }
 
-function TeamMemberSkeleton() {
-    return (
-        <Card className="text-center p-6 bg-background rounded-xl shadow-lg">
-            <Skeleton className="h-28 w-28 rounded-full mx-auto mb-4" />
-            <CardContent className="p-0">
-                <Skeleton className="h-6 w-3/4 mx-auto" />
-                <Skeleton className="h-4 w-1/2 mx-auto mt-2" />
-            </CardContent>
-        </Card>
-    );
-}
-
 export default async function AboutUsPage() {
     const teamMembers = await getTeamMembers();
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <MarketingHeader />
       <main className="flex-1">
-        <section className="py-16 md:py-24 lg:py-32 bg-secondary/50">
+        <section className="py-16 md:py-24 lg:py-32 bg-secondary/30 animate-fade-in-up">
           <div className="container text-center">
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Haqqımızda</h1>
             <p className="mt-4 text-lg text-muted-foreground md:text-xl">
@@ -46,32 +34,32 @@ export default async function AboutUsPage() {
         </section>
         <section className="py-16 md:py-24">
           <div className="container grid gap-16 md:grid-cols-2 items-center">
-            <div>
+            <div className="animate-fade-in-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
               <h2 className="text-3xl font-bold">Missiyamız</h2>
               <p className="mt-4 text-muted-foreground">
                 Bizim missiyamız səhiyyə sistemində inqilab etməkdir. Texnologiyadan istifadə edərək həkimlər, xəstələr və apteklər arasında qüsursuz, səmərəli və təhlükəsiz bir körpü yaratmağı hədəfləyirik. Hər kəs üçün səhiyyə xidmətlərini daha əlçatan və idarəolunan etmək üçün çalışırıq.
               </p>
             </div>
-            <div className="flex items-center justify-center">
-              <Target className="w-48 h-48 text-primary" />
+            <div className="flex items-center justify-center animate-fade-in-up" style={{ animationDelay: '0.4s', animationFillMode: 'both' }}>
+              <Target className="w-48 h-48 text-primary drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)]" />
             </div>
           </div>
         </section>
-        <section className="py-16 md:py-24 bg-secondary/50">
+        <section className="py-16 md:py-24 bg-secondary/30">
           <div className="container">
-            <h2 className="text-center text-3xl font-bold">Dəyərlərimiz</h2>
+            <h2 className="text-center text-3xl font-bold animate-fade-in-up">Dəyərlərimiz</h2>
             <div className="mt-12 grid gap-8 md:grid-cols-3">
-              <div className="text-center">
+              <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
                 <Building className="mx-auto h-12 w-12 text-primary" />
                 <h3 className="mt-4 text-xl font-semibold">İnnovasiya</h3>
                 <p className="mt-2 text-muted-foreground">Səhiyyənin problemlərini həll etmək üçün daim yeni yollar axtarırıq.</p>
               </div>
-              <div className="text-center">
+              <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.4s', animationFillMode: 'both' }}>
                 <Users className="mx-auto h-12 w-12 text-primary" />
                 <h3 className="mt-4 text-xl font-semibold">İstifadəçi Mərkəzlilik</h3>
                 <p className="mt-2 text-muted-foreground">Platformamızın hər bir istifadəçisinin ehtiyaclarını ön planda tuturuq.</p>
               </div>
-              <div className="text-center">
+              <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
                 <Target className="mx-auto h-12 w-12 text-primary" />
                 <h3 className="mt-4 text-xl font-semibold">Etibarlılıq</h3>
                 <p className="mt-2 text-muted-foreground">Təhlükəsizlik və məlumatların məxfiliyi bizim üçün ən yüksək prioritetdir.</p>
@@ -82,7 +70,7 @@ export default async function AboutUsPage() {
 
         <section id="team" className="py-16 md:py-24">
             <div className="container">
-                <div className="mx-auto mb-12 max-w-3xl text-center">
+                <div className="mx-auto mb-12 max-w-3xl text-center animate-fade-in-up">
                 <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
                     Komandamızla Tanış Olun
                 </h2>
@@ -91,8 +79,12 @@ export default async function AboutUsPage() {
                 </p>
                 </div>
                 <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                {teamMembers.map((member) => (
-                    <Card key={member.id} className="text-center p-6 bg-background rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20">
+                {teamMembers.map((member, i) => (
+                    <Card 
+                        key={member.id} 
+                        className="text-center p-6 bg-glass-bg rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20 animate-fade-in-up"
+                        style={{ animationDelay: `${i * 0.1 + 0.3}s`, animationFillMode: 'both' }}
+                    >
                         <Avatar className="h-28 w-28 mx-auto mb-4 border-4 border-primary/20">
                             <AvatarImage src={member.imageUrl} alt={member.name} data-ai-hint={member.imageHint} />
                             <AvatarFallback>{member.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>

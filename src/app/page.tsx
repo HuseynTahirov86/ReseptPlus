@@ -1,5 +1,3 @@
-
-
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,15 +9,13 @@ import MarketingHeader from "@/components/marketing-header";
 import MarketingFooter from "@/components/marketing-footer";
 import { Users, Stethoscope, HeartPulse } from "lucide-react";
 
-
 export default function MarketingHomePage() {
-    
-    const heroImage = PlaceHolderImages.find(img => img.id === 'hero-image');
-    const patientAvatar = PlaceHolderImages.find(img => img.id === 'testimonial-patient');
-    const doctorAvatar = PlaceHolderImages.find(img => img.id === 'testimonial-doctor');
-    const pharmacistAvatar = PlaceHolderImages.find(img => img.id === 'testimonial-pharmacist');
+  const heroImage = PlaceHolderImages.find(img => img.id === 'hero-image');
+  const patientAvatar = PlaceHolderImages.find(img => img.id === 'testimonial-patient');
+  const doctorAvatar = PlaceHolderImages.find(img => img.id === 'testimonial-doctor');
+  const pharmacistAvatar = PlaceHolderImages.find(img => img.id === 'testimonial-pharmacist');
 
-    const features = [
+  const features = [
     {
       icon: <Users className="h-10 w-10 text-primary" />,
       title: "Xəstələr üçün",
@@ -40,7 +36,7 @@ export default function MarketingHomePage() {
     },
   ];
 
-   const testimonials = [
+  const testimonials = [
     {
       avatar: patientAvatar,
       name: "Ayşə Yılmaz",
@@ -66,39 +62,45 @@ export default function MarketingHomePage() {
       <MarketingHeader />
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative py-20 md:py-32 lg:py-40">
-           {heroImage && (
-             <Image
-                src={heroImage.imageUrl}
-                alt={heroImage.description}
-                fill
-                className="object-cover object-center opacity-10"
-                data-ai-hint={heroImage.imageHint}
-                priority
-             />
-           )}
+        <section className="relative py-24 md:py-32 lg:py-48 overflow-hidden">
+          {heroImage && (
+            <Image
+              src={heroImage.imageUrl}
+              alt={heroImage.description}
+              fill
+              className="object-cover object-center opacity-20"
+              data-ai-hint={heroImage.imageHint}
+              priority
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
           <div className="container relative z-10 text-center">
-            <h1 className="font-headline text-4xl font-bold tracking-tighter text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
-              Səhiyyəni Qüsursuz Birləşdiririk.
-            </h1>
-            <p className="mx-auto mt-6 max-w-3xl text-lg text-muted-foreground md:text-xl">
-              ReseptPlus, həkimləri, aptekləri və xəstələri daha təhlükəsiz və səmərəli səhiyyə təcrübəsi üçün bir araya gətirən hərtərəfli elektron resept sistemidir.
-            </p>
-            <div className="mt-8 flex justify-center gap-4">
-              <Button asChild size="lg">
-                <Link href="/login">İndi Başlayın</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link href="/haqqimizda">Daha Çox Məlumat</Link>
-              </Button>
+            <div
+              className="mx-auto max-w-4xl animate-fade-in-up rounded-xl border bg-glass-bg p-8 shadow-2xl backdrop-blur-lg"
+              style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
+            >
+              <h1 className="font-headline text-4xl font-bold tracking-tighter text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
+                Səhiyyəni Qüsursuz Birləşdiririk.
+              </h1>
+              <p className="mx-auto mt-6 max-w-3xl text-lg text-muted-foreground md:text-xl">
+                ReseptPlus, həkimləri, aptekləri və xəstələri daha təhlükəsiz və səmərəli səhiyyə təcrübəsi üçün bir araya gətirən hərtərəfli elektron resept sistemidir.
+              </p>
+              <div className="mt-8 flex justify-center gap-4">
+                <Button asChild size="lg" style={{ animationDelay: '0.4s', animationFillMode: 'both' }} className="animate-fade-in-up">
+                  <Link href="/login">İndi Başlayın</Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" style={{ animationDelay: '0.6s', animationFillMode: 'both' }} className="animate-fade-in-up">
+                  <Link href="/haqqimizda">Daha Çox Məlumat</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Features Section */}
-        <section id="features" className="w-full bg-secondary/50 py-16 md:py-24">
+        <section id="features" className="w-full py-16 md:py-24">
           <div className="container">
-            <div className="mx-auto mb-12 max-w-3xl text-center">
+            <div className="mx-auto mb-12 max-w-3xl text-center animate-fade-in-up">
               <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
                 Hər Kəs Üçün Vahid Platforma
               </h2>
@@ -108,14 +110,18 @@ export default function MarketingHomePage() {
             </div>
             <div className="grid gap-8 md:grid-cols-3">
               {features.map((feature, i) => (
-                <Card key={i} className="flex transform flex-col justify-between rounded-xl border-transparent bg-background shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20">
-                  <CardHeader className="items-center text-center">
+                <Card 
+                  key={i} 
+                  className="flex transform flex-col justify-between rounded-xl border bg-glass-bg p-6 text-center shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-primary/20 animate-fade-in-up"
+                  style={{ animationDelay: `${i * 0.2 + 0.4}s`, animationFillMode: 'both' }}
+                >
+                  <CardHeader className="items-center">
                     <div className="mb-4 rounded-full bg-primary/10 p-4">
-                        {feature.icon}
+                      {feature.icon}
                     </div>
-                    <CardTitle className="mt-4 text-xl font-bold">{feature.title}</CardTitle>
+                    <CardTitle className="text-xl font-bold">{feature.title}</CardTitle>
                   </CardHeader>
-                  <CardContent className="text-center">
+                  <CardContent>
                     <p className="text-muted-foreground">{feature.description}</p>
                   </CardContent>
                 </Card>
@@ -125,9 +131,9 @@ export default function MarketingHomePage() {
         </section>
 
         {/* How It Works Section */}
-        <section id="how-it-works" className="py-16 md:py-24 lg:py-32">
+        <section id="how-it-works" className="py-16 md:py-24 lg:py-32 bg-secondary/50">
           <div className="container">
-            <div className="mx-auto mb-16 max-w-3xl text-center">
+            <div className="mx-auto mb-16 max-w-3xl text-center animate-fade-in-up">
               <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
                 Sadə, Təhlükəsiz və Sürətli
               </h2>
@@ -136,22 +142,22 @@ export default function MarketingHomePage() {
               </p>
             </div>
             <div className="relative grid gap-12 md:grid-cols-3">
-              <div className="absolute left-0 top-1/2 hidden h-0.5 w-full -translate-y-1/2 bg-border md:block"></div>
-              <div className="relative flex flex-col items-center text-center">
+              <div className="absolute left-1/2 top-10 hidden h-0.5 w-2/3 -translate-x-1/2 bg-border md:block"></div>
+              <div className="relative flex flex-col items-center text-center animate-fade-in-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
                 <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full border-2 border-primary bg-background text-3xl font-bold text-primary shadow-md">1</div>
                 <h3 className="text-xl font-semibold">Həkim Recepti Yazır</h3>
                 <p className="mt-2 text-muted-foreground">
                   Həkimlər intuitiv interfeysimizdən istifadə edərək reseptlər yaradır və rəqəmsal olaraq imzalayır.
                 </p>
               </div>
-              <div className="relative flex flex-col items-center text-center">
+              <div className="relative flex flex-col items-center text-center animate-fade-in-up" style={{ animationDelay: '0.4s', animationFillMode: 'both' }}>
                 <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full border-2 border-primary bg-background text-3xl font-bold text-primary shadow-md">2</div>
                 <h3 className="text-xl font-semibold">Xəstə Qəbul Edir</h3>
                 <p className="mt-2 text-muted-foreground">
                   Xəstələr e-resepti dərhal ReseptPlus profillərində alırlar.
                 </p>
               </div>
-              <div className="relative flex flex-col items-center text-center">
+              <div className="relative flex flex-col items-center text-center animate-fade-in-up" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
                 <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full border-2 border-primary bg-background text-3xl font-bold text-primary shadow-md">3</div>
                 <h3 className="text-xl font-semibold">Aptek Təqdim Edir</h3>
                 <p className="mt-2 text-muted-foreground">
@@ -163,16 +169,20 @@ export default function MarketingHomePage() {
         </section>
 
         {/* Testimonials Section */}
-         <section id="testimonials" className="w-full bg-secondary/50 py-16 md:py-24">
+        <section id="testimonials" className="w-full py-16 md:py-24">
           <div className="container">
-            <div className="mx-auto mb-12 max-w-3xl text-center">
+            <div className="mx-auto mb-12 max-w-3xl text-center animate-fade-in-up">
               <h2 className="font-headline text-3xl font-bold tracking-tight sm:text-4xl">
                 Səhiyyə Mütəxəssisləri və Xəstələr Tərəfindən Etibar Edilir
               </h2>
             </div>
             <div className="grid gap-8 lg:grid-cols-3">
               {testimonials.map((testimonial, i) => (
-                <Card key={i} className="p-6 bg-background rounded-xl shadow-lg">
+                <Card 
+                  key={i} 
+                  className="p-6 bg-glass-bg rounded-xl shadow-lg border animate-fade-in-up"
+                  style={{ animationDelay: `${i * 0.2 + 0.4}s`, animationFillMode: 'both' }}
+                >
                   <CardContent className="p-0">
                     <p className="italic text-muted-foreground">"{testimonial.text}"</p>
                     <div className="mt-6 flex items-center">

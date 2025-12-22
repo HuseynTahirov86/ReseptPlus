@@ -17,35 +17,14 @@ async function getBlogPosts() {
     }
 }
 
-function PostSkeleton() {
-    return (
-        <Card className="overflow-hidden h-full flex flex-col">
-            <Skeleton className="h-48 w-full" />
-            <CardHeader>
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-1/2 mt-2" />
-            </CardHeader>
-            <CardContent>
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full mt-2" />
-                <Skeleton className="h-4 w-2/3 mt-2" />
-            </CardContent>
-            <CardFooter>
-                <Skeleton className="h-5 w-24" />
-            </CardFooter>
-        </Card>
-    );
-}
-
-
 export default async function BlogPage() {
     const blogPosts = await getBlogPosts();
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <MarketingHeader />
       <main className="flex-1">
-        <section className="py-16 md:py-24 lg:py-32 bg-secondary/50">
+        <section className="py-16 md:py-24 lg:py-32 bg-secondary/30 animate-fade-in-up">
           <div className="container text-center">
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Blog</h1>
             <p className="mt-4 text-lg text-muted-foreground md:text-xl">
@@ -58,9 +37,12 @@ export default async function BlogPage() {
              <div className="grid gap-8 lg:grid-cols-3">
               {blogPosts.length === 0 ? (
                 <p className="col-span-full text-center text-muted-foreground">Heç bir blog yazısı tapılmadı.</p>
-              ) : blogPosts.map((post) => (
+              ) : blogPosts.map((post, i) => (
                 <Link key={post.id} href={`/blog/${post.id}`} className="group block">
-                  <Card className="overflow-hidden h-full flex flex-col">
+                  <Card 
+                    className="overflow-hidden h-full flex flex-col bg-glass-bg border rounded-xl shadow-lg transition-all duration-300 hover:shadow-primary/20 hover:-translate-y-2 animate-fade-in-up"
+                    style={{ animationDelay: `${i * 0.1}s`, animationFillMode: 'both' }}
+                  >
                     <div className="relative h-48 w-full">
                         <Image src={post.imageUrl} alt={post.title} fill className="object-cover" data-ai-hint={post.imageHint} />
                     </div>
@@ -68,7 +50,7 @@ export default async function BlogPage() {
                       <CardTitle className="group-hover:text-primary transition-colors">{post.title}</CardTitle>
                       <CardDescription>{new Date(post.datePublished).toLocaleDateString('az-AZ', { year: 'numeric', month: 'long', day: 'numeric' })} • {post.author}</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="flex-grow">
                       <p className="text-muted-foreground">{post.description}</p>
                     </CardContent>
                      <CardFooter>

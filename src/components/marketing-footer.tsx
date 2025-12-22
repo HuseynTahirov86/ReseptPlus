@@ -1,10 +1,9 @@
-
 import Link from "next/link";
 import { Logo } from "./logo";
 
 export default function MarketingFooter() {
   return (
-    <footer className="border-t bg-background">
+    <footer className="border-t bg-background/95 backdrop-blur-lg">
       <div className="container py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="flex flex-col gap-4">
