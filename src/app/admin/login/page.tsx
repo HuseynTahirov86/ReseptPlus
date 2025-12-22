@@ -23,13 +23,12 @@ function AuthForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const handleAuthAction = async (action: 'login' | 'signup') => {
+    if (!auth) {
+        setError("Firebase Auth xidməti hazır deyil.");
+        return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -64,10 +63,6 @@ function AuthForm() {
       setLoading(false);
     }
   };
-
-  if (!isMounted) {
-    return null;
-  }
 
   return (
     <Tabs defaultValue="login" className="w-full max-w-md">

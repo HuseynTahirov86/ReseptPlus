@@ -22,13 +22,12 @@ function AuthForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const handleAuthAction = async () => {
+    if (!auth) {
+        setError("Firebase Auth xidməti hazır deyil.");
+        return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -77,10 +76,6 @@ function AuthForm() {
           setError('Gözlənilməz bir xəta baş verdi: ' + e.message);
           break;
       }
-  }
-
-  if (!isMounted) {
-    return null;
   }
 
   return (
