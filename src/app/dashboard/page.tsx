@@ -15,10 +15,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Prescription } from "@/lib/types";
+import type { Prescription, Doctor, Patient } from "@/lib/types";
 import { ClipboardList, Users, RefreshCw, UserCheck } from "lucide-react";
 import { useCollection, useFirebase, useMemoFirebase, useUser } from "@/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getCountFromServer } from "firebase/firestore";
+import { useEffect, useState } from "react";
 
 const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
     'Təhvil verildi': 'default',
@@ -28,49 +29,83 @@ const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' } 
 
 export default function DashboardPage() {
   const { firestore } = useFirebase();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const userRole = user?.profile?.role;
-  const hospitalId = (user?.profile as any)?.hospitalId;
+  const userId = user?.uid;
+  const hospitalId = (user?.profile as Doctor)?.hospitalId;
+  
+  const [stats, setStats] = useState({
+      prescriptions: 0,
+      patients: 0,
+      doctors: 0,
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
 
   // Query for prescriptions based on user role
   const prescriptionsQuery = useMemoFirebase(() => {
-    if (!firestore || !user?.uid) return null;
+    // Wait until we have all necessary data
+    if (!firestore || !userId || !userRole) return null;
 
-    // Head doctor sees prescriptions from all doctors in their hospital
     if (userRole === 'head_doctor' && hospitalId) {
-        // This assumes that prescriptions will have a 'hospitalId' field denormalized.
-        // For now, let's query by the current user's prescriptions as a fallback.
-        // A more robust solution would be a separate query logic for head_doctor.
-        // We will default to showing only their own prescriptions to avoid complex queries for now.
-        return query(collection(firestore, "prescriptions"), where("doctorId", "==", user.uid));
+        return query(collection(firestore, "prescriptions"), where("hospitalId", "==", hospitalId));
     }
     
-    // Regular doctor sees only their own prescriptions
-    return query(collection(firestore, "prescriptions"), where("doctorId", "==", user.uid));
-  }, [firestore, user?.uid, userRole, hospitalId]);
+    if (userRole === 'doctor') {
+        return query(collection(firestore, "prescriptions"), where("doctorId", "==", userId));
+    }
+    
+    // For other roles or if conditions aren't met, don't query
+    return null;
+  }, [firestore, userId, userRole, hospitalId]);
   
-
   const { data: prescriptions, isLoading: isLoadingPrescriptions } = useCollection<Prescription>(prescriptionsQuery);
   
-  // Example query for patients - adjust as needed
-  const patientsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return collection(firestore, "patients");
-  }, [firestore]);
-  const { data: patients, isLoading: isLoadingPatients } = useCollection(patientsQuery);
-  
-  const doctorsQuery = useMemoFirebase(() => {
-      if(!firestore || !hospitalId) return null;
-      return query(collection(firestore, "doctors"), where("hospitalId", "==", hospitalId));
-  }, [firestore, hospitalId]);
-  const { data: doctors, isLoading: isLoadingDoctors } = useCollection(doctorsQuery);
+  // Fetch stats separately
+   useEffect(() => {
+    const fetchStats = async () => {
+      if (!firestore || !userRole || isUserLoading) return;
+      setLoadingStats(true);
+      
+      try {
+        let presCount = 0;
+        let patientCount = 0;
+        let docCount = 0;
+        
+        // Use the same logic as the query to count prescriptions
+        if (userRole === 'doctor' && userId) {
+            const presQuery = query(collection(firestore, "prescriptions"), where("doctorId", "==", userId));
+            presCount = (await getCountFromServer(presQuery)).data().count;
+        } else if (userRole === 'head_doctor' && hospitalId) {
+             const presQuery = query(collection(firestore, "prescriptions"), where("hospitalId", "==", hospitalId));
+             presCount = (await getCountFromServer(presQuery)).data().count;
+             
+             const docQuery = query(collection(firestore, "doctors"), where("hospitalId", "==", hospitalId));
+             docCount = (await getCountFromServer(docQuery)).data().count;
+        }
+        
+        // This is still total patients in the system.
+        const patientQuery = collection(firestore, "patients");
+        patientCount = (await getCountFromServer(patientQuery)).data().count;
+        
+        setStats({
+          prescriptions: presCount,
+          patients: patientCount,
+          doctors: docCount,
+        });
+
+      } catch (e) {
+          console.error("Error fetching stats: ", e);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    fetchStats();
+  }, [firestore, userRole, userId, hospitalId, isUserLoading]);
+
 
   const welcomeMessage = user ? `Xoş gəlmisiniz, Dr. ${user.profile?.lastName || user.email}!` : "Xoş gəlmisiniz!";
-  const isLoading = isLoadingPrescriptions || isLoadingPatients || isLoadingDoctors;
-
-  const totalPrescriptions = prescriptions?.length || 0;
-  const totalPatients = patients?.length || 0; // This is total system patients, needs refinement
-  const totalDoctors = doctors?.length || 0;
+  const isLoading = isLoadingPrescriptions || loadingStats || isUserLoading;
 
   return (
     <div className="space-y-8">
@@ -91,8 +126,8 @@ export default function DashboardPage() {
               <ClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{isLoading ? "..." : totalPrescriptions}</div>
-              <p className="text-xs text-muted-foreground">bütün xəstəxana üzrə (placeholder)</p>
+              <div className="text-2xl font-bold">{isLoading ? "..." : stats.prescriptions}</div>
+              <p className="text-xs text-muted-foreground">bütün xəstəxana üzrə</p>
             </CardContent>
           </Card>
           <Card>
@@ -101,7 +136,7 @@ export default function DashboardPage() {
               <UserCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{isLoading ? "..." : totalDoctors}</div>
+              <div className="text-2xl font-bold">{isLoading ? "..." : stats.doctors}</div>
               <p className="text-xs text-muted-foreground">sistemdə qeydiyyatda</p>
             </CardContent>
           </Card>
@@ -111,7 +146,7 @@ export default function DashboardPage() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{isLoading ? "..." : totalPatients}</div>
+              <div className="text-2xl font-bold">{isLoading ? "..." : stats.patients}</div>
               <p className="text-xs text-muted-foreground">bütün sistem üzrə</p>
             </CardContent>
           </Card>
@@ -124,7 +159,7 @@ export default function DashboardPage() {
               <ClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{isLoading ? "..." : totalPrescriptions}</div>
+              <div className="text-2xl font-bold">{isLoading ? "..." : stats.prescriptions}</div>
               <p className="text-xs text-muted-foreground">ümumi</p>
             </CardContent>
           </Card>

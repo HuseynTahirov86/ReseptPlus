@@ -1,8 +1,10 @@
 'use server';
 import { z } from 'zod';
 import { db } from '@/firebase/server-init';
-import type { Prescription, Patient } from '@/lib/types';
+import type { Prescription, Patient, Doctor } from '@/lib/types';
 import { FieldValue } from 'firebase-admin/firestore';
+import { headers } from 'next/headers';
+import { auth as adminAuth } from 'firebase-admin';
 
 const PrescriptionSchema = z.object({
   patientId: z.string(),
@@ -50,9 +52,22 @@ export async function addPrescription(
   }
 
   try {
+    const doctorRef = db.collection('doctors').doc(doctorId);
+    const doctorSnap = await doctorRef.get();
+    if (!doctorSnap.exists) {
+        throw new Error("Həkim profili tapılmadı.");
+    }
+    const doctorData = doctorSnap.data() as Doctor;
+    const hospitalId = doctorData.hospitalId;
+
+    if (!hospitalId) {
+        throw new Error("Həkimə bağlı xəstəxana ID-si tapılmadı.");
+    }
+
     const newPrescription: Omit<Prescription, 'id'> = {
       ...validatedFields.data,
       doctorId: doctorId,
+      hospitalId: hospitalId, // Add hospitalId to the prescription
       pharmacyId: 'apteka_id_placeholder', // Bu hissə daha sonra dinamik olacaq
       medicationId: 'derman_id_placeholder', // Bu hissə daha sonra dinamik olacaq
       datePrescribed: new Date().toISOString(),
@@ -69,9 +84,10 @@ export async function addPrescription(
     return { type: 'success', message: 'Resept uğurla əlavə edildi.' };
   } catch (error) {
     console.error("Add Prescription Error:", error);
+    const errorMessage = error instanceof Error ? error.message : 'Bilinməyən xəta';
     return {
       type: 'error',
-      message: 'Resept əlavə edilərkən gözlənilməz bir xəta baş verdi.',
+      message: `Resept əlavə edilərkən gözlənilməz bir xəta baş verdi: ${errorMessage}`,
     };
   }
 }

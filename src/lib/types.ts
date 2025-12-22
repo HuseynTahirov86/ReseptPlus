@@ -17,6 +17,7 @@ export type Prescription = {
   patientId: string;
   patientName: string;
   doctorId: string;
+  hospitalId: string; // Denormalized for easier querying by head_doctor
   pharmacyId: string;
   medicationId: string;
   medicationName: string; 
