@@ -13,6 +13,12 @@ export type Patient = {
     role: 'patient';
 };
 
+export type PrescribedMedication = {
+    medicationName: string;
+    dosage: string;
+    instructions: string;
+}
+
 export type Prescription = {
   id: string;
   patientId: string;
@@ -20,17 +26,12 @@ export type Prescription = {
   doctorId: string;
   hospitalId: string; // Denormalized for easier querying by head_doctor
   pharmacyId: string;
-  medicationId: string;
-  medicationName: string; 
   datePrescribed: string; // ISO date string
-  dosage: string;
-  quantity: number;
-  refills: number;
-  instructions: string;
   verificationCode: string;
   status: 'Təhvil verildi' | 'Gözləmədə' | 'Ləğv edildi';
   complaint?: string;
   diagnosis?: string;
+  medications: PrescribedMedication[];
 };
 
 export type Doctor = {

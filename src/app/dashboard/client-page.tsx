@@ -142,7 +142,7 @@ export function DashboardClientPage({ initialUser, initialPrescriptions, initial
                 <TableHead>Resept ID</TableHead>
                 <TableHead>Xəstə</TableHead>
                 <TableHead>Tarix</TableHead>
-                <TableHead>Dərman</TableHead>
+                <TableHead>Dərmanlar</TableHead>
                 <TableHead className="text-right">Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -163,7 +163,9 @@ export function DashboardClientPage({ initialUser, initialPrescriptions, initial
                   <TableCell className="font-mono text-xs">{p.id.substring(0,8)}...</TableCell>
                   <TableCell>{p.patientName}</TableCell>
                   <TableCell>{new Date(p.datePrescribed).toLocaleDateString()}</TableCell>
-                  <TableCell>{p.medicationName}</TableCell>
+                  <TableCell>
+                    {p.medications.map(m => m.medicationName).join(', ')}
+                  </TableCell>
                   <TableCell className="text-right">
                     <Badge variant={statusVariant[p.status] || 'secondary'}>{p.status}</Badge>
                   </TableCell>

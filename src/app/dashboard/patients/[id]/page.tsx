@@ -1,19 +1,20 @@
 'use client';
 import { useParams } from 'next/navigation';
 import { useUser } from '@/firebase';
-import { doc, collection, query, where, getDoc, getDocs } from 'firebase/firestore';
-import type { Patient, Prescription } from '@/lib/types';
+import { doc, collection, query, where, getDocs } from 'firebase/firestore';
+import type { Patient, Prescription, PrescribedMedication } from '@/lib/types';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FilePlus2, Loader2, BrainCircuit } from 'lucide-react';
+import { FilePlus2, Loader2, BrainCircuit, Pill } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { PrescriptionForm } from './prescription-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { db } from '@/firebase/client-init';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
     'Təhvil verildi': 'default',
@@ -52,7 +53,6 @@ export default function PatientDetailPage() {
                     const presDocs = await getDocs(q);
                     const fetchedPrescriptions = presDocs.docs.map(d => d.data() as Prescription);
                     
-                    // Sort prescriptions by date client-side
                     fetchedPrescriptions.sort((a, b) => new Date(b.datePrescribed).getTime() - new Date(a.datePrescribed).getTime());
 
                     setPrescriptions(fetchedPrescriptions);
@@ -73,7 +73,6 @@ export default function PatientDetailPage() {
         });
         if (state.type === 'success') {
             setIsFormOpen(false);
-            // Optionally, refresh prescriptions list here
         }
     };
     
@@ -81,7 +80,7 @@ export default function PatientDetailPage() {
         if (!patient) return;
         
         const patientDiagnoses = prescriptions?.map(p => p.diagnosis).filter(Boolean) || [];
-        const patientMedications = prescriptions?.map(p => p.medicationName).filter(Boolean) || [];
+        const allMedications = prescriptions?.flatMap(p => p.medications.map(m => m.medicationName)) || [];
 
         const patientHistory = `
         - Ad: ${patient.firstName} ${patient.lastName}
@@ -89,7 +88,7 @@ export default function PatientDetailPage() {
         - Cins: ${patient.gender}
         - Kontakt: ${patient.contactNumber}
         - Keçmiş Diaqnozlar: ${patientDiagnoses.length > 0 ? patientDiagnoses.join(', ') : 'Məlumat yoxdur'}
-        - Keçmiş Dərmanlar: ${patientMedications.length > 0 ? patientMedications.join(', ') : 'Məlumat yoxdur'}
+        - Keçmiş Dərmanlar: ${allMedications.length > 0 ? allMedications.join(', ') : 'Məlumat yoxdur'}
         `.trim();
         
         const queryParams = new URLSearchParams({
@@ -140,33 +139,34 @@ export default function PatientDetailPage() {
                     <CardTitle>Resept Tarixçəsi</CardTitle>
                 </CardHeader>
                 <CardContent>
-                   <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                             <thead className="bg-gray-50">
-                                <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarix</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dərman</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diaqnoz</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {isLoading && (
-                                    <tr><td colSpan={4} className="p-8 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></td></tr>
-                                )}
-                                {!isLoading && prescriptions?.map((p) => (
-                                    <tr key={p.id}>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(p.datePrescribed).toLocaleDateString()}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{p.medicationName}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{p.diagnosis}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm"><Badge variant={statusVariant[p.status] || 'secondary'}>{p.status}</Badge></td>
-                                    </tr>
-                                ))}
-                                {!isLoading && prescriptions?.length === 0 && (
-                                     <tr><td colSpan={4} className="p-8 text-center text-gray-500">Bu xəstə üçün heç bir resept tapılmadı.</td></tr>
-                                )}
-                            </tbody>
-                        </table>
+                   <div className="space-y-6">
+                       {isLoading && (
+                           <div className="p-8 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>
+                       )}
+                       {!isLoading && prescriptions?.map((p) => (
+                           <Card key={p.id} className="p-4">
+                               <div className="flex justify-between items-start">
+                                   <div>
+                                       <p className="font-semibold">{new Date(p.datePrescribed).toLocaleDateString('az-AZ', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                       <p className="text-sm text-muted-foreground">Diaqnoz: {p.diagnosis}</p>
+                                   </div>
+                                   <Badge variant={statusVariant[p.status] || 'secondary'}>{p.status}</Badge>
+                               </div>
+                               <div className="mt-4">
+                                   <h4 className="font-medium flex items-center gap-2"><Pill className="h-4 w-4 text-primary" /> Dərmanlar</h4>
+                                   <ul className="mt-2 pl-6 space-y-1 list-disc text-sm text-muted-foreground">
+                                       {p.medications.map((med, index) => (
+                                          <li key={index}>
+                                              <span className="font-semibold text-foreground">{med.medicationName}</span> ({med.dosage}) - {med.instructions}
+                                          </li>
+                                       ))}
+                                   </ul>
+                               </div>
+                           </Card>
+                       ))}
+                       {!isLoading && prescriptions?.length === 0 && (
+                           <div className="p-8 text-center text-gray-500">Bu xəstə üçün heç bir resept tapılmadı.</div>
+                       )}
                    </div>
                 </CardContent>
             </Card>
@@ -183,4 +183,3 @@ export default function PatientDetailPage() {
         </div>
     );
 }
-    

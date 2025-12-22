@@ -302,67 +302,39 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Prescription",
       "type": "object",
-      "description": "Represents a prescription in the system.",
+      "description": "Represents a prescription in the system, which can contain multiple medications.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Prescription entity."
-        },
-        "patientId": {
-          "type": "string",
-          "description": "Reference to Patient. (Relationship: Patient 1:N Prescription)"
-        },
-        "doctorId": {
-          "type": "string",
-          "description": "Reference to Doctor. (Relationship: Doctor 1:N Prescription)"
-        },
-        "pharmacyId": {
-          "type": "string",
-          "description": "Reference to Pharmacy. (Relationship: Pharmacy 1:N Prescription)"
-        },
-        "medicationId": {
-          "type": "string",
-          "description": "Reference to Medication. (Relationship: Medication 1:N Prescription)"
-        },
-        "datePrescribed": {
-          "type": "string",
-          "description": "Date the prescription was prescribed.",
-          "format": "date-time"
-        },
-        "dosage": {
-          "type": "string",
-          "description": "Dosage of the medication prescribed."
-        },
-        "quantity": {
-          "type": "number",
-          "description": "Quantity of the medication prescribed."
-        },
-        "refills": {
-          "type": "number",
-          "description": "Number of refills allowed for the prescription."
-        },
-        "instructions": {
-          "type": "string",
-          "description": "Additional instructions for the patient."
-        },
-        "verificationCode": {
-          "type": "string",
-          "description": "Verification code of the prescription. Used to verify the OTP."
+        "id": { "type": "string", "description": "Unique identifier for the Prescription entity." },
+        "patientId": { "type": "string", "description": "Reference to Patient." },
+        "patientName": { "type": "string", "description": "Denormalized patient name for display." },
+        "doctorId": { "type": "string", "description": "Reference to Doctor." },
+        "hospitalId": { "type": "string", "description": "Denormalized hospital ID for easier queries." },
+        "pharmacyId": { "type": "string", "description": "Reference to the designated Pharmacy." },
+        "datePrescribed": { "type": "string", "format": "date-time", "description": "Date the prescription was prescribed." },
+        "verificationCode": { "type": "string", "description": "Verification code for prescription fulfillment." },
+        "complaint": { "type": "string", "description": "The patient's primary complaint." },
+        "diagnosis": { "type": "string", "description": "The diagnosis determined by the doctor." },
+        "medications": {
+          "type": "array",
+          "description": "List of prescribed medications.",
+          "items": {
+            "$ref": "#/entities/PrescribedMedication"
+          }
         }
       },
-      "required": [
-        "id",
-        "patientId",
-        "doctorId",
-        "pharmacyId",
-        "medicationId",
-        "datePrescribed",
-        "dosage",
-        "quantity",
-        "refills",
-        "instructions",
-        "verificationCode"
-      ]
+      "required": [ "id", "patientId", "doctorId", "datePrescribed", "diagnosis", "medications" ]
+    },
+    "PrescribedMedication": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PrescribedMedication",
+      "type": "object",
+      "description": "Represents a single medication within a prescription.",
+      "properties": {
+          "medicationName": { "type": "string", "description": "Name of the medication." },
+          "dosage": { "type": "string", "description": "Dosage of the medication." },
+          "instructions": { "type": "string", "description": "Instructions for taking the medication." }
+      },
+      "required": [ "medicationName", "dosage", "instructions" ]
     },
     "Inventory": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -859,5 +831,3 @@
     "reasoning": "The Firestore structure is updated to support multiple user roles (Patient, Doctor, Pharmacist, Admin, SystemAdmin). Each user role has its own top-level collection to enforce role-based access control easily. For instance, `/patients/{patientId}` stores patient data accessible only by the patient themselves, while `/pharmacists/{pharmacistId}` stores pharmacist data. This flat structure simplifies security rules and avoids complex nested reads. Administrative roles are split into 'admin' (for site content) and 'system_admin' (for system-level management) to enforce separation of duties. This design ensures a secure, scalable, and maintainable data architecture."
   }
 }
-
-    

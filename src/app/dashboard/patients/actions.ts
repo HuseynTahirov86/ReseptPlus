@@ -2,19 +2,22 @@
 import { z } from 'zod';
 import { db } from '@/firebase/server-init';
 import type { Prescription, Patient, Doctor } from '@/lib/types';
-import { FieldValue } from 'firebase-admin/firestore';
-import { headers } from 'next/headers';
-import { auth as adminAuth } from 'firebase-admin';
+import { revalidatePath } from 'next/cache';
+
+const PrescribedMedicationSchema = z.object({
+  medicationName: z.string().min(3, 'Dərman adı ən azı 3 simvol olmalıdır.'),
+  dosage: z.string().min(1, 'Doza qeyd edilməlidir.'),
+  instructions: z.string().min(5, 'Təlimat ən azı 5 simvol olmalıdır.'),
+});
 
 const PrescriptionSchema = z.object({
   patientId: z.string(),
   patientName: z.string(),
   complaint: z.string().min(5, 'Şikayət ən azı 5 simvol olmalıdır.'),
   diagnosis: z.string().min(5, 'Diaqnoz ən azı 5 simvol olmalıdır.'),
-  medicationName: z.string().min(3, 'Dərman adı ən azı 3 simvol olmalıdır.'),
-  dosage: z.string().min(1, 'Doza qeyd edilməlidir.'),
-  instructions: z.string().min(5, 'Təlimat ən azı 5 simvol olmalıdır.'),
+  medications: z.array(PrescribedMedicationSchema).min(1, 'Ən azı bir dərman əlavə edilməlidir.'),
 });
+
 
 const PatientSchema = z.object({
   firstName: z.string().min(2, 'Ad ən azı 2 hərfdən ibarət olmalıdır.'),
@@ -31,7 +34,7 @@ const PatientSchema = z.object({
 export type FormState = {
   message: string;
   type: 'success' | 'error';
-  issues?: Record<string, string[] | undefined>;
+  issues?: Record<string, any>;
   fields?: Record<string, any>;
 };
 
@@ -40,15 +43,34 @@ export async function addPrescription(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const validatedFields = PrescriptionSchema.safeParse(
-    Object.fromEntries(formData.entries())
-  );
+
+  const rawData: any = {
+      patientId: formData.get('patientId'),
+      patientName: formData.get('patientName'),
+      complaint: formData.get('complaint'),
+      diagnosis: formData.get('diagnosis'),
+      medications: [],
+  };
+
+  // Manually construct the medications array from FormData
+  let i = 0;
+  while(formData.get(`medications[${i}].medicationName`) !== null) {
+      rawData.medications.push({
+          medicationName: formData.get(`medications[${i}].medicationName`),
+          dosage: formData.get(`medications[${i}].dosage`),
+          instructions: formData.get(`medications[${i}].instructions`),
+      });
+      i++;
+  }
+
+  const validatedFields = PrescriptionSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
-    return {
-      type: 'error',
-      message: "Məlumatları yoxlayın: " + validatedFields.error.flatten().fieldErrors,
-    };
+      return {
+          type: 'error',
+          message: "Məlumatları yoxlayın.",
+          issues: validatedFields.error.flatten().fieldErrors,
+      };
   }
 
   try {
@@ -67,12 +89,9 @@ export async function addPrescription(
     const newPrescription: Omit<Prescription, 'id'> = {
       ...validatedFields.data,
       doctorId: doctorId,
-      hospitalId: hospitalId, // Add hospitalId to the prescription
-      pharmacyId: 'apteka_id_placeholder', // Bu hissə daha sonra dinamik olacaq
-      medicationId: 'derman_id_placeholder', // Bu hissə daha sonra dinamik olacaq
+      hospitalId: hospitalId,
+      pharmacyId: 'apteka_id_placeholder', 
       datePrescribed: new Date().toISOString(),
-      quantity: 1, // Placeholder
-      refills: 0, // Placeholder
       verificationCode: Math.floor(100000 + Math.random() * 900000).toString(),
       status: 'Gözləmədə',
     };
@@ -80,6 +99,8 @@ export async function addPrescription(
     const collectionRef = db.collection('prescriptions');
     const docRef = await collectionRef.add(newPrescription);
     await docRef.update({ id: docRef.id });
+
+    revalidatePath(`/dashboard/patients/${validatedFields.data.patientId}`);
 
     return { type: 'success', message: 'Resept uğurla əlavə edildi.' };
   } catch (error) {
