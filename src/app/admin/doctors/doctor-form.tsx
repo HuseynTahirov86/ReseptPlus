@@ -22,7 +22,7 @@ const CreateDoctorSchema = z.object({
   lastName: z.string().min(2, 'Soyad ən azı 2 simvol olmalıdır.'),
   email: z.string().email('Düzgün email daxil edin.'),
   password: z.string().min(6, 'Şifrə ən azı 6 simvol olmalıdır.'),
-  specialization: z.string().min(3, 'İxtisas ən azı 3 simvol olmalıdır.'),
+  specialization: z.string().min(2, 'İxtisas ən azı 2 simvol olmalıdır.'),
   hospitalId: z.string().min(1, 'Xəstəxana seçilməlidir.'),
   role: z.enum(['doctor', 'head_doctor']),
 });
@@ -81,7 +81,17 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
     if (state.message) {
       onFormSubmit(state);
     }
-  }, [state, onFormSubmit]);
+    if (state.type === 'error' && state.issues) {
+      const fieldErrors = state.issues;
+      Object.keys(fieldErrors).forEach((key) => {
+          const fieldName = key as keyof DoctorFormValues;
+          const message = fieldErrors[fieldName]?.[0];
+          if(message) {
+            form.setError(fieldName, { type: 'server', message });
+          }
+      });
+    }
+  }, [state, onFormSubmit, form]);
   
   useEffect(() => {
     form.reset(initialData || { firstName: '', lastName: '', email: '', password: '', specialization: '', hospitalId: '', role: 'doctor'});
