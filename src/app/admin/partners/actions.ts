@@ -7,7 +7,7 @@ import { collection, doc, addDoc, setDoc, deleteDoc } from 'firebase/firestore';
 const PartnerSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, 'Ad ən azı 2 simvol olmalıdır.'),
-  description: z.string().min(10, 'Təsvir ən azı 10 simvol olmalıdır.'),
+  description: z.string().min(3, 'Təsvir ən azı 3 simvol olmalıdır.'),
   logoUrl: z.string().min(1, 'Loqo URL-i boş ola bilməz.'),
 });
 
