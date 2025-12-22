@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { db } from '@/firebase/server-init';
-import { collection, doc, addDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { revalidatePath } from 'next/cache';
 
 const TeamMemberSchema = z.object({
   id: z.string().optional(),
@@ -38,14 +38,17 @@ export async function addTeamMember(
   }
   
   try {
-    const collectionRef = collection(db, 'teamMembers');
-    const docRef = await addDoc(collectionRef, validatedFields.data);
-    await setDoc(docRef, { id: docRef.id }, { merge: true });
+    const collectionRef = db.collection('teamMembers');
+    const docRef = await collectionRef.add(validatedFields.data);
+    await docRef.update({ id: docRef.id });
+
+    revalidatePath('/admin/team');
+    revalidatePath('/haqqimizda');
     return { type: 'success', message: 'Komanda üzvü uğurla əlavə edildi.' };
   } catch (error) {
     return {
       type: 'error',
-      message: 'Gözlənilməz bir xəta baş verdi.',
+      message: `Gözlənilməz bir xəta baş verdi: ${error instanceof Error ? error.message : "Bilinməyən xəta"}`,
       fields: Object.fromEntries(formData.entries()),
     };
   }
@@ -80,13 +83,16 @@ export async function updateTeamMember(
     }
 
     try {
-        const docRef = doc(db, 'teamMembers', id);
-        await setDoc(docRef, dataToUpdate, { merge: true });
+        const docRef = db.collection('teamMembers').doc(id);
+        await docRef.update(dataToUpdate);
+
+        revalidatePath('/admin/team');
+        revalidatePath('/haqqimizda');
         return { type: 'success', message: 'Komanda üzvü uğurla yeniləndi.' };
     } catch (error) {
         return {
             type: 'error',
-            message: 'Gözlənilməz bir xəta baş verdi.',
+            message: `Gözlənilməz bir xəta baş verdi: ${error instanceof Error ? error.message : "Bilinməyən xəta"}`,
             fields: Object.fromEntries(formData.entries()),
         };
     }
@@ -99,10 +105,13 @@ export async function deleteTeamMember(id: string): Promise<FormState> {
   }
   
   try {
-    const docRef = doc(db, 'teamMembers', id);
-    await deleteDoc(docRef);
+    const docRef = db.collection('teamMembers').doc(id);
+    await docRef.delete();
+
+    revalidatePath('/admin/team');
+    revalidatePath('/haqqimizda');
     return { type: 'success', message: 'Komanda üzvü uğurla silindi.' };
   } catch (error) {
-    return { type: 'error', message: 'Üzvü silmək mümkün olmadı.' };
+    return { type: 'error', message: `Üzvü silmək mümkün olmadı: ${error instanceof Error ? error.message : "Bilinməyən xəta"}` };
   }
 }

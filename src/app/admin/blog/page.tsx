@@ -1,7 +1,5 @@
 'use client';
 
-import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
-import { collection, orderBy, query } from "firebase/firestore";
 import type { BlogPost } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
@@ -14,7 +12,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MoreHorizontal, PlusCircle, Trash2, Edit } from "lucide-react";
-import Image from "next/image";
 import { PostForm } from "./post-form";
 import {
   DropdownMenu,
@@ -22,7 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { deletePost } from './actions';
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -36,17 +33,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
-export default function AdminBlogPage() {
-    const { firestore } = useFirebase();
+interface AdminBlogPageProps {
+    posts: BlogPost[];
+}
+
+export default function AdminBlogPage({ posts: initialPosts }: AdminBlogPageProps) {
     const { toast } = useToast();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
-
-    const postsQuery = useMemoFirebase(
-        () => firestore && query(collection(firestore, "blogPosts"), orderBy("datePublished", "desc")), 
-        [firestore]
-    );
-    const { data: posts, isLoading } = useCollection<BlogPost>(postsQuery);
+    const [isPending, startTransition] = useTransition();
 
     const openFormForEdit = (post: BlogPost) => {
         setSelectedPost(post);
@@ -72,12 +67,14 @@ export default function AdminBlogPage() {
         }
     }
     
-     const handleDelete = async (id: string) => {
-        const result = await deletePost(id);
-        toast({
-            title: result.type === 'success' ? 'Uğurlu' : 'Xəta',
-            description: result.message,
-            variant: result.type === 'success' ? 'default' : 'destructive',
+     const handleDelete = (id: string) => {
+        startTransition(async () => {
+            const result = await deletePost(id);
+            toast({
+                title: result.type === 'success' ? 'Uğurlu' : 'Xəta',
+                description: result.message,
+                variant: result.type === 'success' ? 'default' : 'destructive',
+            });
         });
     };
 
@@ -102,14 +99,7 @@ export default function AdminBlogPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {isLoading && (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center">
-                                            Yüklənir...
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                                {!isLoading && posts?.map((post) => (
+                                {initialPosts.map((post) => (
                                     <TableRow key={post.id}>
                                         <TableCell className="font-medium">{post.title}</TableCell>
                                         <TableCell>{post.author}</TableCell>
@@ -117,7 +107,7 @@ export default function AdminBlogPage() {
                                         <TableCell className="text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
+                                                    <Button variant="ghost" size="icon" disabled={isPending}>
                                                         <MoreHorizontal className="h-4 w-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
@@ -153,7 +143,7 @@ export default function AdminBlogPage() {
                                         </TableCell>
                                     </TableRow>
                                 ))}
-                                {!isLoading && posts?.length === 0 && (
+                                {initialPosts.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={4} className="h-24 text-center">
                                             Heç bir yazı tapılmadı.

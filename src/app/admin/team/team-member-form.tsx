@@ -1,11 +1,10 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect } from 'react';
 
 import { addTeamMember, updateTeamMember, type FormState } from './actions';
 import { Button } from '@/components/ui/button';
@@ -65,20 +64,18 @@ export function TeamMemberForm({ initialData, onFormSubmit }: TeamMemberFormProp
   });
 
   useEffect(() => {
-    if (state.message) {
+    if (state?.message) {
       onFormSubmit(state);
       if (state.type === 'error' && state.issues) {
-        const fieldErrors = state.issues;
-        Object.keys(fieldErrors).forEach((key) => {
-            const fieldName = key as keyof TeamMemberFormValues;
-            const message = (fieldErrors as any)[fieldName]?.[0];
-            if(message && form.getFieldState(fieldName).error?.type !== 'server') {
-              form.setError(fieldName, { type: 'server', message });
-            }
+         Object.entries(state.issues).forEach(([key, messages]) => {
+          const fieldName = key as keyof TeamMemberFormValues;
+          if (messages && messages.length > 0) {
+            form.setError(fieldName, { type: 'server', message: messages[0] });
+          }
         });
       }
     }
-  }, [state, onFormSubmit, form]);
+  }, [state, form, onFormSubmit]);
   
   useEffect(() => {
     form.reset(initialData || { name: '', role: '', imageUrl: '', imageHint: '' });
@@ -87,7 +84,7 @@ export function TeamMemberForm({ initialData, onFormSubmit }: TeamMemberFormProp
   return (
     <Form {...form}>
       <form action={formAction} className="space-y-4">
-        {state.type === 'error' && state.message && !state.issues && (
+        {state?.type === 'error' && state.message && !state.issues && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Xəta</AlertTitle>

@@ -2,6 +2,7 @@
 
 import { z } from 'zod';
 import { db } from '@/firebase/server-init';
+import { revalidatePath } from 'next/cache';
 
 const BasePartnerSchema = z.object({
   name: z.string().min(2, 'Ad ən azı 2 simvol olmalıdır.'),
@@ -46,6 +47,8 @@ export async function addPartner(
     
     await docRef.update({ id: docRef.id });
     
+    revalidatePath('/admin/partners');
+    revalidatePath('/partnyorlar');
     return { type: 'success', message: 'Partnyor uğurla əlavə edildi.' };
   } catch (error) {
     console.error("Add Partner Error:", error);
@@ -82,6 +85,8 @@ export async function updatePartner(
     const docRef = db.collection(partnerType).doc(id);
     await docRef.set(dataToUpdate, { merge: true });
     
+    revalidatePath('/admin/partners');
+    revalidatePath('/partnyorlar');
     return { type: 'success', message: 'Partnyor uğurla yeniləndi.' };
   } catch (error) {
     console.error("Update Partner Error:", error);
@@ -105,6 +110,8 @@ export async function deletePartner(
     const docRef = db.collection(partnerType).doc(id);
     await docRef.delete();
     
+    revalidatePath('/admin/partners');
+    revalidatePath('/partnyorlar');
     return { type: 'success', message: 'Partnyor uğurla silindi.' };
   } catch (error) {
     console.error("Delete Partner Error:", error);

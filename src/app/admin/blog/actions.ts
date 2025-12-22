@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { db } from '@/firebase/server-init';
-import { collection, doc, addDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { revalidatePath } from 'next/cache';
 
 const PostSchema = z.object({
   id: z.string().optional(),
@@ -40,19 +40,21 @@ export async function addPost(
   }
   
   try {
-    const collectionRef = collection(db, 'blogPosts');
+    const collectionRef = db.collection('blogPosts');
     const dataToAdd = {
         ...validatedFields.data,
         datePublished: new Date().toISOString()
     };
-    const docRef = await addDoc(collectionRef, dataToAdd);
-    await setDoc(docRef, { id: docRef.id }, { merge: true });
+    const docRef = await collectionRef.add(dataToAdd);
+    await docRef.update({ id: docRef.id });
     
+    revalidatePath('/admin/blog');
+    revalidatePath('/blog');
     return { type: 'success', message: 'Yazı uğurla əlavə edildi.' };
   } catch (error) {
     return {
       type: 'error',
-      message: 'Gözlənilməz bir xəta baş verdi.',
+      message: `Gözlənilməz bir xəta baş verdi: ${error instanceof Error ? error.message : "Bilinməyən xəta"}`,
       fields: Object.fromEntries(formData.entries()),
     };
   }
@@ -87,13 +89,15 @@ export async function updatePost(
     }
 
     try {
-        const docRef = doc(db, 'blogPosts', id);
-        await setDoc(docRef, dataToUpdate, { merge: true });
+        const docRef = db.collection('blogPosts').doc(id);
+        await docRef.update(dataToUpdate);
+        revalidatePath('/admin/blog');
+        revalidatePath(`/blog/${id}`);
         return { type: 'success', message: 'Yazı uğurla yeniləndi.' };
     } catch (error) {
         return {
             type: 'error',
-            message: 'Gözlənilməz bir xəta baş verdi.',
+            message: `Gözlənilməz bir xəta baş verdi: ${error instanceof Error ? error.message : "Bilinməyən xəta"}`,
             fields: Object.fromEntries(formData.entries()),
         };
     }
@@ -106,10 +110,12 @@ export async function deletePost(id: string): Promise<FormState> {
   }
   
   try {
-    const docRef = doc(db, 'blogPosts', id);
-    await deleteDoc(docRef);
+    const docRef = db.collection('blogPosts').doc(id);
+    await docRef.delete();
+    revalidatePath('/admin/blog');
+    revalidatePath('/blog');
     return { type: 'success', message: 'Yazı uğurla silindi.' };
   } catch (error) {
-    return { type: 'error', message: 'Yazını silmək mümkün olmadı.' };
+    return { type: 'error', message: `Yazını silmək mümkün olmadı: ${error instanceof Error ? error.message : "Bilinməyən xəta"}` };
   }
 }
