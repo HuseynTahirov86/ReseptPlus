@@ -253,6 +253,14 @@
           "type": "string",
           "description": "Pharmacy's email address.",
           "format": "email"
+        },
+        "latitude": {
+            "type": "number",
+            "description": "Geographical latitude of the pharmacy."
+        },
+        "longitude": {
+            "type": "number",
+            "description": "Geographical longitude of the pharmacy."
         }
       },
       "required": [
@@ -260,7 +268,9 @@
         "name",
         "address",
         "contactNumber",
-        "email"
+        "email",
+        "latitude",
+        "longitude"
       ]
     },
     "Medication": {
@@ -854,3 +864,4 @@
     "reasoning": "The Firestore structure is updated to support multiple user roles (Patient, Doctor, Pharmacist, Admin, SystemAdmin). Each user role has its own top-level collection to enforce role-based access control easily. For instance, `/patients/{patientId}` stores patient data accessible only by the patient themselves, while `/pharmacists/{pharmacistId}` stores pharmacist data. This flat structure simplifies security rules and avoids complex nested reads. Administrative roles are split into 'admin' (for site content) and 'system_admin' (for system-level management) to enforce separation of duties. The Inventory is now a sub-collection of a pharmacy to enforce ownership. This design ensures a secure, scalable, and maintainable data architecture."
   }
 }
+    

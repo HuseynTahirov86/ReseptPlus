@@ -81,6 +81,8 @@ export type Pharmacy = {
     address: string;
     contactNumber: string;
     email: string;
+    latitude: number;
+    longitude: number;
 };
 
 export type Inventory = {
@@ -155,3 +157,5 @@ export type UserProfile = (Doctor | Admin | SystemAdmin | Pharmacist | Patient |
 export type AppUser = User & {
     profile?: Partial<UserProfile>;
 };
+
+    

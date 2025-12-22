@@ -14,6 +14,7 @@ import {
   Hospital,
   Building,
   ShieldCheck,
+  MapPin,
 } from "lucide-react";
 
 import {
@@ -89,7 +90,13 @@ const pharmacistMenuItems = [
         icon: Building,
         role: "head_pharmacist",
     }
-]
+];
+
+const patientMenuItems = [
+    { href: "/dashboard", label: "İdarə Paneli", icon: LayoutDashboard },
+    { href: "/dashboard/prescriptions", label: "Reseptlərim", icon: ClipboardList },
+    { href: "/dashboard/find-pharmacy", label: "Aptek Tap", icon: MapPin }
+];
 
 export default function DashboardLayout({
   children,
@@ -118,6 +125,9 @@ export default function DashboardLayout({
   } else if (userRole === 'employee' || userRole === 'head_pharmacist') {
     menuItems = pharmacistMenuItems.filter(item => !item.role || item.role === userRole);
     roleDisplay = userRole === 'head_pharmacist' ? 'Baş Əczaçı' : 'Əczaçı';
+  } else if (userRole === 'patient') {
+    menuItems = patientMenuItems;
+    roleDisplay = 'Xəstə';
   }
   
 
@@ -213,3 +223,5 @@ export default function DashboardLayout({
     </SidebarProvider>
   );
 }
+
+    

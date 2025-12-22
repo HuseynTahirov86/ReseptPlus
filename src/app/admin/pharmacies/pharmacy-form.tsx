@@ -22,6 +22,8 @@ const PharmacySchema = z.object({
   address: z.string().min(10, 'Ünvan ən azı 10 simvol olmalıdır.'),
   contactNumber: z.string().min(9, 'Nömrə düzgün formatda olmalıdır.'),
   email: z.string().email('Düzgün email daxil edin.'),
+  latitude: z.coerce.number().min(-90, "Enlik -90 və 90 arasında olmalıdır.").max(90, "Enlik -90 və 90 arasında olmalıdır."),
+  longitude: z.coerce.number().min(-180, "Uzunluq -180 və 180 arasında olmalıdır.").max(180, "Uzunluq -180 və 180 arasında olmalıdır."),
 });
 
 type PharmacyFormValues = z.infer<typeof PharmacySchema>;
@@ -61,6 +63,8 @@ export function PharmacyForm({ initialData, onFormSubmit }: PharmacyFormProps) {
       address: '',
       contactNumber: '',
       email: '',
+      latitude: 0,
+      longitude: 0,
     },
   });
 
@@ -71,7 +75,7 @@ export function PharmacyForm({ initialData, onFormSubmit }: PharmacyFormProps) {
   }, [state, onFormSubmit]);
   
   useEffect(() => {
-    form.reset(initialData || { name: '', address: '', contactNumber: '', email: '' });
+    form.reset(initialData || { name: '', address: '', contactNumber: '', email: '', latitude: 0, longitude: 0 });
   }, [initialData, form]);
 
   return (
@@ -139,7 +143,33 @@ export function PharmacyForm({ initialData, onFormSubmit }: PharmacyFormProps) {
                 <FormMessage />
                 </FormItem>
             )}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+            control={form.control}
+            name="latitude"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Enlik (Latitude)</FormLabel>
+                <FormControl>
+                    <Input type="number" placeholder="40.4093" {...field} />
+                </FormControl>
+                 <FormMessage />
+                </FormItem>
+            )}
             />
+             <FormField
+            control={form.control}
+            name="longitude"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Uzunluq (Longitude)</FormLabel>
+                <FormControl>
+                    <Input type="number" placeholder="49.8671" {...field} />
+                </FormControl>
+                 <FormMessage />
+                </FormItem>
+            )}
         </div>
         
         <SubmitButton isEditing={isEditing} />
@@ -147,3 +177,5 @@ export function PharmacyForm({ initialData, onFormSubmit }: PharmacyFormProps) {
     </Form>
   );
 }
+
+    

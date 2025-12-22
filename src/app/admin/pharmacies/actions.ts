@@ -9,11 +9,13 @@ const PharmacySchema = z.object({
   address: z.string().min(3, 'Ünvan ən azı 3 simvol olmalıdır.'),
   contactNumber: z.string().min(9, 'Nömrə düzgün formatda olmalıdır.'),
   email: z.string().email('Düzgün email daxil edin.'),
+  latitude: z.coerce.number().min(-90, "Enlik -90 və 90 arasında olmalıdır.").max(90, "Enlik -90 və 90 arasında olmalıdır."),
+  longitude: z.coerce.number().min(-180, "Uzunluq -180 və 180 arasında olmalıdır.").max(180, "Uzunluq -180 və 180 arasında olmalıdır."),
 });
 
 export type FormState = {
   message: string;
-  fields?: Record<string, string>;
+  fields?: Record<string, string | number>;
   issues?: Record<string, string[] | undefined>;
   type: 'success' | 'error';
 };
@@ -32,7 +34,7 @@ async function addOrUpdatePharmacy(
     return {
       type: 'error',
       message: 'Doğrulama uğursuz oldu. Zəhmət olmasa, sahələri yoxlayın.',
-      fields: Object.fromEntries(formData.entries()),
+      fields: Object.fromEntries(formData.entries()) as any,
       issues: fieldErrors,
     };
   }
@@ -58,7 +60,7 @@ async function addOrUpdatePharmacy(
     return {
       type: 'error',
       message: `Gözlənilməz bir xəta baş verdi: ${errorMessage}`,
-      fields: Object.fromEntries(formData.entries()),
+      fields: Object.fromEntries(formData.entries()) as any,
     };
   }
 }
@@ -82,3 +84,5 @@ export async function deletePharmacy(id: string): Promise<FormState> {
     return { type: 'error', message: `Apteki silmək mümkün olmadı: ${errorMessage}` };
   }
 }
+
+    
