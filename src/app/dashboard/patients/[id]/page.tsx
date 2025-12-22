@@ -1,7 +1,7 @@
 'use client';
 import { useParams } from 'next/navigation';
-import { useUser, useFirebase } from '@/firebase';
-import { doc, collection, query, where, orderBy } from 'firebase/firestore';
+import { useUser } from '@/firebase';
+import { doc, collection, query, where, orderBy, getDoc, getDocs } from 'firebase/firestore';
 import type { Patient, Prescription } from '@/lib/types';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
