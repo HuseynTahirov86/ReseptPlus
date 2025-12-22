@@ -83,12 +83,16 @@ export default function AdminPharmacistsPage() {
         setIsFormOpen(true);
     }
 
-    const onFormSubmit = (state: { type: 'success' | 'error', message: string }) => {
-        toast({
-            title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
-            description: state.message,
-            variant: state.type === 'success' ? 'default' : 'destructive',
-        });
+    const onFormSubmit = (state: { type: 'success' | 'error', message: string, issues?: any }) => {
+        // Show a toast only on success or if there's a general error without field issues.
+        if (state.type === 'success' || (state.type === 'error' && !state.issues)) {
+             toast({
+                title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
+                description: state.message,
+                variant: state.type === 'success' ? 'default' : 'destructive',
+            });
+        }
+
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedPharmacist(null);
