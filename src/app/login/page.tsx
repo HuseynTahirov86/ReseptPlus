@@ -1,11 +1,10 @@
 'use client';
 
 import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
+  signInWithEmailAndPassword
 } from 'firebase/auth';
 import { useAuth } from '@/firebase';
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from 'next/link';
 
 import { Button } from "@/components/ui/button";
@@ -31,24 +30,9 @@ function AuthForm() {
     setLoading(true);
     setError(null);
     try {
-      // First, try to sign in
       await signInWithEmailAndPassword(auth, email, password);
-      // Redirection is handled by the FirebaseProvider
     } catch (e: any) {
-      // If user is not found, it means it's the first time for a special user (like superadmin)
-      // or a user being created by an admin. Let's try to create an account.
-      if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
-        try {
-            await createUserWithEmailAndPassword(auth, email, password);
-            // Redirection is handled by the FirebaseProvider after creation
-        } catch (creationError: any) {
-            // Handle errors during creation (e.g., weak password)
-            handleFirebaseAuthError(creationError);
-        }
-      } else {
-        // Handle other sign-in errors (e.g., wrong password)
-        handleFirebaseAuthError(e);
-      }
+       handleFirebaseAuthError(e);
     } finally {
       setLoading(false);
     }
@@ -57,23 +41,15 @@ function AuthForm() {
   const handleFirebaseAuthError = (e: any) => {
      switch (e.code) {
         case 'auth/user-not-found':
-        case 'auth/invalid-credential':
-          setError('Bu email ilə hesab tapılmadı və ya şifrə yanlışdır.');
-          break;
         case 'auth/wrong-password':
-          setError('Yanlış şifrə. Zəhmət olmasa, yenidən cəhd edin.');
+        case 'auth/invalid-credential':
+          setError('Email və ya şifrə yanlışdır.');
           break;
         case 'auth/invalid-email':
           setError('Zəhmət olmasa, düzgün bir email adresi daxil edin.');
           break;
-        case 'auth/email-already-in-use':
-          setError('Bu email artıq mövcuddur. Zəhmət olmasa, daxil olun.');
-          break;
-        case 'auth/weak-password':
-          setError('Şifrə çox zəifdir. Ən azı 6 simvol olmalıdır.');
-          break;
         default:
-          setError('Gözlənilməz bir xəta baş verdi: ' + e.message);
+          setError('Giriş zamanı gözlənilməz bir xəta baş verdi: ' + e.message);
           break;
       }
   }
@@ -106,7 +82,7 @@ function AuthForm() {
         <CardFooter>
           <Button className="w-full" onClick={handleAuthAction} disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? "Gözləyin..." : 'Davam Et'}
+              {loading ? "Gözləyin..." : 'Daxil Ol'}
           </Button>
         </CardFooter>
       </Card>
@@ -114,8 +90,6 @@ function AuthForm() {
 }
 
 export default function LoginPage() {
-    // The redirection logic is now fully handled by the central RedirectHandler
-    // in FirebaseProvider. This component's only job is to render the login form.
     return (
         <div className="flex min-h-screen w-full flex-col items-center justify-center bg-secondary/50 p-4">
             <div className='absolute top-8 left-8'>

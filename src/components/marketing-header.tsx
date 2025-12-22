@@ -41,11 +41,8 @@ export default function MarketingHeader() {
           </nav>
         </div>
         <div className="hidden items-center gap-4 md:flex">
-           <Button asChild variant="ghost">
+           <Button asChild>
             <Link href="/login">Daxil Ol</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/login">Qeydiyyat</Link>
           </Button>
         </div>
         <div className="md:hidden">
@@ -75,9 +72,6 @@ export default function MarketingHeader() {
                  <div className="flex flex-col gap-4">
                     <Button asChild className="w-full">
                         <Link href="/login">Daxil Ol</Link>
-                    </Button>
-                    <Button asChild variant="outline" className="w-full">
-                        <Link href="/login">Qeydiyyat</Link>
                     </Button>
                  </div>
               </div>

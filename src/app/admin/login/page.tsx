@@ -1,8 +1,7 @@
 'use client';
 
 import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
+  signInWithEmailAndPassword
 } from 'firebase/auth';
 import { useAuth } from '@/firebase';
 import { useState } from "react";
@@ -33,15 +32,7 @@ function AuthForm() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (e: any) {
-      if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
-        try {
-            await createUserWithEmailAndPassword(auth, email, password);
-        } catch (creationError: any) {
-            handleFirebaseAuthError(creationError);
-        }
-      } else {
         handleFirebaseAuthError(e);
-      }
     } finally {
       setLoading(false);
     }
@@ -50,23 +41,15 @@ function AuthForm() {
   const handleFirebaseAuthError = (e: any) => {
      switch (e.code) {
         case 'auth/user-not-found':
-        case 'auth/invalid-credential':
-          setError('Bu email ilə hesab tapılmadı və ya şifrə yanlışdır.');
-          break;
         case 'auth/wrong-password':
-          setError('Yanlış şifrə. Zəhmət olmasa, yenidən cəhd edin.');
+        case 'auth/invalid-credential':
+          setError('Email və ya şifrə yanlışdır. Bu səhifə yalnız adminlər üçündür.');
           break;
         case 'auth/invalid-email':
           setError('Zəhmət olmasa, düzgün bir email adresi daxil edin.');
           break;
-        case 'auth/email-already-in-use':
-          setError('Bu email artıq mövcuddur. Zəhmət olmasa, daxil olun.');
-          break;
-        case 'auth/weak-password':
-          setError('Şifrə çox zəifdir. Ən azı 6 simvol olmalıdır.');
-          break;
         default:
-          setError('Gözlənilməz bir xəta baş verdi: ' + e.message);
+          setError('Giriş zamanı gözlənilməz bir xəta baş verdi: ' + e.message);
           break;
       }
   }
@@ -99,7 +82,7 @@ function AuthForm() {
         <CardFooter>
           <Button className="w-full" onClick={handleAuthAction} disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? "Gözləyin..." : 'Davam Et'}
+              {loading ? "Gözləyin..." : 'Daxil Ol'}
           </Button>
         </CardFooter>
       </Card>
