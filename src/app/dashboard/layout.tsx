@@ -12,6 +12,8 @@ import {
   Users,
   ChevronDown,
   Hospital,
+  Building,
+  ShieldCheck,
 } from "lucide-react";
 
 import {
@@ -41,7 +43,7 @@ import { useAuth, useUser } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { Badge } from "@/components/ui/badge";
 
-const menuItems = [
+const doctorMenuItems = [
   {
     href: "/dashboard",
     label: "İdarə Paneli",
@@ -70,6 +72,25 @@ const menuItems = [
   },
 ];
 
+const pharmacistMenuItems = [
+    {
+        href: "/dashboard",
+        label: "İdarə Paneli",
+        icon: LayoutDashboard,
+    },
+    {
+        href: "/dashboard/pharmacy/verify",
+        label: "Resept Yoxla",
+        icon: ShieldCheck,
+    },
+    {
+        href: "/dashboard/pharmacy/inventory",
+        label: "Aptek İdarəçiliyi",
+        icon: Building,
+        role: "head_pharmacist",
+    }
+]
+
 export default function DashboardLayout({
   children,
 }: {
@@ -87,16 +108,18 @@ export default function DashboardLayout({
   
   const userInitials = user?.email?.charAt(0).toUpperCase() || 'S';
   const userRole = user?.profile?.role;
+
+  let roleDisplay = "İstifadəçi";
+  let menuItems = [];
+
+  if (userRole === 'doctor' || userRole === 'head_doctor') {
+    menuItems = doctorMenuItems.filter(item => !item.role || item.role === userRole);
+    roleDisplay = userRole === 'head_doctor' ? 'Baş Həkim' : 'Həkim';
+  } else if (userRole === 'employee' || userRole === 'head_pharmacist') {
+    menuItems = pharmacistMenuItems.filter(item => !item.role || item.role === userRole);
+    roleDisplay = userRole === 'head_pharmacist' ? 'Baş Əczaçı' : 'Əczaçı';
+  }
   
-  let roleDisplay = "Həkim";
-  if (userRole === 'head_doctor') roleDisplay = 'Baş Həkim';
-  
-  const filteredMenuItems = menuItems.filter(item => {
-    if (item.role) {
-        return item.role === userRole;
-    }
-    return true;
-  });
 
   return (
     <SidebarProvider>
@@ -106,7 +129,7 @@ export default function DashboardLayout({
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            {filteredMenuItems.map((item) => (
+            {menuItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild

@@ -1,0 +1,229 @@
+'use client';
+import { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Search, Loader2, ShieldCheck, AlertCircle, CheckCircle } from 'lucide-react';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import type { Patient, Prescription } from '@/lib/types';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { fulfillPrescription } from '../actions';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
+const searchSchema = z.object({
+  finCode: z.string().min(7, 'FİN kod 7 simvol olmalıdır.').max(7, 'FİN kod 7 simvol olmalıdır.'),
+  birthDate: z.string().nonempty('Doğum tarixi boş ola bilməz.'),
+});
+
+type SearchFormValues = z.infer<typeof searchSchema>;
+
+export default function VerifyPrescriptionPage() {
+  const [searchCriteria, setSearchCriteria] = useState<SearchFormValues | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [patient, setPatient] = useState<Patient | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [generatedOtp, setGeneratedOtp] = useState('');
+  const [otpError, setOtpError] = useState<string | null>(null);
+  
+  const [verifiedPatient, setVerifiedPatient] = useState<Patient | null>(null);
+  
+  const { firestore } = useFirebase();
+  const { toast } = useToast();
+
+  const { register, handleSubmit, formState: { errors } } = useForm<SearchFormValues>({
+    resolver: zodResolver(searchSchema),
+  });
+
+  const prescriptionsQuery = useMemoFirebase(() => {
+    if (!firestore || !verifiedPatient) return null;
+    
+    return query(
+      collection(firestore, 'prescriptions'),
+      where('patientId', '==', verifiedPatient.id),
+      where('status', '==', 'Gözləmədə')
+    );
+  }, [firestore, verifiedPatient]);
+  
+  const { data: prescriptions, isLoading: loadingPrescriptions } = useCollection<Prescription>(prescriptionsQuery);
+
+  const onSearch: SubmitHandler<SearchFormValues> = async (data) => {
+    setIsLoading(true);
+    setError(null);
+    setPatient(null);
+    setVerifiedPatient(null);
+
+    const q = query(
+      collection(firestore, 'patients'),
+      where('finCode', '==', data.finCode.toUpperCase()),
+      where('dateOfBirth', '==', data.birthDate)
+    );
+
+    try {
+        const { getDocs } = await import('firebase/firestore');
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+            setError('Bu məlumatlara uyğun xəstə tapılmadı.');
+            setIsLoading(false);
+            return;
+        }
+
+        const foundPatient = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() } as Patient;
+        setPatient(foundPatient);
+        
+        // OTP generation and modal opening
+        const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        setGeneratedOtp(newOtp);
+        setOtp('');
+        setOtpError(null);
+        setIsOtpModalOpen(true);
+
+    } catch (e) {
+        console.error(e);
+        setError('Axtarış zamanı xəta baş verdi. Təhlükəsizlik qaydalarını yoxlayın.');
+    } finally {
+        setIsLoading(false);
+    }
+  };
+  
+  const handleVerifyOtp = () => {
+    if (otp === generatedOtp) {
+        setVerifiedPatient(patient);
+        setIsOtpModalOpen(false);
+    } else {
+        setOtpError('Yanlış təsdiq kodu.');
+    }
+  };
+
+  const handleFulfill = async (prescriptionId: string) => {
+    const result = await fulfillPrescription(prescriptionId);
+    toast({
+        title: result.type === 'success' ? 'Uğurlu' : 'Xəta',
+        description: result.message,
+        variant: result.type === 'success' ? 'default' : 'destructive'
+    });
+  }
+
+  return (
+    <div className="space-y-8">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><ShieldCheck/> Resept Yoxlama</CardTitle>
+          <CardDescription>
+            Xəstənin aktiv reseptlərinə baxmaq üçün FİN kodu və doğum tarixini daxil edin.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSearch)} className="flex flex-col sm:flex-row gap-4 items-start">
+            <div className='flex-1 w-full'>
+              <Input {...register('finCode')} placeholder="FİN Kod (məs., 1ABC2DE)" />
+              {errors.finCode && <p className="text-destructive text-sm mt-1">{errors.finCode.message}</p>}
+            </div>
+            <div className='flex-1 w-full'>
+              <Input {...register('birthDate')} type="date" />
+              {errors.birthDate && <p className="text-destructive text-sm mt-1">{errors.birthDate.message}</p>}
+            </div>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+              Axtar
+            </Button>
+          </form>
+           {error && <Alert variant="destructive" className="mt-4"><AlertCircle className="h-4 w-4" /><AlertTitle>Xəta</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
+        </CardContent>
+      </Card>
+      
+      {verifiedPatient && (
+        <Card>
+            <CardHeader>
+                <CardTitle>Aktiv Reseptlər: {verifiedPatient.firstName} {verifiedPatient.lastName}</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Yazılma Tarixi</TableHead>
+                            <TableHead>Həkim</TableHead>
+                            <TableHead>Dərman</TableHead>
+                            <TableHead>Diaqnoz</TableHead>
+                            <TableHead className='text-right'>Əməliyyat</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {loadingPrescriptions && (
+                            <TableRow>
+                                <TableCell colSpan={5} className="h-24 text-center">
+                                    Reseptlər yüklənir...
+                                </TableCell>
+                            </TableRow>
+                        )}
+                        {!loadingPrescriptions && prescriptions?.map(p => (
+                            <TableRow key={p.id}>
+                                <TableCell>{new Date(p.datePrescribed).toLocaleDateString()}</TableCell>
+                                <TableCell>Dr. Placeholder</TableCell>
+                                <TableCell className='font-medium'>{p.medicationName}</TableCell>
+                                <TableCell>{p.diagnosis}</TableCell>
+                                <TableCell className='text-right'>
+                                    <Button size="sm" onClick={() => handleFulfill(p.id)}>
+                                        <CheckCircle className="mr-2 h-4 w-4"/>
+                                        Təhvil Ver
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                         {!loadingPrescriptions && prescriptions?.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                                    Bu xəstə üçün aktiv resept tapılmadı.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+      )}
+
+      <Dialog open={isOtpModalOpen} onOpenChange={setIsOtpModalOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle className="flex items-center gap-2"><ShieldCheck/> Təhlükəsizlik Doğrulaması</DialogTitle>
+                <DialogDescription>
+                    Xəstənin ({patient?.firstName} {patient?.lastName}) profilinə giriş etmək üçün təsdiq kodunu daxil edin.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+                <Alert variant="default" className="bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800">
+                <AlertCircle className="h-4 w-4 text-blue-600" />
+                <AlertTitle className="text-blue-700 dark:text-blue-300">Təcrübi Rejim</AlertTitle>
+                <AlertDescription className="text-blue-600 dark:text-blue-400">
+                    Bu bir simulyasiyadır. Real SMS göndərilmir. Təsdiq kodu: <strong className="font-mono">{generatedOtp}</strong>
+                </AlertDescription>
+            </Alert>
+            <Input 
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                placeholder="6 rəqəmli kodu daxil edin"
+            />
+            {otpError && <p className="text-destructive text-sm">{otpError}</p>}
+            <Button className="w-full" onClick={handleVerifyOtp}>Təsdiqlə</Button>
+            </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
