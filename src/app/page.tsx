@@ -76,8 +76,8 @@ export default function MarketingHomePage() {
           <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
           <div className="container relative z-10 text-center">
             <div
-              className="mx-auto max-w-4xl animate-fade-in-up rounded-xl border bg-glass-bg p-8 shadow-2xl backdrop-blur-lg"
-              style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
+              className="mx-auto max-w-4xl animate-fade-in-up rounded-xl border border-glass-border bg-glass-bg p-8 shadow-2xl backdrop-blur-lg"
+              style={{ animationDelay: '0.2s' }}
             >
               <h1 className="font-headline text-4xl font-bold tracking-tighter text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
                 Səhiyyəni Qüsursuz Birləşdiririk.
@@ -86,10 +86,10 @@ export default function MarketingHomePage() {
                 ReseptPlus, həkimləri, aptekləri və xəstələri daha təhlükəsiz və səmərəli səhiyyə təcrübəsi üçün bir araya gətirən hərtərəfli elektron resept sistemidir.
               </p>
               <div className="mt-8 flex justify-center gap-4">
-                <Button asChild size="lg" style={{ animationDelay: '0.4s', animationFillMode: 'both' }} className="animate-fade-in-up">
+                <Button asChild size="lg" style={{ animationDelay: '0.4s' }} className="animate-fade-in-up">
                   <Link href="/login">İndi Başlayın</Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" style={{ animationDelay: '0.6s', animationFillMode: 'both' }} className="animate-fade-in-up">
+                <Button asChild size="lg" variant="outline" style={{ animationDelay: '0.6s' }} className="animate-fade-in-up">
                   <Link href="/haqqimizda">Daha Çox Məlumat</Link>
                 </Button>
               </div>
@@ -112,8 +112,8 @@ export default function MarketingHomePage() {
               {features.map((feature, i) => (
                 <Card 
                   key={i} 
-                  className="flex transform flex-col justify-between rounded-xl border bg-glass-bg p-6 text-center shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-primary/20 animate-fade-in-up"
-                  style={{ animationDelay: `${i * 0.2 + 0.4}s`, animationFillMode: 'both' }}
+                  className="flex transform flex-col justify-between rounded-xl border-glass-border bg-glass-bg p-6 text-center shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-primary/20 animate-fade-in-up"
+                  style={{ animationDelay: `${i * 0.2 + 0.4}s` }}
                 >
                   <CardHeader className="items-center">
                     <div className="mb-4 rounded-full bg-primary/10 p-4">
@@ -143,21 +143,21 @@ export default function MarketingHomePage() {
             </div>
             <div className="relative grid gap-12 md:grid-cols-3">
               <div className="absolute left-1/2 top-10 hidden h-0.5 w-2/3 -translate-x-1/2 bg-border md:block"></div>
-              <div className="relative flex flex-col items-center text-center animate-fade-in-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+              <div className="relative flex flex-col items-center text-center animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                 <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full border-2 border-primary bg-background text-3xl font-bold text-primary shadow-md">1</div>
                 <h3 className="text-xl font-semibold">Həkim Recepti Yazır</h3>
                 <p className="mt-2 text-muted-foreground">
                   Həkimlər intuitiv interfeysimizdən istifadə edərək reseptlər yaradır və rəqəmsal olaraq imzalayır.
                 </p>
               </div>
-              <div className="relative flex flex-col items-center text-center animate-fade-in-up" style={{ animationDelay: '0.4s', animationFillMode: 'both' }}>
+              <div className="relative flex flex-col items-center text-center animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
                 <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full border-2 border-primary bg-background text-3xl font-bold text-primary shadow-md">2</div>
                 <h3 className="text-xl font-semibold">Xəstə Qəbul Edir</h3>
                 <p className="mt-2 text-muted-foreground">
                   Xəstələr e-resepti dərhal ReseptPlus profillərində alırlar.
                 </p>
               </div>
-              <div className="relative flex flex-col items-center text-center animate-fade-in-up" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
+              <div className="relative flex flex-col items-center text-center animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
                 <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full border-2 border-primary bg-background text-3xl font-bold text-primary shadow-md">3</div>
                 <h3 className="text-xl font-semibold">Aptek Təqdim Edir</h3>
                 <p className="mt-2 text-muted-foreground">
@@ -180,8 +180,8 @@ export default function MarketingHomePage() {
               {testimonials.map((testimonial, i) => (
                 <Card 
                   key={i} 
-                  className="p-6 bg-glass-bg rounded-xl shadow-lg border animate-fade-in-up"
-                  style={{ animationDelay: `${i * 0.2 + 0.4}s`, animationFillMode: 'both' }}
+                  className="p-6 bg-glass-bg rounded-xl shadow-lg border-glass-border animate-fade-in-up"
+                  style={{ animationDelay: `${i * 0.2 + 0.4}s` }}
                 >
                   <CardContent className="p-0">
                     <p className="italic text-muted-foreground">"{testimonial.text}"</p>

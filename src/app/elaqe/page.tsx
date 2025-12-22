@@ -12,8 +12,8 @@ export default function ContactPage() {
     <div className="flex min-h-screen flex-col bg-background">
       <MarketingHeader />
       <main className="flex-1">
-        <section className="py-16 md:py-24 lg:py-32 animate-fade-in-up bg-secondary/30">
-          <div className="container text-center">
+        <section className="py-16 md:py-24 lg:py-32 bg-secondary/30">
+          <div className="container text-center animate-fade-in-up">
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Əlaqə</h1>
             <p className="mt-4 text-lg text-muted-foreground md:text-xl">
               Suallarınız var? Komandamız sizə kömək etməyə hazırdır.
@@ -23,8 +23,8 @@ export default function ContactPage() {
         <section className="py-16 md:py-24">
           <div className="container grid gap-16 md:grid-cols-2 items-start">
              <Card 
-                className="animate-fade-in-up bg-glass-bg backdrop-blur-lg"
-                style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
+                className="animate-fade-in-up bg-glass-bg border-glass-border backdrop-blur-lg"
+                style={{ animationDelay: '0.2s' }}
               >
                 <CardHeader>
                     <CardTitle>Mesaj Göndərin</CardTitle>
@@ -54,8 +54,8 @@ export default function ContactPage() {
              </Card>
              <div className="space-y-8">
                 <Card 
-                  className="animate-fade-in-up bg-glass-bg backdrop-blur-lg"
-                  style={{ animationDelay: '0.4s', animationFillMode: 'both' }}
+                  className="animate-fade-in-up bg-glass-bg border-glass-border backdrop-blur-lg"
+                  style={{ animationDelay: '0.4s' }}
                 >
                     <CardHeader className="flex-row items-center gap-4">
                         <Mail className="h-8 w-8 text-primary"/>
@@ -69,8 +69,8 @@ export default function ContactPage() {
                     </CardContent>
                 </Card>
                  <Card 
-                  className="animate-fade-in-up bg-glass-bg backdrop-blur-lg"
-                  style={{ animationDelay: '0.6s', animationFillMode: 'both' }}
+                  className="animate-fade-in-up bg-glass-bg border-glass-border backdrop-blur-lg"
+                  style={{ animationDelay: '0.6s' }}
                  >
                     <CardHeader className="flex-row items-center gap-4">
                         <MessageSquare className="h-8 w-8 text-primary"/>

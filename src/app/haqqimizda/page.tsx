@@ -24,8 +24,8 @@ export default async function AboutUsPage() {
     <div className="flex min-h-screen flex-col bg-background">
       <MarketingHeader />
       <main className="flex-1">
-        <section className="py-16 md:py-24 lg:py-32 bg-secondary/30 animate-fade-in-up">
-          <div className="container text-center">
+        <section className="py-16 md:py-24 lg:py-32 bg-secondary/30">
+          <div className="container text-center animate-fade-in-up">
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Haqqımızda</h1>
             <p className="mt-4 text-lg text-muted-foreground md:text-xl">
               ReseptPlus-ın arxasındakı missiya və komanda ilə tanış olun.
@@ -34,13 +34,13 @@ export default async function AboutUsPage() {
         </section>
         <section className="py-16 md:py-24">
           <div className="container grid gap-16 md:grid-cols-2 items-center">
-            <div className="animate-fade-in-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+            <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               <h2 className="text-3xl font-bold">Missiyamız</h2>
               <p className="mt-4 text-muted-foreground">
                 Bizim missiyamız səhiyyə sistemində inqilab etməkdir. Texnologiyadan istifadə edərək həkimlər, xəstələr və apteklər arasında qüsursuz, səmərəli və təhlükəsiz bir körpü yaratmağı hədəfləyirik. Hər kəs üçün səhiyyə xidmətlərini daha əlçatan və idarəolunan etmək üçün çalışırıq.
               </p>
             </div>
-            <div className="flex items-center justify-center animate-fade-in-up" style={{ animationDelay: '0.4s', animationFillMode: 'both' }}>
+            <div className="flex items-center justify-center animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
               <Target className="w-48 h-48 text-primary drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)]" />
             </div>
           </div>
@@ -49,17 +49,17 @@ export default async function AboutUsPage() {
           <div className="container">
             <h2 className="text-center text-3xl font-bold animate-fade-in-up">Dəyərlərimiz</h2>
             <div className="mt-12 grid gap-8 md:grid-cols-3">
-              <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+              <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                 <Building className="mx-auto h-12 w-12 text-primary" />
                 <h3 className="mt-4 text-xl font-semibold">İnnovasiya</h3>
                 <p className="mt-2 text-muted-foreground">Səhiyyənin problemlərini həll etmək üçün daim yeni yollar axtarırıq.</p>
               </div>
-              <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.4s', animationFillMode: 'both' }}>
+              <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
                 <Users className="mx-auto h-12 w-12 text-primary" />
                 <h3 className="mt-4 text-xl font-semibold">İstifadəçi Mərkəzlilik</h3>
                 <p className="mt-2 text-muted-foreground">Platformamızın hər bir istifadəçisinin ehtiyaclarını ön planda tuturuq.</p>
               </div>
-              <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
+              <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
                 <Target className="mx-auto h-12 w-12 text-primary" />
                 <h3 className="mt-4 text-xl font-semibold">Etibarlılıq</h3>
                 <p className="mt-2 text-muted-foreground">Təhlükəsizlik və məlumatların məxfiliyi bizim üçün ən yüksək prioritetdir.</p>
@@ -82,8 +82,8 @@ export default async function AboutUsPage() {
                 {teamMembers.map((member, i) => (
                     <Card 
                         key={member.id} 
-                        className="text-center p-6 bg-glass-bg rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20 animate-fade-in-up"
-                        style={{ animationDelay: `${i * 0.1 + 0.3}s`, animationFillMode: 'both' }}
+                        className="text-center p-6 bg-glass-bg rounded-xl shadow-lg border-glass-border transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20 animate-fade-in-up"
+                        style={{ animationDelay: `${i * 0.1 + 0.3}s` }}
                     >
                         <Avatar className="h-28 w-28 mx-auto mb-4 border-4 border-primary/20">
                             <AvatarImage src={member.imageUrl} alt={member.name} data-ai-hint={member.imageHint} />
@@ -97,7 +97,7 @@ export default async function AboutUsPage() {
                 ))}
                  {teamMembers.length === 0 && (
                     <p className="col-span-full text-center text-muted-foreground">Heç bir komanda üzvü tapılmadı.</p>
-                )}
+                 )}
                 </div>
             </div>
         </section>
