@@ -28,12 +28,14 @@ const CreatePharmacistSchema = z.object({
 });
 
 const UpdatePharmacistSchema = CreatePharmacistSchema.omit({ password: true }).extend({
-  id: z.string().optional(),
+  id: z.string().min(1, 'Əczaçı ID-si təyin edilməyib.'),
   password: z.string().min(6, 'Şifrə ən azı 6 simvol olmalıdır.').optional().or(z.literal('')),
 });
 
 
-type PharmacistFormValues = z.infer<typeof CreatePharmacistSchema> | z.infer<typeof UpdatePharmacistSchema>;
+type CreatePharmacistFormValues = z.infer<typeof CreatePharmacistSchema>;
+type UpdatePharmacistFormValues = z.infer<typeof UpdatePharmacistSchema>;
+type PharmacistFormValues = CreatePharmacistFormValues | UpdatePharmacistFormValues;
 
 function SubmitButton({ isEditing }: { isEditing: boolean }) {
   const { pending } = useFormStatus();
@@ -66,7 +68,10 @@ export function PharmacistForm({ initialData, pharmacies, onFormSubmit }: Pharma
 
   const form = useForm<PharmacistFormValues>({
     resolver: zodResolver(isEditing ? UpdatePharmacistSchema : CreatePharmacistSchema),
-    defaultValues: initialData || {
+    defaultValues: initialData ? {
+        ...initialData,
+        password: '',
+    } : {
       firstName: '',
       lastName: '',
       email: '',
@@ -93,7 +98,7 @@ export function PharmacistForm({ initialData, pharmacies, onFormSubmit }: Pharma
   }, [state, onFormSubmit, form]);
   
   useEffect(() => {
-    form.reset(initialData || { firstName: '', lastName: '', email: '', password: '', pharmacyId: '', role: 'employee'});
+    form.reset(initialData ? { ...initialData, password: '' } : { firstName: '', lastName: '', email: '', password: '', pharmacyId: '', role: 'employee'});
   }, [initialData, form]);
 
   return (

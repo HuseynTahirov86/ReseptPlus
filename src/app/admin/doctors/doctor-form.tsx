@@ -30,7 +30,7 @@ const CreateDoctorSchema = z.object({
 });
 
 const UpdateDoctorSchema = CreateDoctorSchema.omit({ password: true }).extend({
-  id: z.string().min(1, 'Həkim ID-si təyin edilməyib.').optional(),
+  id: z.string().min(1, 'Həkim ID-si təyin edilməyib.'),
   password: z.union([
     z.string().min(6, 'Şifrə ən azı 6 simvol olmalıdır.'),
     z.literal('')
@@ -67,11 +67,14 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
   const isEditing = !!initialData;
   const action = isEditing ? updateDoctor : addDoctor;
 
-  const [state, formAction] = useActionState(action, { message: '', type: 'success' });
+  const [state, formAction] = useActionState(action, { message: '', type: 'error' });
 
   const form = useForm<DoctorFormValues>({
     resolver: zodResolver(isEditing ? UpdateDoctorSchema : CreateDoctorSchema),
-    defaultValues: initialData || {
+    defaultValues: initialData ? {
+        ...initialData,
+        password: '',
+    } : {
       firstName: '',
       lastName: '',
       email: '',
@@ -99,7 +102,7 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
   }, [state, onFormSubmit, form]);
 
   useEffect(() => {
-    form.reset(initialData || {
+    form.reset(initialData ? { ...initialData, password: '' } : {
       firstName: '',
       lastName: '',
       email: '',
