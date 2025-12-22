@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { addPatient, type FormState } from './actions';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
@@ -65,7 +65,7 @@ export function PatientForm({ initialFinCode, initialBirthDate, onFormSubmit }: 
       if (state.type === 'error' && state.issues) {
         Object.entries(state.issues).forEach(([key, messages]) => {
           const fieldName = key as keyof PatientFormValues;
-          if (messages && messages.length > 0 && form.getFieldState(fieldName).error?.type !== 'server') {
+          if (messages && messages.length > 0) {
             form.setError(fieldName, { type: 'server', message: messages[0] });
           }
         });
@@ -161,7 +161,7 @@ export function PatientForm({ initialFinCode, initialBirthDate, onFormSubmit }: 
             render={({ field }) => (
                 <FormItem>
                     <FormLabel>Cins</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                         <FormControl>
                             <SelectTrigger>
                             <SelectValue placeholder="Cins seçin..." />

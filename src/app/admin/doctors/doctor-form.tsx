@@ -92,7 +92,7 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
       if (state.type === 'error' && state.issues) {
         Object.entries(state.issues).forEach(([key, messages]) => {
           const fieldName = key as keyof DoctorFormValues;
-          if (messages && messages.length > 0 && form.getFieldState(fieldName).error?.type !== 'server') {
+          if (messages && messages.length > 0) {
             form.setError(fieldName, { 
               type: 'server', 
               message: messages[0] 
@@ -103,7 +103,7 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
     }
   }, [state, onFormSubmit, form]);
 
-  // Reset form when initialData changes (e.g., when switching from edit to new)
+  // Reset form when initialData changes
   useEffect(() => {
     if (initialData) {
       form.reset({ ...initialData, password: '' });
@@ -213,7 +213,7 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Xəstəxana</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Xəstəxana seçin..." />
@@ -237,7 +237,7 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Rol</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Rol seçin..." />

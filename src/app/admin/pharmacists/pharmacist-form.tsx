@@ -90,7 +90,7 @@ export function PharmacistForm({ initialData, pharmacies, onFormSubmit }: Pharma
       if (state.type === 'error' && state.issues) {
         Object.entries(state.issues).forEach(([key, messages]) => {
           const fieldName = key as keyof PharmacistFormValues;
-          if (messages && messages.length > 0 && form.getFieldState(fieldName).error?.type !== 'server') {
+          if (messages && messages.length > 0) {
             form.setError(fieldName, { 
               type: 'server', 
               message: messages[0] 
@@ -196,7 +196,7 @@ export function PharmacistForm({ initialData, pharmacies, onFormSubmit }: Pharma
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Aptek</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Aptek seçin..." />
@@ -220,7 +220,7 @@ export function PharmacistForm({ initialData, pharmacies, onFormSubmit }: Pharma
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Rol</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Rol seçin..." />
