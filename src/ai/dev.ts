@@ -1,4 +1,4 @@
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/smart-medication-suggestions.ts';
+import '@/ai/flows/consultation-flow.ts';

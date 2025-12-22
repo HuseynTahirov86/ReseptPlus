@@ -1,6 +1,6 @@
 'use client';
 import { useParams } from 'next/navigation';
-import { useDoc, useCollection, useFirebase, useMemoFirebase, useUser } from '@/firebase';
+import { useDoc, useCollection, useFirebase, useMemoFirebase } from '@/firebase';
 import { doc, collection, query, where, orderBy } from 'firebase/firestore';
 import type { Patient, Prescription } from '@/lib/types';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -56,16 +56,23 @@ export default function PatientDetailPage() {
         }
     };
     
-    const getAIRecommendations = () => {
-        if (!patient || !prescriptions) return;
+    const startAIConsultation = () => {
+        if (!patient) return;
+        
+        const patientDiagnoses = prescriptions?.map(p => p.diagnosis).filter(Boolean) || [];
+        const patientMedications = prescriptions?.map(p => p.medicationName).filter(Boolean) || [];
 
-        const patientHistory = `Doğum tarixi: ${patient.dateOfBirth}, Cins: ${patient.gender}. Keçmiş diaqnozlar: ${prescriptions.map(p => p.diagnosis).join(', ') || 'Məlumat yoxdur'}`;
-        const currentMedications = `Hazırkı dərmanlar: ${prescriptions.map(p => p.medicationName).join(', ') || 'Məlumat yoxdur'}`;
+        const patientHistory = `
+        - Ad: ${patient.firstName} ${patient.lastName}
+        - Doğum tarixi: ${patient.dateOfBirth}
+        - Cins: ${patient.gender}
+        - Kontakt: ${patient.contactNumber}
+        - Keçmiş Diaqnozlar: ${patientDiagnoses.length > 0 ? patientDiagnoses.join(', ') : 'Məlumat yoxdur'}
+        - Keçmiş Dərmanlar: ${patientMedications.length > 0 ? patientMedications.join(', ') : 'Məlumat yoxdur'}
+        `.trim();
         
         const queryParams = new URLSearchParams({
-            patientHistory,
-            currentMedications,
-            doctorNotes: '', // Həkim bu sahəni özü doldura bilər
+            patientHistory: patientHistory,
         });
 
         router.push(`/dashboard/suggestions?${queryParams.toString()}`);
@@ -95,9 +102,9 @@ export default function PatientDetailPage() {
                         </div>
                     </div>
                      <div className='flex gap-2'>
-                        <Button variant="outline" onClick={getAIRecommendations}>
+                        <Button variant="outline" onClick={startAIConsultation}>
                             <BrainCircuit className="mr-2 h-4 w-4" />
-                            AI Məsləhəti
+                            AI Konsultasiyası
                         </Button>
                         <Button onClick={() => setIsFormOpen(true)}>
                             <FilePlus2 className="mr-2 h-4 w-4" />

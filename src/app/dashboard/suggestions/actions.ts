@@ -2,49 +2,51 @@
 
 import { z } from 'zod';
 import {
-  smartMedicationSuggestions,
-  SmartMedicationSuggestionsOutput,
-} from '@/ai/flows/smart-medication-suggestions';
+  continueConsultation,
+  type ChatMessage,
+} from '@/ai/flows/consultation-flow';
 
-const SmartMedicationSuggestionsInputSchema = z.object({
-  patientHistory: z.string().min(10, 'Xəstə tarixçəsi ən azı 10 simvol olmalıdır.'),
-  currentMedications: z.string().min(3, 'Cari dərmanlar ən azı 3 simvol olmalıdır.'),
-  doctorNotes: z.string(),
+const ContinueConsultationSchema = z.object({
+  patientHistory: z.string().min(1, 'Xəstə tarixçəsi boş ola bilməz.'),
+  chatHistory: z.array(z.object({
+    role: z.enum(['user', 'model']),
+    content: z.string(),
+  })),
 });
 
 export type FormState = {
   message: string;
-  fields?: Record<string, string>;
+  response?: string;
   issues?: string[];
-  data?: SmartMedicationSuggestionsOutput;
 };
 
-export async function getSuggestions(
+export async function submitMessage(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const validatedFields = SmartMedicationSuggestionsInputSchema.safeParse(
-    Object.fromEntries(formData.entries())
-  );
+  const rawData = {
+    patientHistory: formData.get('patientHistory'),
+    chatHistory: JSON.parse(formData.get('chatHistory') as string),
+  };
+
+  const validatedFields = ContinueConsultationSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
     const { errors } = validatedFields.error;
 
     return {
-      message: "Doğrulama uğursuz oldu. Zəhmət olmasa daxil etdiyiniz məlumatları yoxlayın.",
-      fields: Object.fromEntries(formData.entries()),
+      message: 'Doğrulama uğursuz oldu.',
       issues: errors.map((issue) => issue.message),
     };
   }
 
   try {
-    const result = await smartMedicationSuggestions(validatedFields.data);
-    return { message: 'Təkliflər uğurla yaradıldı.', data: result };
+    const result = await continueConsultation(validatedFields.data);
+    return { message: 'Cavab uğurla alındı.', response: result.response };
   } catch (error) {
-    console.error(error);
+    console.error('AI Consultation Error:', error);
     return {
       message: 'Gözlənilməz bir xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.',
-      fields: Object.fromEntries(formData.entries()),
     };
   }
 }
