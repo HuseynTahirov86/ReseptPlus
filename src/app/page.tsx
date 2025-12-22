@@ -33,44 +33,45 @@ const defaultPricingPlans: PricingPlan[] = [
   {
     id: "plan-hospital",
     title: "🏥 Xəstəxana Paketi",
-    description: "İlkin Ödəniş: 50 USD (bir həkim üçün lisenziya)",
-    price: "20 USD",
+    description: "Orta və kiçik klinikalar üçün ideal həll.",
+    price: "20 AZN",
     period: "/ həkim / ay",
     features: [
-      "Biometrik E-resept sistemi",
-      "Həkim paneli (giriş, resept yazma, xəstə qeydiyyatı)",
-      "Pasiyent tarixçəsi görüntüləmə",
-      "Admin panel (xəstəxana üzrə izləmə)",
-      "Analitika və hesabatlar"
+      "Təhlükəsiz və sürətli e-resept yazma",
+      "Xəstə axtarışı və qeydiyyatı",
+      "Süni intellekt dəstəkli konsultasiya (AI)",
+      "Baş həkim üçün idarəetmə paneli",
+      "Xəstənin resept tarixçəsinə tam baxış"
     ],
     isPopular: true
   },
   {
     id: "plan-pharmacy",
     title: "🏪 Aptek Paketi",
-    description: "İlkin Ödəniş: 50 USD",
+    description: "Rəqəmsal resept dövriyyəsinə qoşulun.",
     price: "3%",
-    period: "/ satılan dərmanlardan",
+    period: "/ təhvil verilən reseptdən",
     features: [
-      "Resept doğrulama və qeydiyyat",
-      "Çevik resept idarəsi",
-      "Satış tarixçəsi və hesabatlar",
-      "Aptek admin paneli (filial qeydiyyatı və izləmə)"
+      "İki faktorlu resept yoxlama (FIN və OTP)",
+      "Satışların qeydiyyatı və analizi",
+      "Baş əczaçı üçün inventar idarəçiliyi",
+      "Aptek filiallarının idarə edilməsi",
+      "Maliyyə hesabatları"
     ],
     isPopular: true
   },
   {
     id: "plan-corporate",
     title: "Korporativ",
-    description: "Böyük xəstəxanalar və səhiyyə şəbəkələri üçün fərdi həllər.",
+    description: "Böyük səhiyyə şəbəkələri üçün fərdi həllər.",
     price: "Xüsusi",
     period: "",
     features: [
       "Limitsiz həkim və aptek filialı",
-      "Bütün paketlərin xüsusiyyətləri",
-      "Fərdi inteqrasiyalar (API)",
-      "Genişləndirilmiş analitika",
-      "Xüsusi dəstək meneceri"
+      "Bütün standart funksiyalar",
+      "Mövcud sistemlərlə fərdi inteqrasiya (API)",
+      "Genişləndirilmiş analitika və hesabatlar",
+      "Xüsusi texniki dəstək meneceri"
     ],
     isPopular: false
   }
