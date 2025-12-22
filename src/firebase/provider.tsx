@@ -86,8 +86,8 @@ const RedirectHandler = () => {
         if (!isAdminPage) {
           router.push('/admin/dashboard');
         }
-      } else if (role === 'doctor' || role === 'head_doctor') {
-        // If user is a doctor/head_doctor and not already in doctor dashboard, redirect there
+      } else if (role === 'doctor' || role === 'head_doctor' || role === 'pharmacist' || role === 'head_pharmacist') {
+        // If user is a doctor/pharmacist and not already in doctor dashboard, redirect there
         if (!isDashboardPage) {
           router.push('/dashboard');
         }
