@@ -32,6 +32,7 @@ export default function DashboardPage() {
   const { user, isUserLoading } = useUser();
   const userRole = user?.profile?.role;
   const userId = user?.uid;
+  // Safely access hospitalId only if the profile is a Doctor type
   const hospitalId = (user?.profile as Doctor)?.hospitalId;
   
   const [stats, setStats] = useState({
@@ -43,32 +44,31 @@ export default function DashboardPage() {
 
   // Query for prescriptions based on user role
   const prescriptionsQuery = useMemoFirebase(() => {
-    // CRITICAL: Wait until we have all necessary data before creating a query.
     if (!firestore || !userId || !userRole) {
         return null;
-    }
-    
-    if (userRole === 'head_doctor') {
-        // A head_doctor must have a hospitalId to see prescriptions.
-        if (!hospitalId) return null;
-        return query(collection(firestore, "prescriptions"), where("hospitalId", "==", hospitalId));
     }
     
     if (userRole === 'doctor') {
         return query(collection(firestore, "prescriptions"), where("doctorId", "==", userId));
     }
     
-    // For other roles or if conditions aren't met, explicitly return null.
+    if (userRole === 'head_doctor') {
+        // CRITICAL FIX: Only create the query if hospitalId is available.
+        if (!hospitalId) return null;
+        return query(collection(firestore, "prescriptions"), where("hospitalId", "==", hospitalId));
+    }
+    
     return null;
-  }, [firestore, userId, userRole, hospitalId]);
+  }, [firestore, userId, userRole, hospitalId]); // hospitalId is now a dependency
   
   const { data: prescriptions, isLoading: isLoadingPrescriptions } = useCollection<Prescription>(prescriptionsQuery);
   
-  // Fetch stats separately
    useEffect(() => {
     const fetchStats = async () => {
-      if (!firestore || isUserLoading || !userRole) return;
-      
+      // Wait until all required data is available
+      if (!firestore || isUserLoading || !userRole || !userId) return;
+      if (userRole === 'head_doctor' && !hospitalId) return;
+
       setLoadingStats(true);
       
       try {
@@ -76,7 +76,7 @@ export default function DashboardPage() {
         let patientCount = 0;
         let docCount = 0;
 
-        if (userRole === 'doctor' && userId) {
+        if (userRole === 'doctor') {
             const presQuery = query(collection(firestore, "prescriptions"), where("doctorId", "==", userId));
             presCount = (await getCountFromServer(presQuery)).data().count;
         } else if (userRole === 'head_doctor' && hospitalId) {
