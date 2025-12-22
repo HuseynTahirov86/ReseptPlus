@@ -7,7 +7,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { AlertCircle, ShieldCheck } from 'lucide-react';
+import { AlertCircle, ShieldCheck, UserPlus } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface PatientListProps {
@@ -22,6 +22,7 @@ export function PatientList({ patients }: PatientListProps) {
     const router = useRouter();
 
     const openOtpModal = (patient: Patient) => {
+        // Real-worldda bu kod SMS ilə göndərilməlidir.
         const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
         setGeneratedOtp(newOtp);
         setSelectedPatient(patient);
@@ -37,9 +38,18 @@ export function PatientList({ patients }: PatientListProps) {
         }
     };
 
+    const handleRegisterNewPatient = () => {
+        // Bu funksiya gələcəkdə yeni xəstə qeydiyyat formasına yönləndirəcək
+        // Hazırda implementasiya edilməyib
+        alert("Yeni xəstə qeydiyyatı funksionallığı hazırlanır.");
+    }
+
     return (
         <>
             <Card>
+                <CardHeader>
+                    <CardTitle>Axtarış Nəticələri</CardTitle>
+                </CardHeader>
                 <CardContent>
                     <Table>
                         <TableHeader>
@@ -65,7 +75,11 @@ export function PatientList({ patients }: PatientListProps) {
                             ) : (
                                 <TableRow>
                                     <TableCell colSpan={4} className="h-24 text-center">
-                                        Axtarışa uyğun xəstə tapılmadı.
+                                        <p className='mb-4'>Axtarışa uyğun xəstə tapılmadı.</p>
+                                        <Button onClick={handleRegisterNewPatient}>
+                                            <UserPlus className="mr-2 h-4 w-4" />
+                                            Yeni Xəstə Qeydiyyatdan Keçir
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             )}
