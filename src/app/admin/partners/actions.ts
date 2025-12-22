@@ -4,12 +4,17 @@ import { z } from 'zod';
 import { db } from '@/firebase/server-init';
 import { collection, doc, addDoc, setDoc, deleteDoc } from 'firebase/firestore';
 
-const PartnerSchema = z.object({
-  id: z.string().optional(),
-  name: z.string().min(2, 'Ad ən azı 2 simvol olmalıdır.'),
+const BasePartnerSchema = z.object({
+  name: z.string().min(3, 'Ad ən azı 3 simvol olmalıdır.'),
   description: z.string().min(3, 'Təsvir ən azı 3 simvol olmalıdır.'),
   logoUrl: z.string().min(1, 'Loqo URL-i boş ola bilməz.'),
 });
+
+const AddPartnerSchema = BasePartnerSchema;
+const UpdatePartnerSchema = BasePartnerSchema.extend({
+  id: z.string().min(1, "ID təyin edilməyib."),
+});
+
 
 export type FormState = {
   message: string;
@@ -23,7 +28,7 @@ export async function addPartner(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const validatedFields = PartnerSchema.safeParse(
+  const validatedFields = AddPartnerSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
 
@@ -42,6 +47,7 @@ export async function addPartner(
     await setDoc(docRef, { id: docRef.id }, { merge: true });
     return { type: 'success', message: 'Partnyor uğurla əlavə edildi.' };
   } catch (error) {
+    console.error("Add Partner Error:", error);
     return {
       type: 'error',
       message: 'Gözlənilməz bir xəta baş verdi.',
@@ -55,11 +61,11 @@ export async function updatePartner(
     prevState: FormState,
     formData: FormData
 ): Promise<FormState> {
-    const validatedFields = PartnerSchema.safeParse(
+    const validatedFields = UpdatePartnerSchema.safeParse(
         Object.fromEntries(formData.entries())
     );
 
-    if (!validatedFields.success || !validatedFields.data.id) {
+    if (!validatedFields.success) {
         return {
             type: 'error',
             message: "Doğrulama uğursuz oldu və ya ID təyin edilməyib.",
@@ -75,6 +81,7 @@ export async function updatePartner(
         await setDoc(docRef, dataToUpdate, { merge: true });
         return { type: 'success', message: 'Partnyor uğurla yeniləndi.' };
     } catch (error) {
+       console.error("Update Partner Error:", error);
         return {
             type: 'error',
             message: 'Gözlənilməz bir xəta baş verdi.',
@@ -97,6 +104,7 @@ export async function deletePartner(
     await deleteDoc(docRef);
     return { type: 'success', message: 'Partnyor uğurla silindi.' };
   } catch (error) {
+    console.error("Delete Partner Error:", error);
     return { type: 'error', message: 'Partnyoru silmək mümkün olmadı.' };
   }
 }
