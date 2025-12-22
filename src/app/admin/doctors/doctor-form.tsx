@@ -70,7 +70,7 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
 
   const form = useForm<DoctorFormValues>({
     resolver: zodResolver(isEditing ? UpdateDoctorSchema : CreateDoctorSchema),
-    defaultValues: initialData ? {
+    defaultValues: isEditing ? {
         ...initialData,
         password: '',
     } : {

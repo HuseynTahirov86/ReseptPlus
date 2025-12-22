@@ -2,6 +2,7 @@
 
 import { z } from 'zod';
 import { db } from '@/firebase/server-init';
+import { revalidatePath } from 'next/cache';
 
 const HospitalSchema = z.object({
   id: z.string().optional(),
@@ -18,8 +19,8 @@ export type FormState = {
   type: 'success' | 'error';
 };
 
-async function addOrUpdateHospital(
-  action: 'add' | 'update',
+
+export async function addHospital(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
@@ -40,19 +41,11 @@ async function addOrUpdateHospital(
   const { id, ...dataToSave } = validatedFields.data;
 
   try {
-    if (action === 'add') {
       const collectionRef = db.collection('hospitals');
       const docRef = await collectionRef.add(dataToSave);
       await docRef.update({ id: docRef.id });
+      revalidatePath('/admin/hospitals');
       return { type: 'success', message: 'Xəstəxana uğurla əlavə edildi.' };
-    } else {
-      if (!id) {
-        return { type: 'error', message: 'Yeniləmə üçün ID təyin edilməyib.' };
-      }
-      const docRef = db.collection('hospitals').doc(id);
-      await docRef.set(dataToSave, { merge: true });
-      return { type: 'success', message: 'Xəstəxana uğurla yeniləndi.' };
-    }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Bilinməyən xəta';
     return {
@@ -63,8 +56,44 @@ async function addOrUpdateHospital(
   }
 }
 
-export const addHospital = addOrUpdateHospital.bind(null, 'add');
-export const updateHospital = addOrUpdateHospital.bind(null, 'update');
+export async function updateHospital(
+  prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const validatedFields = HospitalSchema.safeParse(
+    Object.fromEntries(formData.entries())
+  );
+
+  if (!validatedFields.success) {
+    const fieldErrors = validatedFields.error.flatten().fieldErrors;
+    return {
+      type: 'error',
+      message: 'Doğrulama uğursuz oldu. Zəhmət olmasa, sahələri yoxlayın.',
+      fields: Object.fromEntries(formData.entries()),
+      issues: fieldErrors,
+    };
+  }
+
+  const { id, ...dataToSave } = validatedFields.data;
+
+  if (!id) {
+    return { type: 'error', message: 'Yeniləmə üçün ID təyin edilməyib.' };
+  }
+
+  try {
+      const docRef = db.collection('hospitals').doc(id);
+      await docRef.set(dataToSave, { merge: true });
+      revalidatePath('/admin/hospitals');
+      return { type: 'success', message: 'Xəstəxana uğurla yeniləndi.' };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Bilinməyən xəta';
+    return {
+      type: 'error',
+      message: `Gözlənilməz bir xəta baş verdi: ${errorMessage}`,
+      fields: Object.fromEntries(formData.entries()),
+    };
+  }
+}
 
 
 export async function deleteHospital(id: string): Promise<FormState> {
@@ -76,6 +105,7 @@ export async function deleteHospital(id: string): Promise<FormState> {
     // TODO: Consider what happens to doctors in this hospital.
     const docRef = db.collection('hospitals').doc(id);
     await docRef.delete();
+    revalidatePath('/admin/hospitals');
     return { type: 'success', message: 'Xəstəxana uğurla silindi.' };
   } catch (error) {
      const errorMessage = error instanceof Error ? error.message : 'Bilinməyən xəta';

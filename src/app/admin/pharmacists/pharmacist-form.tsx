@@ -69,7 +69,7 @@ export function PharmacistForm({ initialData, pharmacies, onFormSubmit }: Pharma
 
   const form = useForm<PharmacistFormValues>({
     resolver: zodResolver(isEditing ? UpdatePharmacistSchema : CreatePharmacistSchema),
-    defaultValues: initialData ? {
+    defaultValues: isEditing ? {
         ...initialData,
         password: '',
     } : {

@@ -18,8 +18,8 @@ import { Textarea } from '@/components/ui/textarea';
 
 const HospitalSchema = z.object({
   id: z.string().optional(),
-  name: z.string().min(3, 'Ad ən azı 3 simvol olmalıdır.'),
-  address: z.string().min(10, 'Ünvan ən azı 10 simvol olmalıdır.'),
+  name: z.string().min(2, 'Ad ən azı 2 simvol olmalıdır.'),
+  address: z.string().min(3, 'Ünvan ən azı 3 simvol olmalıdır.'),
   contactNumber: z.string().min(9, 'Nömrə düzgün formatda olmalıdır.'),
   email: z.string().email('Düzgün email daxil edin.'),
 });
@@ -67,8 +67,15 @@ export function HospitalForm({ initialData, onFormSubmit }: HospitalFormProps) {
   useEffect(() => {
     if (state.message) {
       onFormSubmit(state);
+       if (state.type === 'error' && state.issues) {
+        Object.entries(state.issues).forEach(([key, messages]) => {
+          if (messages && messages.length > 0) {
+            form.setError(key as keyof HospitalFormValues, { type: 'server', message: messages[0] });
+          }
+        });
+      }
     }
-  }, [state, onFormSubmit]);
+  }, [state, onFormSubmit, form]);
   
   useEffect(() => {
     form.reset(initialData || { name: '', address: '', contactNumber: '', email: '' });

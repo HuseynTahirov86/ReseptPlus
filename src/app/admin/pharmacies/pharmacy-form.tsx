@@ -17,8 +17,8 @@ import { Textarea } from '@/components/ui/textarea';
 
 const PharmacySchema = z.object({
   id: z.string().optional(),
-  name: z.string().min(3, 'Ad ən azı 3 simvol olmalıdır.'),
-  address: z.string().min(10, 'Ünvan ən azı 10 simvol olmalıdır.'),
+  name: z.string().min(2, 'Ad ən azı 2 simvol olmalıdır.'),
+  address: z.string().min(3, 'Ünvan ən azı 3 simvol olmalıdır.'),
   contactNumber: z.string().min(9, 'Nömrə düzgün formatda olmalıdır.'),
   email: z.string().email('Düzgün email daxil edin.'),
   latitude: z.coerce.number().min(-90, "Enlik -90 və 90 arasında olmalıdır.").max(90, "Enlik -90 və 90 arasında olmalıdır."),
@@ -62,8 +62,8 @@ export function PharmacyForm({ initialData, onFormSubmit }: PharmacyFormProps) {
       address: '',
       contactNumber: '',
       email: '',
-      latitude: 0,
-      longitude: 0,
+      latitude: 40.4093,
+      longitude: 49.8671,
     },
   });
 
