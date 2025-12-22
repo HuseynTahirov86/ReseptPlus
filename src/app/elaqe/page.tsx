@@ -65,7 +65,7 @@ export default function ContactPage() {
                         </div>
                     </CardHeader>
                      <CardContent>
-                        <a href="mailto:info@reseptplus.az" className="font-semibold text-primary hover:underline">info@reseptplus.az</a>
+                        <a href="mailto:gimnaziyasec@ndu.edu.az" className="font-semibold text-primary hover:underline">gimnaziyasec@ndu.edu.az</a>
                     </CardContent>
                 </Card>
                  <Card 
@@ -80,7 +80,7 @@ export default function ContactPage() {
                         </div>
                     </CardHeader>
                      <CardContent>
-                        <a href="mailto:destek@reseptplus.az" className="font-semibold text-primary hover:underline">destek@reseptplus.az</a>
+                        <a href="mailto:gimnaziyasec@ndu.edu.az" className="font-semibold text-primary hover:underline">gimnaziyasec@ndu.edu.az</a>
                     </CardContent>
                 </Card>
                  <Card 
@@ -95,7 +95,7 @@ export default function ContactPage() {
                         </div>
                     </CardHeader>
                      <CardContent>
-                        <a href="tel:+994123456789" className="font-semibold text-primary hover:underline">+994 (12) 345 67 89</a>
+                        <a href="tel:+994771852466" className="font-semibold text-primary hover:underline">+994 77 185 24 66</a>
                     </CardContent>
                 </Card>
              </div>
