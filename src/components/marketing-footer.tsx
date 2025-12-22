@@ -16,7 +16,7 @@ export default function MarketingFooter() {
             <h4 className="mb-4 font-semibold">Məhsul</h4>
             <ul className="space-y-2">
               <li><Link href="/mehsulumuz" className="text-sm text-muted-foreground hover:text-foreground">Xüsusiyyətlər</Link></li>
-              <li><Link href="/#pricing" className="text-sm text-muted-foreground hover:text-foreground">Qiymətlər</Link></li>
+              <li><Link href="/qiymetler" className="text-sm text-muted-foreground hover:text-foreground">Qiymətlər</Link></li>
               <li><Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground">Yeniliklər</Link></li>
             </ul>
           </div>
@@ -25,6 +25,7 @@ export default function MarketingFooter() {
             <ul className="space-y-2">
               <li><Link href="/haqqimizda" className="text-sm text-muted-foreground hover:text-foreground">Haqqımızda</Link></li>
               <li><Link href="/partnyorlar" className="text-sm text-muted-foreground hover:text-foreground">Partnyorlar</Link></li>
+               <li><Link href="/pitch-deck" className="text-sm text-muted-foreground hover:text-foreground">Pitch Deck</Link></li>
               <li><Link href="/elaqe" className="text-sm text-muted-foreground hover:text-foreground">Əlaqə</Link></li>
             </ul>
           </div>
