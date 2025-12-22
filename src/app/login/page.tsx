@@ -4,9 +4,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword
 } from 'firebase/auth';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from 'next/link';
 
 import { Button } from "@/components/ui/button";
@@ -120,18 +119,8 @@ function AuthForm() {
 }
 
 export default function LoginPage() {
-    const { user, isUserLoading } = useUser();
-    
-    // The redirection logic is now in FirebaseProvider/RedirectHandler, 
-    // so we just show a loader here while the user state is being determined.
-    if (isUserLoading || user) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        );
-    }
-    
+    // The redirection logic is now fully handled by the central RedirectHandler
+    // in FirebaseProvider. This component's only job is to render the login form.
     return (
         <div className="flex min-h-screen w-full flex-col items-center justify-center bg-secondary/50 p-4">
             <div className='absolute top-8 left-8'>

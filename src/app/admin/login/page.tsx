@@ -4,9 +4,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from 'firebase/auth';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from 'next/link';
 
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,6 @@ import { Logo } from '@/components/logo';
 
 function AuthForm() {
   const auth = useAuth();
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +39,6 @@ function AuthForm() {
         await createUserWithEmailAndPassword(auth, email, password);
       }
       // The redirection is now handled by the FirebaseProvider
-      // so we don't need to push the router here anymore.
     } catch (e: any) {
       switch (e.code) {
         case 'auth/user-not-found':
@@ -145,29 +142,8 @@ function AuthForm() {
 }
 
 export default function LoginPage() {
-    const { user, isUserLoading } = useUser();
-    const router = useRouter();
-
-    useEffect(() => {
-        if (!isUserLoading && user) {
-            if (user.profile?.role === 'admin') {
-                router.push('/admin');
-            } else {
-                router.push('/dashboard');
-            }
-        }
-    }, [user, isUserLoading, router]);
-    
-    // The redirection logic is now in FirebaseProvider, 
-    // so we just show a loader here while the user state is being determined.
-    if (isUserLoading || user) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        );
-    }
-    
+    // The redirection logic is now fully handled by the central RedirectHandler
+    // in FirebaseProvider. This component's only job is to render the login form.
     return (
         <div className="flex min-h-screen w-full flex-col items-center justify-center bg-secondary/50 p-4">
             <div className='absolute top-8 left-8'>
