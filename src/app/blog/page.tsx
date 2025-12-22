@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { collection, query, orderBy } from "firebase/firestore";
 import type { BlogPost } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -32,7 +32,7 @@ function PostSkeleton() {
 
 export default function BlogPage() {
     const { firestore } = useFirebase();
-    const blogPostsQuery = useMemoFirebase(() => firestore && collection(firestore, 'blogPosts'), [firestore]);
+    const blogPostsQuery = useMemoFirebase(() => firestore && query(collection(firestore, 'blogPosts'), orderBy('datePublished', 'desc')), [firestore]);
     const { data: blogPosts, isLoading } = useCollection<BlogPost>(blogPostsQuery);
 
   return (

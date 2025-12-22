@@ -62,5 +62,58 @@ export type SystemAdmin = {
     role: 'system_admin';
 };
 
+
+// Marketing site content types
+export type SupportingOrganization = {
+    id: string;
+    name: string;
+    description: string;
+    logoUrl: string;
+};
+
+export type ClientCompany = {
+    id: string;
+    name: string;
+    description: string;
+    logoUrl: string;
+};
+
+export type BlogPost = {
+    id: string;
+    title: string;
+    description: string;
+    content: string;
+    imageUrl: string;
+    imageHint?: string;
+    author: string;
+    datePublished: string; // ISO date string
+};
+
+export type PricingPlan = {
+    id: string;
+    title: string;
+    description: string;
+    price: string;
+    period?: string;
+    features: string[];
+    isPopular: boolean;
+};
+
+export type ProductFeature = {
+    id: string;
+    title: string;
+    description: string;
+    icon: string; // Lucide icon name
+};
+
+export type TeamMember = {
+    id: string;
+    name: string;
+    role: string;
+    imageUrl: string;
+    imageHint?: string;
+};
+
+
 // Represents the combined user profile, which could be any of the defined roles.
-export type UserProfile = (Doctor | Admin | SystemAdmin | Pharmacist | Patient);
+export type UserProfile = (Doctor | Admin | SystemAdmin | Pharmacist | Patient | SupportingOrganization | ClientCompany | BlogPost | PricingPlan | ProductFeature | TeamMember);

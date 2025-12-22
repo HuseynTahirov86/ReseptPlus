@@ -81,7 +81,7 @@ export default function AdminLayout({
             <Button
               key={item.href}
               asChild
-              variant={pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/admin/dashboard') ? "secondary" : "ghost"}
+              variant={pathname.startsWith(item.href) ? "secondary" : "ghost"}
               className="w-full justify-start"
             >
               <Link href={item.href}>

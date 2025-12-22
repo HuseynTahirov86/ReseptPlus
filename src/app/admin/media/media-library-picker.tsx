@@ -109,9 +109,8 @@ function MediaLibraryGrid({ onSelect, closeDialog }: { onSelect: (url: string) =
               src={file.url}
               alt={file.filename}
               fill
-              objectFit="cover"
               sizes="(max-width: 768px) 33vw, 25vw"
-              className="transition-transform group-hover:scale-105"
+              className="object-cover transition-transform group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <span className="text-white font-semibold text-center p-2">Seç</span>
