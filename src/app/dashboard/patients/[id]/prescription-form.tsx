@@ -1,7 +1,8 @@
 'use client';
 
 import { useActionState, useEffect } from 'react';
-import { useForm, useFieldArray, useFormStatus } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { useFormStatus } from 'react-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { addPrescription, type FormState } from '../actions';
