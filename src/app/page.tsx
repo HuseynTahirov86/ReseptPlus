@@ -155,7 +155,7 @@ export default async function MarketingHomePage() {
                 <div 
                   key={i} 
                   className="text-center animate-fade-in-up"
-                  style={{ animationDelay: `${i * 0.15 + 0.2}s`}}
+                  style={{ animationDelay: `${''}${i * 0.15 + 0.2}s`}}
                 >
                   <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <adv.icon className="h-8 w-8" />
@@ -187,7 +187,7 @@ export default async function MarketingHomePage() {
                                 ${plan.isPopular ? "border-primary border-2 shadow-2xl shadow-primary/10" : "bg-card"} 
                                 flex flex-col rounded-2xl transition-transform duration-300 hover:-translate-y-2 animate-fade-in-up
                             `}
-                            style={{ animationDelay: `${i * 0.15 + 0.3}s`, animationDuration: '0.9s' }}
+                            style={{ animationDelay: `${''}${i * 0.15 + 0.3}s`, animationDuration: '0.9s' }}
                         >
                             {plan.isPopular && <div className="absolute top-0 right-4 -mt-3 bg-primary text-primary-foreground px-3 py-1 text-sm font-semibold rounded-full">POPULYAR</div>}
                             <CardHeader className="flex-grow">
@@ -237,10 +237,10 @@ export default async function MarketingHomePage() {
                 {blogPosts.length === 0 ? (
                     <p className="col-span-full text-center text-muted-foreground">Heç bir blog yazısı tapılmadı.</p>
                 ) : blogPosts.map((post, i) => (
-                    <Link key={post.id} href={`/blog/${post.id}`} className="group block">
+                    <Link key={post.id} href={`/blog/${''}${post.id}`} className="group block">
                     <Card 
                         className="overflow-hidden h-full flex flex-col rounded-xl shadow-md transition-all duration-300 hover:shadow-primary/20 hover:-translate-y-2 animate-fade-in-up"
-                        style={{ animationDelay: `${i * 0.1 + 0.3}s`, animationDuration: '0.9s' }}
+                        style={{ animationDelay: `${''}${i * 0.1 + 0.3}s`, animationDuration: '0.9s' }}
                     >
                         <div className="relative h-48 w-full">
                             <Image src={post.imageUrl} alt={post.title} fill className="object-cover" data-ai-hint={post.imageHint} />
