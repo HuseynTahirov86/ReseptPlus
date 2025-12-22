@@ -4,11 +4,11 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Patient",
       "type": "object",
-      "description": "Represents a patient in the system.",
+      "description": "Represents a patient in the system, with a user account.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Patient entity."
+          "description": "Unique identifier for the Patient entity (matches user UID)."
         },
         "firstName": {
           "type": "string",
@@ -39,6 +39,11 @@
         "address": {
           "type": "string",
           "description": "Patient's address."
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user.",
+          "enum": ["patient"]
         }
       },
       "required": [
@@ -49,7 +54,8 @@
         "gender",
         "contactNumber",
         "email",
-        "address"
+        "address",
+        "role"
       ]
     },
     "Doctor": {
@@ -60,7 +66,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Doctor entity."
+          "description": "Unique identifier for the Doctor entity (matches user UID)."
         },
         "firstName": {
           "type": "string",
@@ -104,11 +110,46 @@
         "role"
       ]
     },
+    "Pharmacist": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Pharmacist",
+      "type": "object",
+      "description": "Represents a pharmacist user in the system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Pharmacist entity (matches user UID)."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "Pharmacist's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Pharmacist's last name."
+        },
+        "pharmacyId": {
+          "type": "string",
+          "description": "Reference to Pharmacy. (Relationship: Pharmacy 1:N Pharmacist)"
+        },
+        "email": {
+          "type": "string",
+          "description": "Pharmacist's email address.",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the pharmacist.",
+          "enum": ["head_pharmacist", "employee"]
+        }
+      },
+      "required": ["id", "firstName", "lastName", "pharmacyId", "email", "role"]
+    },
     "Admin": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Admin",
       "type": "object",
-      "description": "Represents an admin user in the system.",
+      "description": "Represents a site admin user in the system for content management.",
       "properties": {
         "id": {
           "type": "string",
@@ -123,6 +164,29 @@
           "type": "string",
           "description": "The role of the user.",
           "enum": ["admin"]
+        }
+      },
+      "required": ["id", "email", "role"]
+    },
+     "SystemAdmin": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SystemAdmin",
+      "type": "object",
+      "description": "Represents a system admin with highest privileges.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the System Admin (matches user UID)."
+        },
+        "email": {
+          "type": "string",
+          "description": "System Admin's email address.",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user.",
+          "enum": ["system_admin"]
         }
       },
       "required": ["id", "email", "role"]
@@ -536,13 +600,13 @@
         "definition": {
           "entityName": "Patient",
           "schema": {
-            "$ref": "#/backend/entities/Patient"
+            "$ref": "#/entities/Patient"
           },
-          "description": "Stores patient profiles. Path-based ownership ensures only the authenticated user (or authorized personnel) can access their profile data.",
+          "description": "Stores patient user profiles. Path-based ownership ensures only the authenticated user can access their own profile data.",
           "params": [
             {
               "name": "patientId",
-              "description": "The unique identifier for the patient."
+              "description": "The unique identifier for the patient (matches user UID)."
             }
           ]
         }
@@ -552,13 +616,29 @@
         "definition": {
           "entityName": "Doctor",
           "schema": {
-            "$ref": "#/backend/entities/Doctor"
+            "$ref": "#/entities/Doctor"
           },
-          "description": "Stores doctor profiles. Accessible to authorized personnel.",
+          "description": "Stores doctor user profiles. Accessible to authorized personnel.",
           "params": [
             {
               "name": "doctorId",
-              "description": "The unique identifier for the doctor."
+              "description": "The unique identifier for the doctor (matches user UID)."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/pharmacists/{pharmacistId}",
+        "definition": {
+          "entityName": "Pharmacist",
+          "schema": {
+            "$ref": "#/entities/Pharmacist"
+          },
+          "description": "Stores pharmacist user profiles. Accessible to authorized personnel.",
+          "params": [
+            {
+              "name": "pharmacistId",
+              "description": "The unique identifier for the pharmacist (matches user UID)."
             }
           ]
         }
@@ -568,13 +648,29 @@
         "definition": {
           "entityName": "Admin",
           "schema": {
-            "$ref": "#/backend/entities/Admin"
+            "$ref": "#/entities/Admin"
           },
-          "description": "Stores admin user profiles. Only accessible by other admins.",
+          "description": "Stores site admin user profiles. Only accessible by system admins.",
           "params": [
             {
               "name": "adminId",
-              "description": "The unique identifier for the admin user."
+              "description": "The unique identifier for the site admin user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/systemAdmins/{adminId}",
+        "definition": {
+          "entityName": "SystemAdmin",
+          "schema": {
+            "$ref": "#/entities/SystemAdmin"
+          },
+          "description": "Stores system admin user profiles with the highest privileges.",
+          "params": [
+            {
+              "name": "adminId",
+              "description": "The unique identifier for the system admin user."
             }
           ]
         }
@@ -584,9 +680,9 @@
         "definition": {
           "entityName": "Hospital",
           "schema": {
-            "$ref": "#/backend/entities/Hospital"
+            "$ref": "#/entities/Hospital"
           },
-          "description": "Stores hospital information. Accessible to authorized personnel.",
+          "description": "Stores hospital information. Writable by system admins.",
           "params": [
             {
               "name": "hospitalId",
@@ -600,9 +696,9 @@
         "definition": {
           "entityName": "Pharmacy",
           "schema": {
-            "$ref": "#/backend/entities/Pharmacy"
+            "$ref": "#/entities/Pharmacy"
           },
-          "description": "Stores pharmacy information. Accessible to authorized personnel.",
+          "description": "Stores pharmacy information. Writable by system admins.",
           "params": [
             {
               "name": "pharmacyId",
@@ -616,9 +712,9 @@
         "definition": {
           "entityName": "Medication",
           "schema": {
-            "$ref": "#/backend/entities/Medication"
+            "$ref": "#/entities/Medication"
           },
-          "description": "Stores medication details. Publicly accessible or restricted to authorized personnel.",
+          "description": "Stores medication details. Publicly accessible, writable by admins.",
           "params": [
             {
               "name": "medicationId",
@@ -632,9 +728,9 @@
         "definition": {
           "entityName": "Prescription",
           "schema": {
-            "$ref": "#/backend/entities/Prescription"
+            "$ref": "#/entities/Prescription"
           },
-          "description": "Stores prescription data. Includes denormalized `patientId`, `doctorId`, and `pharmacyId` to enable authorization independence. Accessible to the patient, doctor, and pharmacy involved in the prescription.",
+          "description": "Stores prescription data. Accessible to the patient, doctor, and pharmacy involved.",
           "params": [
             {
               "name": "prescriptionId",
@@ -648,9 +744,9 @@
         "definition": {
           "entityName": "Inventory",
           "schema": {
-            "$ref": "#/backend/entities/Inventory"
+            "$ref": "#/entities/Inventory"
           },
-          "description": "Stores inventory information for each pharmacy. The `pharmacyId` parameter in the path ensures only the pharmacy can access this data.",
+          "description": "Stores inventory for a specific pharmacy. Writable by the pharmacy's head pharmacist.",
           "params": [
             {
               "name": "pharmacyId",
@@ -668,9 +764,9 @@
         "definition": {
           "entityName": "SupportingOrganization",
           "schema": {
-            "$ref": "#/backend/entities/SupportingOrganization"
+            "$ref": "#/entities/SupportingOrganization"
           },
-          "description": "Stores information about organizations that support ReseptPlus. Publicly readable, admin writable.",
+          "description": "Publicly readable, admin writable.",
           "params": [
             {
               "name": "orgId",
@@ -684,9 +780,9 @@
         "definition": {
           "entityName": "ClientCompany",
           "schema": {
-            "$ref": "#/backend/entities/ClientCompany"
+            "$ref": "#/entities/ClientCompany"
           },
-          "description": "Stores information about companies that are clients of ReseptPlus. Publicly readable, admin writable.",
+          "description": "Publicly readable, admin writable.",
           "params": [
             {
               "name": "companyId",
@@ -700,9 +796,9 @@
         "definition": {
           "entityName": "BlogPost",
           "schema": {
-            "$ref": "#/backend/entities/BlogPost"
+            "$ref": "#/entities/BlogPost"
           },
-          "description": "Stores blog posts for the marketing website. Publicly readable, admin writable.",
+          "description": "Publicly readable, admin writable.",
           "params": [
             {
               "name": "postId",
@@ -716,9 +812,9 @@
         "definition": {
           "entityName": "PricingPlan",
           "schema": {
-            "$ref": "#/backend/entities/PricingPlan"
+            "$ref": "#/entities/PricingPlan"
           },
-          "description": "Stores the pricing plans for the service. Publicly readable, admin writable.",
+          "description": "Publicly readable, admin writable.",
           "params": [
             {
               "name": "planId",
@@ -732,9 +828,9 @@
         "definition": {
           "entityName": "ProductFeature",
           "schema": {
-            "$ref": "#/backend/entities/ProductFeature"
+            "$ref": "#/entities/ProductFeature"
           },
-          "description": "Stores the product features for the marketing site. Publicly readable, admin writable.",
+          "description": "Publicly readable, admin writable.",
           "params": [
             {
               "name": "featureId",
@@ -748,9 +844,9 @@
         "definition": {
           "entityName": "TeamMember",
           "schema": {
-            "$ref": "#/backend/entities/TeamMember"
+            "$ref": "#/entities/TeamMember"
           },
-          "description": "Stores information about team members. Publicly readable, admin writable.",
+          "description": "Publicly readable, admin writable.",
           "params": [
             {
               "name": "memberId",
@@ -760,6 +856,8 @@
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support a secure and scalable e-prescription system (ReseptPlus) connecting patients, doctors, hospitals, and pharmacies. Key considerations include authorization independence, data segregation, and clear access control.\n\n1.  **Authorization Independence:** The design avoids hierarchical `get()` calls in security rules by denormalizing relevant authorization data directly into documents. For example, prescriptions store `patientId`, `doctorId`, and `pharmacyId` to facilitate independent authorization checks without needing to retrieve parent documents.\n\n2.  **Data Segregation:** Different data types with distinct access requirements are stored in separate collections. This simplifies security rules. For instance, patient profiles reside in `/patients/{patientId}`, while prescriptions are in `/prescriptions/{prescriptionId}`. Admin users are now stored in their own `/admins` collection, separate from `/doctors`.\n\n3.  **Access Control:** Path-based ownership is used for patient data (`/patients/{patientId}`). Prescriptions, while not directly owned by users, incorporate relevant IDs for secure access control.\n\n4.  **QAPs Support:**\n    *   `list` operations are secured by ensuring each collection has a homogeneous security posture (all documents in the same collection share the same access rules).\n\n5. **Invariants:**\n* The structure supports the integrity of ownership, timestamps, and denormalized data by making it straightforward to write rules that enforce restrictions.\n\nThis structure prioritizes simplicity and security, resulting in more robust and maintainable security rules."
+    "reasoning": "The Firestore structure is updated to support multiple user roles (Patient, Doctor, Pharmacist, Admin, SystemAdmin). Each user role has its own top-level collection to enforce role-based access control easily. For instance, `/patients/{patientId}` stores patient data accessible only by the patient themselves, while `/pharmacists/{pharmacistId}` stores pharmacist data. This flat structure simplifies security rules and avoids complex nested reads. Administrative roles are split into 'admin' (for site content) and 'system_admin' (for system-level management) to enforce separation of duties. This design ensures a secure, scalable, and maintainable data architecture."
   }
 }
+
+    

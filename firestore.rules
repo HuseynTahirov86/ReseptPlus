@@ -50,27 +50,50 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-
+    
     /**
-     * Checks if a document currently exists in Firestore.
+     * Checks if the user has the 'system_admin' role. Highest privilege.
      */
-    function isExistingDoc() {
-      return resource != null;
+    function isSystemAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/systemAdmins/$(request.auth.uid)).data.role == 'system_admin';
     }
 
     /**
-     * Checks for update/delete, ensuring the user is the owner of an existing doc.
+     * Checks if the user has the 'admin' role for site content management.
      */
-    function isOwnerOfExistingDoc(userId) {
-      return isOwner(userId) && isExistingDoc();
+    function isAdmin() {
+      return isSignedIn() && (get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin' || isSystemAdmin());
+    }
+
+    /**
+     * Checks if the user is the doctor who created the prescription.
+     */
+    function isDoctor(doctorId) {
+      return isSignedIn() && request.auth.uid == doctorId;
     }
     
     /**
-     * Checks if the user has the 'admin' role by reading their profile from
-     * the dedicated 'admins' collection.
+     * Checks if the user is a head doctor of a specific hospital.
      */
-    function isAdmin() {
-      return isSignedIn() && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin';
+    function isHeadDoctor(hospitalId) {
+        let doctorProfile = get(/databases/$(database)/documents/doctors/$(request.auth.uid)).data;
+        return isSignedIn() && doctorProfile.role == 'head_doctor' && doctorProfile.hospitalId == hospitalId;
+    }
+    
+    /**
+     * Checks if the user is a head pharmacist of a specific pharmacy.
+     */
+    function isHeadPharmacist(pharmacyId) {
+        let pharmacistProfile = get(/databases/$(database)/documents/pharmacists/$(request.auth.uid)).data;
+        return isSignedIn() && pharmacistProfile.role == 'head_pharmacist' && pharmacistProfile.pharmacyId == pharmacyId;
+    }
+
+    /**
+     * Checks if a user is an employee of a given pharmacy.
+     */
+    function isPharmacyEmployee(pharmacyId) {
+        let pharmacistProfile = get(/databases/$(database)/documents/pharmacists/$(request.auth.uid)).data;
+        return isSignedIn() && pharmacistProfile.pharmacyId == pharmacyId;
     }
 
     /**
@@ -81,159 +104,115 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid in participantIds;
     }
     
-     /**
-     * Checks if the user is the doctor who created the prescription.
-     */
-    function isDoctor(doctorId) {
-      return isSignedIn() && request.auth.uid == doctorId;
-    }
-
-    /**
-     * Robust check for update/delete by a doctor.
-     */
-    function isExistingDoctor(doctorId) {
-      return isDoctor(doctorId) && isExistingDoc();
-    }
-
-
     // Collection Rules
     // =================
 
     /**
-     * @description Manages patient profiles. Read by owner or admin. Write by owner only.
+     * @description Manages patient user profiles. Only the patient can manage their own profile.
      * @path /patients/{patientId}
      */
     match /patients/{patientId} {
-      allow get, list: if isOwner(patientId) || isAdmin();
-      allow create: if isOwner(patientId) && request.resource.data.id == patientId;
-      allow update: if isOwnerOfExistingDoc(patientId) && request.resource.data.id == resource.data.id;
-      allow delete: if isOwnerOfExistingDoc(patientId);
-    }
-
-    /**
-     * @description Stores doctor/user profiles. Any signed-in user can read.
-     * Admins can update any profile. Users can update their own.
-     * @path /doctors/{doctorId}
-     */
-    match /doctors/{doctorId} {
-      allow get, list: if isSignedIn();
-      allow create: if isOwner(doctorId); // Allow users to create their own profile
-      allow update: if isOwner(doctorId) || isAdmin();
-      allow delete: if false; // Deletes handled by admin process
+      allow read, write: if isOwner(patientId);
     }
     
     /**
-     * @description Stores admin user profiles. Writable only by other admins.
-     * Ensures that only admins can manage other admin roles.
+     * @description Manages doctor user profiles. Can be read by any authenticated user.
+     * Writable by the owner or a system admin.
+     * @path /doctors/{doctorId}
+     */
+    match /doctors/{doctorId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow write: if isOwner(doctorId) || isSystemAdmin();
+    }
+    
+    /**
+     * @description Manages pharmacist user profiles. Read by authenticated users.
+     * Writable by the owner, head pharmacist of the same pharmacy, or a system admin.
+     * @path /pharmacists/{pharmacistId}
+     */
+    match /pharmacists/{pharmacistId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn(); // Allow listing for selection purposes
+      allow write: if isOwner(pharmacistId) || isHeadPharmacist(resource.data.pharmacyId) || isSystemAdmin();
+    }
+
+    /**
+     * @description Site admins for content management. Managed only by system admins.
      * @path /admins/{adminId}
      */
     match /admins/{adminId} {
-      allow get, list, create, update, delete: if isAdmin();
+      allow get, list, write: if isSystemAdmin();
+    }
+    
+    /**
+     * @description System admins with highest privileges. Managed only by other system admins.
+     * @path /systemAdmins/{adminId}
+     */
+    match /systemAdmins/{adminId} {
+        allow get, list, write: if isSystemAdmin();
     }
 
-
     /**
-     * @description Stores hospital information. Read-only for clients. Writable by admin.
+     * @description Stores hospital information. Read by authenticated users, writable by system admins.
      * @path /hospitals/{hospitalId}
      */
     match /hospitals/{hospitalId} {
       allow get, list: if isSignedIn();
-      allow create, update, delete: if isAdmin();
+      allow create, update, delete: if isSystemAdmin();
     }
 
     /**
-     * @description Stores pharmacy information. Read-only for clients. Writable by admin.
+     * @description Stores pharmacy information. Read by authenticated users.
+     * Writable by head pharmacists of that pharmacy or system admins.
      * @path /pharmacies/{pharmacyId}
      */
     match /pharmacies/{pharmacyId} {
       allow get, list: if isSignedIn();
-      allow create, update, delete: if isAdmin();
+      allow create, update, delete: if isHeadPharmacist(pharmacyId) || isSystemAdmin();
 
       /**
-       * @description Manages a pharmacy's inventory. Only the pharmacy owner or an admin can manage it.
+       * @description Manages a pharmacy's inventory. Readable by any employee of the pharmacy.
+       * Writable only by the head pharmacist or system admins.
        * @path /pharmacies/{pharmacyId}/inventory/{inventoryId}
        */
       match /inventory/{inventoryId} {
-        allow get, list: if isOwner(pharmacyId) || isAdmin();
-        allow create: if isOwner(pharmacyId) && request.resource.data.pharmacyId == pharmacyId;
-        allow update: if isOwnerOfExistingDoc(pharmacyId) && request.resource.data.pharmacyId == resource.data.id;
-        allow delete: if isOwnerOfExistingDoc(pharmacyId);
+        allow get, list: if isPharmacyEmployee(pharmacyId) || isSystemAdmin();
+        allow write: if isHeadPharmacist(pharmacyId) || isSystemAdmin();
       }
     }
 
     /**
-     * @description Stores medication details. Publicly readable. Writable by admin.
+     * @description Stores medication details. Publicly readable. Writable by admins.
      * @path /medications/{medicationId}
      */
     match /medications/{medicationId} {
       allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+      allow create, update, delete: if isAdmin() || isSystemAdmin();
     }
 
     /**
-     * @description Manages prescriptions. Readable by participants or admin. Writable by the doctor.
+     * @description Manages prescriptions. Readable by participants or relevant head staff.
+     * Writable only by the prescribing doctor.
      * @path /prescriptions/{prescriptionId}
      */
     match /prescriptions/{prescriptionId} {
-      allow get: if isParticipant(resource.data) || isAdmin();
+      allow get: if isParticipant(resource.data) || isHeadDoctor(get(/databases/$(database)/documents/doctors/$(resource.data.doctorId)).data.hospitalId) || isAdmin();
       allow list: if isSignedIn();
       allow create: if isDoctor(request.resource.data.doctorId);
-      allow update: if isExistingDoctor(resource.data.doctorId) || isAdmin(); // Admin can update status
-      allow delete: if isExistingDoctor(resource.data.doctorId) || isAdmin();
+      allow update, delete: if isDoctor(resource.data.doctorId) || isAdmin();
     }
 
     /**
-     * @description Stores info about supporting organizations. Publicly readable, admin writable.
-     * @path /supportingOrganizations/{orgId}
+     * @description Marketing content, publicly readable, admin writable.
+     * @path /supportingOrganizations/{orgId}, /clientCompanies/{companyId}, /blogPosts/{postId}, etc.
      */
-    match /supportingOrganizations/{orgId} {
+    match /{collection}/{docId} 
+    where collection in ['supportingOrganizations', 'clientCompanies', 'blogPosts', 'pricingPlans', 'productFeatures', 'teamMembers'] {
         allow get, list: if true;
-        allow create, update, delete: if isAdmin();
-    }
-
-    /**
-     * @description Stores info about client companies. Publicly readable, admin writable.
-     * @path /clientCompanies/{companyId}
-     */
-    match /clientCompanies/{companyId} {
-        allow get, list: if true;
-        allow create, update, delete: if isAdmin();
-    }
-    
-    /**
-     * @description Stores blog posts. Publicly readable, admin writable.
-     * @path /blogPosts/{postId}
-     */
-    match /blogPosts/{postId} {
-        allow get, list: if true;
-        allow create, update, delete: if isAdmin();
-    }
-
-    /**
-     * @description Stores pricing plans. Publicly readable, admin writable.
-     * @path /pricingPlans/{planId}
-     */
-    match /pricingPlans/{planId} {
-        allow get, list: if true;
-        allow create, update, delete: if isAdmin();
-    }
-
-    /**
-     * @description Stores product features. Publicly readable, admin writable.
-     * @path /productFeatures/{featureId}
-     */
-    match /productFeatures/{featureId} {
-        allow get, list: if true;
-        allow create, update, delete: if isAdmin();
-    }
-
-    /**
-     * @description Stores team members. Publicly readable, admin writable.
-     * @path /teamMembers/{memberId}
-     */
-    match /teamMembers/{memberId} {
-        allow get, list: if true;
-        allow create, update, delete: if isAdmin();
+        allow create, update, delete: if isAdmin() || isSystemAdmin();
     }
   }
 }
+
+    
