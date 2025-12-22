@@ -7,8 +7,6 @@ import { Search, Loader2, ShieldCheck, AlertCircle, CheckCircle } from 'lucide-r
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
 import type { Patient, Prescription } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
@@ -21,6 +19,9 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { fulfillPrescription } from '../actions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { db } from '@/firebase/client-init';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+
 
 const searchSchema = z.object({
   finCode: z.string().min(7, 'FİN kod 7 simvol olmalıdır.').max(7, 'FİN kod 7 simvol olmalıdır.'),
@@ -30,7 +31,6 @@ const searchSchema = z.object({
 type SearchFormValues = z.infer<typeof searchSchema>;
 
 export default function VerifyPrescriptionPage() {
-  const [searchCriteria, setSearchCriteria] = useState<SearchFormValues | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [patient, setPatient] = useState<Patient | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -42,24 +42,15 @@ export default function VerifyPrescriptionPage() {
   
   const [verifiedPatient, setVerifiedPatient] = useState<Patient | null>(null);
   
-  const { firestore } = useFirebase();
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [loadingPrescriptions, setLoadingPrescriptions] = useState(false);
+  
   const { toast } = useToast();
 
   const { register, handleSubmit, formState: { errors } } = useForm<SearchFormValues>({
     resolver: zodResolver(searchSchema),
   });
-
-  const prescriptionsQuery = useMemoFirebase(() => {
-    if (!firestore || !verifiedPatient) return null;
-    
-    return query(
-      collection(firestore, 'prescriptions'),
-      where('patientId', '==', verifiedPatient.id),
-      where('status', '==', 'Gözləmədə')
-    );
-  }, [firestore, verifiedPatient]);
   
-  const { data: prescriptions, isLoading: loadingPrescriptions } = useCollection<Prescription>(prescriptionsQuery);
 
   const onSearch: SubmitHandler<SearchFormValues> = async (data) => {
     setIsLoading(true);
@@ -68,13 +59,12 @@ export default function VerifyPrescriptionPage() {
     setVerifiedPatient(null);
 
     const q = query(
-      collection(firestore, 'patients'),
+      collection(db, 'patients'),
       where('finCode', '==', data.finCode.toUpperCase()),
       where('dateOfBirth', '==', data.birthDate)
     );
 
     try {
-        const { getDocs } = await import('firebase/firestore');
         const querySnapshot = await getDocs(q);
         
         if (querySnapshot.empty) {
@@ -101,10 +91,33 @@ export default function VerifyPrescriptionPage() {
     }
   };
   
+  const fetchPrescriptions = async (patientId: string) => {
+    setLoadingPrescriptions(true);
+    const q = query(
+      collection(db, 'prescriptions'),
+      where('patientId', '==', patientId),
+      where('status', '==', 'Gözləmədə')
+    );
+    try {
+        const querySnapshot = await getDocs(q);
+        const pres = querySnapshot.docs.map(doc => doc.data() as Prescription);
+        setPrescriptions(pres);
+    } catch(e) {
+        console.error(e);
+        setError("Reseptləri yükləyərkən xəta baş verdi.");
+    } finally {
+        setLoadingPrescriptions(false);
+    }
+  };
+
+
   const handleVerifyOtp = () => {
     if (otp === generatedOtp) {
         setVerifiedPatient(patient);
         setIsOtpModalOpen(false);
+        if(patient?.id) {
+          fetchPrescriptions(patient.id);
+        }
     } else {
         setOtpError('Yanlış təsdiq kodu.');
     }
@@ -117,6 +130,10 @@ export default function VerifyPrescriptionPage() {
         description: result.message,
         variant: result.type === 'success' ? 'default' : 'destructive'
     });
+    if (result.type === 'success' && verifiedPatient?.id) {
+        // Refresh the list
+        fetchPrescriptions(verifiedPatient.id);
+    }
   }
 
   return (

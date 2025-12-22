@@ -1,3 +1,4 @@
+import { User } from 'firebase/auth';
 
 export type Patient = {
     id: string;
@@ -134,3 +135,9 @@ export type TeamMember = {
 
 // Represents the combined user profile, which could be any of the defined roles.
 export type UserProfile = (Doctor | Admin | SystemAdmin | Pharmacist | Patient | Hospital | Pharmacy | SupportingOrganization | ClientCompany | BlogPost | PricingPlan | ProductFeature | TeamMember);
+
+
+// Custom user data including role
+export type AppUser = User & {
+    profile?: Partial<UserProfile>;
+};

@@ -23,27 +23,34 @@ const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' } 
 export default function PatientDetailPage() {
     const params = useParams();
     const { id } = params;
-    const { firestore, user: doctor } = useFirebase();
-    const { toast } = useToast();
+    const { user: doctor } = useUser();
     const router = useRouter();
+    const { toast } = useToast();
 
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [patient, setPatient] = useState<Patient | null>(null);
+    const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const patientRef = useMemoFirebase(
-        () => (firestore && id ? doc(firestore, 'patients', id as string) : null),
-        [firestore, id]
-    );
-    const { data: patient, isLoading: patientLoading } = useDoc<Patient>(patientRef);
+    useState(async () => {
+        setIsLoading(true);
+        if (id) {
+            const { getDoc, getDocs } = await import('firebase/firestore');
+            const patientDoc = await getDoc(doc(db, 'patients', id as string));
+            if (patientDoc.exists()) {
+                setPatient({ id: patientDoc.id, ...patientDoc.data() } as Patient);
+            }
 
-    const prescriptionsQuery = useMemoFirebase(
-        () => (firestore && id ? query(
-            collection(firestore, 'prescriptions'),
-            where('patientId', '==', id),
-            orderBy('datePrescribed', 'desc')
-        ) : null),
-        [firestore, id]
-    );
-    const { data: prescriptions, isLoading: prescriptionsLoading } = useCollection<Prescription>(prescriptionsQuery);
+            const q = query(
+                collection(db, 'prescriptions'),
+                where('patientId', '==', id),
+                orderBy('datePrescribed', 'desc')
+            );
+            const presDocs = await getDocs(q);
+            setPrescriptions(presDocs.docs.map(d => d.data() as Prescription));
+        }
+        setIsLoading(false);
+    });
     
     const onFormSubmit = (state: { type: 'success' | 'error', message: string }) => {
         toast({
@@ -53,6 +60,7 @@ export default function PatientDetailPage() {
         });
         if (state.type === 'success') {
             setIsFormOpen(false);
+            // Optionally, refresh prescriptions list here
         }
     };
     
@@ -78,7 +86,7 @@ export default function PatientDetailPage() {
         router.push(`/dashboard/suggestions?${queryParams.toString()}`);
     }
 
-    if (patientLoading) {
+    if (isLoading) {
         return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
     }
 
@@ -130,10 +138,10 @@ export default function PatientDetailPage() {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {prescriptionsLoading && (
+                                {isLoading && (
                                     <tr><td colSpan={4} className="p-8 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></td></tr>
                                 )}
-                                {!prescriptionsLoading && prescriptions?.map((p) => (
+                                {!isLoading && prescriptions?.map((p) => (
                                     <tr key={p.id}>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(p.datePrescribed).toLocaleDateString()}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{p.medicationName}</td>
@@ -141,7 +149,7 @@ export default function PatientDetailPage() {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm"><Badge variant={statusVariant[p.status] || 'secondary'}>{p.status}</Badge></td>
                                     </tr>
                                 ))}
-                                {!prescriptionsLoading && prescriptions?.length === 0 && (
+                                {!isLoading && prescriptions?.length === 0 && (
                                      <tr><td colSpan={4} className="p-8 text-center text-gray-500">Bu xəstə üçün heç bir resept tapılmadı.</td></tr>
                                 )}
                             </tbody>

@@ -7,8 +7,6 @@ import { Search, Loader2 } from 'lucide-react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
 import type { Patient } from '@/lib/types';
 import { PatientList } from './patient-list';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -16,6 +14,9 @@ import { AlertCircle } from 'lucide-react';
 import { PatientForm } from './patient-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { db } from '@/firebase/client-init'; // Import client-side db
+import { collection, query, where, getDocs } from 'firebase/firestore';
+
 
 const searchSchema = z.object({
   finCode: z.string().min(7, 'FİN kod 7 simvol olmalıdır.').max(7, 'FİN kod 7 simvol olmalıdır.'),
@@ -28,30 +29,38 @@ export default function PatientsPage() {
   const [searchCriteria, setSearchCriteria] = useState<SearchFormValues | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const { firestore } = useFirebase();
   const { toast } = useToast();
+  const [patients, setPatients] = useState<Patient[] | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { register, handleSubmit, formState: { errors }, getValues } = useForm<SearchFormValues>({
     resolver: zodResolver(searchSchema),
   });
 
-  const patientsQuery = useMemoFirebase(() => {
-    // Axtarış kriteriyaları təyin edilməyibsə, sorğu göndərmə
-    if (!firestore || !searchCriteria) return null;
-    
-    // Yalnız təyin edilmiş kriteriyalara uyğun xəstələri axtar
-    return query(
-      collection(firestore, 'patients'),
-      where('finCode', '==', searchCriteria.finCode.toUpperCase()), // FİN kodu böyük hərflərlə yoxla
-      where('dateOfBirth', '==', searchCriteria.birthDate)
-    );
-  }, [firestore, searchCriteria]);
-
-  const { data: patients, isLoading, error } = useCollection<Patient>(patientsQuery);
-
-  const onSearch: SubmitHandler<SearchFormValues> = (data) => {
+  const onSearch: SubmitHandler<SearchFormValues> = async (data) => {
+    setIsLoading(true);
+    setError(null);
+    setPatients(null);
     setSearchCriteria(data);
-    setHasSearched(true); // Axtarış edildiyini qeyd et
+    setHasSearched(true);
+    
+    try {
+      const q = query(
+        collection(db, 'patients'),
+        where('finCode', '==', data.finCode.toUpperCase()),
+        where('dateOfBirth', '==', data.birthDate)
+      );
+      const querySnapshot = await getDocs(q);
+      const foundPatients = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Patient));
+      setPatients(foundPatients);
+
+    } catch (e) {
+      console.error(e);
+      setError("Xəstələri axtararkən bir xəta baş verdi.");
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const onFormSubmit = (state: { type: 'success' | 'error', message: string, issues?: any }) => {
@@ -64,7 +73,7 @@ export default function PatientsPage() {
             setIsFormOpen(false);
             // Re-run the search with the same criteria to show the newly added patient
             if (searchCriteria) {
-              setSearchCriteria({ ...searchCriteria });
+              onSearch(searchCriteria);
             }
         }
     };
@@ -107,7 +116,7 @@ export default function PatientsPage() {
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Xəta</AlertTitle>
-            <AlertDescription>Xəstə axtarışı zamanı bir problem yarandı. Zəhmət olmasa, konsolu və təhlükəsizlik qaydalarını yoxlayın.</AlertDescription>
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
       )}
 
