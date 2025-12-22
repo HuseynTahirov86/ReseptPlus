@@ -1,3 +1,15 @@
+export type Patient = {
+    id: string;
+    firstName: string;
+    lastName: string;
+    dateOfBirth: string; // ISO date string
+    gender: 'Kişi' | 'Qadın';
+    contactNumber: string;
+    email: string;
+    address: string;
+    finCode: string;
+};
+
 export type Prescription = {
   id: string;
   patientId: string;
@@ -5,7 +17,7 @@ export type Prescription = {
   doctorId: string;
   pharmacyId: string;
   medicationId: string;
-  medicationName: string; // Added for convenience
+  medicationName: string; 
   datePrescribed: string; // ISO date string
   dosage: string;
   quantity: number;
@@ -13,6 +25,8 @@ export type Prescription = {
   instructions: string;
   verificationCode: string;
   status: 'Təhvil verildi' | 'Gözləmədə' | 'Ləğv edildi';
+  complaint?: string;
+  diagnosis?: string;
 };
 
 export type Doctor = {

@@ -1,10 +1,11 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useSearchParams } from 'next/navigation';
 
 import { getSuggestions, type FormState } from './actions';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ function SubmitButton() {
 export function SuggestionForm() {
   const initialState: FormState = { message: '' };
   const [state, formAction] = useActionState(getSuggestions, initialState);
+  const searchParams = useSearchParams();
 
   const form = useForm<z.infer<typeof SmartMedicationSuggestionsInputSchema>>({
     resolver: zodResolver(SmartMedicationSuggestionsInputSchema),
@@ -50,12 +52,30 @@ export function SuggestionForm() {
       currentMedications: '',
       doctorNotes: '',
     },
-    values: state?.fields && {
+    values: state?.fields ? {
         patientHistory: state.fields.patientHistory || '',
         currentMedications: state.fields.currentMedications || '',
         doctorNotes: state.fields.doctorNotes || '',
-    },
+    } : {
+        patientHistory: searchParams.get('patientHistory') || '',
+        currentMedications: searchParams.get('currentMedications') || '',
+        doctorNotes: searchParams.get('doctorNotes') || '',
+    }
   });
+
+  useEffect(() => {
+    const patientHistory = searchParams.get('patientHistory');
+    const currentMedications = searchParams.get('currentMedications');
+    const doctorNotes = searchParams.get('doctorNotes');
+    if(patientHistory || currentMedications || doctorNotes) {
+        form.reset({
+            patientHistory: patientHistory || '',
+            currentMedications: currentMedications || '',
+            doctorNotes: doctorNotes || '',
+        });
+    }
+  }, [searchParams, form]);
+
 
   return (
     <div className="space-y-8">
