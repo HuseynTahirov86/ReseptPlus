@@ -5,15 +5,49 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Image from "next/image";
 import { db } from "@/firebase/server-init";
 import type { BlogPost } from "@/lib/types";
-import { Skeleton } from "@/components/ui/skeleton";
+
+const sampleBlogPost: BlogPost[] = [
+    {
+        id: "sample-post-1",
+        title: "ReseptPlus: Səhiyyədə Rəqəmsal İnqilab",
+        description: "Kağız reseptlərin yaratdığı xaosu, uzun növbələri və potensial səhvləri geridə qoyun. ReseptPlus, səhiyyə sistemini necə daha ağıllı, sürətli və təhlükəsiz etdiyimizi kəşf edin.",
+        author: "ReseptPlus Komandası",
+        datePublished: new Date().toISOString(),
+        imageUrl: "https://i.ibb.co/Nd15wKwV/hero.png",
+        imageHint: "digital health",
+        content: `
+Kağız reseptlər dövrü artıq tarixə qarışır. Onların itməsi, oxunmaz olması və ya səhv dərmanların verilməsinə səbəb olması kimi risklər həm xəstələr, həm həkimlər, həm də əczaçılar üçün ciddi problemlər yaradır. ReseptPlus, bu problemləri kökündən həll etmək üçün yaradılmış vahid, təhlükəsiz və ağıllı bir rəqəmsal resept platformasıdır.
+
+### Biz Nəyi Həll Edirik?
+
+**1. Səmərəsizlik:** Həkimlər qiymətli vaxtlarını resept yazmağa, xəstələr isə apteklərdə uzun növbələr gözləməyə sərf edir. ReseptPlus ilə həkimlər reseptləri saniyələr içində tərtib edir, xəstələr isə dərmanlarını növbə gözləmədən əldə edə bilərlər.
+
+**2. Təhlükəsizlik Riskləri:** Oxunmaz həkim yazısı və ya diqqətsizlik nəticəsində yanlış dərmanların verilməsi ciddi sağlamlıq problemlərinə yol aça bilər. Platformamız, dərman məlumatlarını standartlaşdıraraq və iki faktorlu təsdiqləmə (FİN və OTP) ilə bu riskləri minimuma endirir.
+
+**3. Məlumat Qopuqluğu:** Xəstənin səhhəti haqqında məlumatlar (keçmiş reseptlər, allergiyalar) fərqli yerlərdə pərakəndə halda olur. ReseptPlus, bütün resept tarixçəsini vahid bir profildə toplayaraq həkimlərə daha dəqiq qərarlar vermək üçün 360 dərəcəlik bir görüntü təqdim edir.
+
+### ReseptPlus-ın Əsas Üstünlükləri:
+
+*   **Həkimlər üçün:** Süni intellekt dəstəkli konsultasiya, xəstə tarixçəsinə anında çıxış və daha sürətli resept yazma imkanı.
+*   **Xəstələr üçün:** Kağız daşımaq dərdindən azad olmaq, apteklərdə vaxt itirməmək və bütün səhiyyə məlumatlarını bir yerdə idarə etmək.
+*   **Əczaçılar üçün:** Səhvsiz və sürətli resept emalı, avtomatlaşdırılmış inventar idarəçiliyi və xəstəxanalarla birbaşa əlaqə.
+
+Gələcəyin səhiyyəsi rəqəmsaldır. ReseptPlus, bu gələcəyə atılan ən vacib addımlardan biridir. Bizə qoşulun və bu inqilabın bir parçası olun.
+        `
+    }
+];
 
 async function getBlogPosts() {
     try {
         const snapshot = await db.collection('blogPosts').orderBy('datePublished', 'desc').get();
+        if (snapshot.empty) {
+            return sampleBlogPost;
+        }
         return snapshot.docs.map(doc => doc.data() as BlogPost);
     } catch (error) {
         console.error("Error fetching blog posts:", error);
-        return [];
+        // On error, return the sample post to ensure the page works.
+        return sampleBlogPost;
     }
 }
 
