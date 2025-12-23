@@ -34,7 +34,7 @@ const FeedbackSchema = z.object({
   prescriptionId: z.string(),
   doctorId: z.string(),
   patientId: z.string(),
-  rating: z.coerce.number().min(1).max(5),
+  rating: z.coerce.number().min(1, "Reytinq ən azı 1 olmalıdır.").max(5, "Reytinq ən çox 5 ola bilər."),
   comment: z.string().optional(),
 });
 
@@ -194,15 +194,15 @@ export async function submitDoctorFeedback(prevState: FormState, formData: FormD
 
     try {
         const feedbackRef = db.collection('doctors').doc(doctorId).collection('feedback');
-        const newFeedback: Omit<DoctorFeedback, 'id' | 'dateSubmitted'> = {
-            ...feedbackData
-        };
-        await feedbackRef.add({
-            ...newFeedback,
+        
+        const docRef = await feedbackRef.add({
+            ...feedbackData,
             dateSubmitted: new Date().toISOString(),
         });
+        await docRef.update({ id: docRef.id });
         
         revalidatePath(`/dashboard/prescriptions`);
+        revalidatePath('/dashboard/hospital/feedback');
 
         return { type: 'success', message: 'Rəyiniz uğurla göndərildi. Təşəkkür edirik!' };
 

@@ -13,6 +13,15 @@ export type Patient = {
     role: 'patient';
 };
 
+export type DoctorFeedback = {
+    id: string;
+    prescriptionId: string;
+    patientId: string;
+    rating: number;
+    comment?: string;
+    dateSubmitted: string; // ISO date string
+}
+
 export type PrescribedMedication = {
     medicationName: string;
     dosage: string;
@@ -24,6 +33,7 @@ export type Prescription = {
   patientId: string;
   patientName: string;
   doctorId: string;
+  doctorName?: string;
   hospitalId: string; // Denormalized for easier querying by head_doctor
   pharmacyId: string;
   datePrescribed: string; // ISO date string

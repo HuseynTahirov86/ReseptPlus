@@ -16,7 +16,9 @@ import {
   ShieldCheck,
   MapPin,
   HeartPulse,
-  Stethoscope
+  Stethoscope,
+  Star,
+  ChevronRight
 } from "lucide-react";
 
 import {
@@ -30,6 +32,9 @@ import {
   SidebarFooter,
   SidebarTrigger,
   SidebarInset,
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -45,6 +50,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth, useUser } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 const doctorMenuItems = [
   {
@@ -63,10 +69,14 @@ const doctorMenuItems = [
     icon: ClipboardList,
   },
    {
-    href: "/dashboard/hospital",
+    id: "hospital-management",
     label: "Xəstəxana İdarəçiliyi",
     icon: Hospital,
     role: "head_doctor",
+    subItems: [
+        { href: "/dashboard/hospital", label: "Həkimlər", icon: Users },
+        { href: "/dashboard/hospital/feedback", label: "Həkim Rəyləri", icon: Star },
+    ]
   },
   {
     href: "/dashboard/suggestions",
@@ -119,7 +129,7 @@ export default function DashboardLayout({
   const userRole = user?.profile?.role;
 
   let roleDisplay = "İstifadəçi";
-  let menuItems = [];
+  let menuItems: any[] = [];
   let RoleIcon = HeartPulse;
 
   if (userRole === 'doctor' || userRole === 'head_doctor') {
@@ -146,23 +156,59 @@ export default function DashboardLayout({
         <SidebarContent>
           <SidebarMenu>
             {menuItems.map((item) => (
-              <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={
-                    pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard')
-                  }
-                  tooltip={{
-                    children: item.label,
-                    className: "bg-primary text-primary-foreground"
-                  }}
-                >
-                  <Link href={item.href}>
-                    <item.icon />
-                    <span>{item.label}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+                item.subItems ? (
+                <Collapsible key={item.id}>
+                    <CollapsibleTrigger asChild>
+                        <SidebarMenuButton 
+                         className="w-full justify-between"
+                         isActive={item.subItems.some((sub:any) => pathname.startsWith(sub.href))}
+                        >
+                            <div className="flex items-center gap-2">
+                               <item.icon />
+                                <span>{item.label}</span>
+                            </div>
+                            <ChevronRight className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-90" />
+                        </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                        <SidebarMenu className="pl-6">
+                            {item.subItems.map((subItem:any) => (
+                                <SidebarMenuItem key={subItem.href}>
+                                <SidebarMenuButton
+                                    asChild
+                                    size="sm"
+                                    isActive={pathname === subItem.href}
+                                    tooltip={{ children: subItem.label, className: "bg-primary text-primary-foreground" }}
+                                >
+                                    <Link href={subItem.href}>
+                                    <subItem.icon />
+                                    <span>{subItem.label}</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </CollapsibleContent>
+                </Collapsible>
+                ) : (
+                <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                    asChild
+                    isActive={
+                        pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard')
+                    }
+                    tooltip={{
+                        children: item.label,
+                        className: "bg-primary text-primary-foreground"
+                    }}
+                    >
+                    <Link href={item.href}>
+                        <item.icon />
+                        <span>{item.label}</span>
+                    </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                )
             ))}
           </SidebarMenu>
         </SidebarContent>

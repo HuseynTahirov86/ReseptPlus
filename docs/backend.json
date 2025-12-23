@@ -318,6 +318,7 @@
         "patientId": { "type": "string", "description": "Reference to Patient." },
         "patientName": { "type": "string", "description": "Denormalized patient name for display." },
         "doctorId": { "type": "string", "description": "Reference to Doctor." },
+        "doctorName": { "type": "string", "description": "Denormalized doctor name for display." },
         "hospitalId": { "type": "string", "description": "Denormalized hospital ID for easier queries." },
         "pharmacyId": { "type": "string", "description": "Reference to the designated Pharmacy." },
         "datePrescribed": { "type": "string", "format": "date-time", "description": "Date the prescription was prescribed." },
@@ -353,6 +354,21 @@
           "instructions": { "type": "string", "description": "Instructions for taking the medication." }
       },
       "required": [ "medicationName", "dosage", "instructions" ]
+    },
+     "DoctorFeedback": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "DoctorFeedback",
+      "type": "object",
+      "description": "Represents feedback submitted by a patient for a doctor regarding a specific prescription.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the feedback." },
+        "prescriptionId": { "type": "string", "description": "Reference to the specific Prescription." },
+        "patientId": { "type": "string", "description": "Reference to the Patient who submitted the feedback." },
+        "rating": { "type": "number", "description": "Star rating from 1 to 5." },
+        "comment": { "type": "string", "description": "Optional text comment from the patient." },
+        "dateSubmitted": { "type": "string", "format": "date-time", "description": "Date the feedback was submitted." }
+      },
+      "required": ["id", "prescriptionId", "patientId", "rating", "dateSubmitted"]
     },
     "Inventory": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -628,6 +644,26 @@
             {
               "name": "doctorId",
               "description": "The unique identifier for the doctor (matches user UID)."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/doctors/{doctorId}/feedback/{feedbackId}",
+        "definition": {
+          "entityName": "DoctorFeedback",
+          "schema": {
+            "$ref": "#/entities/DoctorFeedback"
+          },
+          "description": "Stores feedback submitted by patients for a specific doctor. Writable by patients, readable by head doctors and system admins.",
+          "params": [
+            {
+              "name": "doctorId",
+              "description": "The unique identifier for the doctor."
+            },
+            {
+               "name": "feedbackId",
+               "description": "The unique identifier for the feedback."
             }
           ]
         }
