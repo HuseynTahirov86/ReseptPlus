@@ -32,6 +32,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -85,6 +86,7 @@ export function DoctorsClientPage({ initialDoctors, initialHospitals }: DoctorsC
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedDoctor(null);
+            router.refresh();
         }
     }
 
@@ -105,6 +107,9 @@ export function DoctorsClientPage({ initialDoctors, initialHospitals }: DoctorsC
         
         setDeleteDialogOpen(false);
         setDoctorToDelete(null);
+         if (result.type === 'success') {
+            router.refresh();
+        }
     };
     
     if (user?.profile?.role !== 'system_admin') {

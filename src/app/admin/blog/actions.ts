@@ -2,7 +2,6 @@
 
 import { z } from 'zod';
 import { db } from '@/firebase/server-init';
-import { revalidatePath } from 'next/cache';
 
 const PostSchema = z.object({
   id: z.string().optional(),
@@ -48,8 +47,6 @@ export async function addPost(
     const docRef = await collectionRef.add(dataToAdd);
     await docRef.update({ id: docRef.id });
     
-    revalidatePath('/admin/blog');
-    revalidatePath('/blog');
     return { type: 'success', message: 'Yazı uğurla əlavə edildi.' };
   } catch (error) {
     return {
@@ -91,8 +88,6 @@ export async function updatePost(
     try {
         const docRef = db.collection('blogPosts').doc(id);
         await docRef.update(dataToUpdate);
-        revalidatePath('/admin/blog');
-        revalidatePath(`/blog/${id}`);
         return { type: 'success', message: 'Yazı uğurla yeniləndi.' };
     } catch (error) {
         return {
@@ -112,8 +107,6 @@ export async function deletePost(id: string): Promise<FormState> {
   try {
     const docRef = db.collection('blogPosts').doc(id);
     await docRef.delete();
-    revalidatePath('/admin/blog');
-    revalidatePath('/blog');
     return { type: 'success', message: 'Yazı uğurla silindi.' };
   } catch (error) {
     return { type: 'error', message: `Yazını silmək mümkün olmadı: ${error instanceof Error ? error.message : "Bilinməyən xəta"}` };

@@ -84,5 +84,3 @@ export async function deletePharmacy(id: string): Promise<FormState> {
     return { type: 'error', message: `Apteki silmək mümkün olmadı: ${errorMessage}` };
   }
 }
-
-    

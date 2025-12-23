@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { useRouter } from "next/navigation";
 
 interface BlogClientPageProps {
     initialPosts: BlogPost[];
@@ -40,6 +41,7 @@ interface BlogClientPageProps {
 
 export function BlogClientPage({ initialPosts }: BlogClientPageProps) {
     const { toast } = useToast();
+    const router = useRouter();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
     const [isPending, startTransition] = useTransition();
@@ -65,6 +67,7 @@ export function BlogClientPage({ initialPosts }: BlogClientPageProps) {
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedPost(null);
+            router.refresh();
         }
     }
     
@@ -76,6 +79,9 @@ export function BlogClientPage({ initialPosts }: BlogClientPageProps) {
                 description: result.message,
                 variant: result.type === 'success' ? 'default' : 'destructive',
             });
+             if (result.type === 'success') {
+                router.refresh();
+            }
         });
     };
 

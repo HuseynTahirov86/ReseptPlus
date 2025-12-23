@@ -2,7 +2,6 @@
 
 import { z } from 'zod';
 import { db } from '@/firebase/server-init';
-import { revalidatePath } from 'next/cache';
 
 const HospitalSchema = z.object({
   id: z.string().optional(),
@@ -44,7 +43,6 @@ export async function addHospital(
       const collectionRef = db.collection('hospitals');
       const docRef = await collectionRef.add(dataToSave);
       await docRef.update({ id: docRef.id });
-      revalidatePath('/admin/hospitals');
       return { type: 'success', message: 'Xəstəxana uğurla əlavə edildi.' };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Bilinməyən xəta';
@@ -83,7 +81,6 @@ export async function updateHospital(
   try {
       const docRef = db.collection('hospitals').doc(id);
       await docRef.set(dataToSave, { merge: true });
-      revalidatePath('/admin/hospitals');
       return { type: 'success', message: 'Xəstəxana uğurla yeniləndi.' };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Bilinməyən xəta';
@@ -105,7 +102,6 @@ export async function deleteHospital(id: string): Promise<FormState> {
     // TODO: Consider what happens to doctors in this hospital.
     const docRef = db.collection('hospitals').doc(id);
     await docRef.delete();
-    revalidatePath('/admin/hospitals');
     return { type: 'success', message: 'Xəstəxana uğurla silindi.' };
   } catch (error) {
      const errorMessage = error instanceof Error ? error.message : 'Bilinməyən xəta';

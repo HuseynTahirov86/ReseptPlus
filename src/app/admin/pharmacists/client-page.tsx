@@ -32,6 +32,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -84,6 +85,7 @@ export function PharmacistsClientPage({ initialPharmacists, initialPharmacies }:
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedPharmacist(null);
+            router.refresh();
         }
     }
     
@@ -102,6 +104,9 @@ export function PharmacistsClientPage({ initialPharmacists, initialPharmacies }:
         });
         setDeleteDialogOpen(false);
         setPharmacistToDelete(null);
+        if (result.type === 'success') {
+            router.refresh();
+        }
     };
     
      if (user?.profile?.role !== 'system_admin') {

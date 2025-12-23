@@ -72,6 +72,7 @@ export function HospitalsClientPage({ initialHospitals }: { initialHospitals: Ho
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedHospital(null);
+            router.refresh();
         }
     }
     
@@ -82,6 +83,9 @@ export function HospitalsClientPage({ initialHospitals }: { initialHospitals: Ho
             description: result.message,
             variant: result.type === 'success' ? 'default' : 'destructive',
         });
+        if (result.type === 'success') {
+            router.refresh();
+        }
     };
     
      if (user?.profile?.role !== 'system_admin') {

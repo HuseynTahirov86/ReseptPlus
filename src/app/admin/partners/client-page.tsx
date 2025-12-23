@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { useRouter } from "next/navigation";
 
 type Partner = SupportingOrganization | ClientCompany;
 type PartnerType = 'supportingOrganizations' | 'clientCompanies';
@@ -40,6 +41,7 @@ interface PartnersTableProps {
 
 function PartnersTable({ title, data, type }: PartnersTableProps) {
     const { toast } = useToast();
+    const router = useRouter();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
     const [isPending, startTransition] = useTransition();
@@ -65,6 +67,7 @@ function PartnersTable({ title, data, type }: PartnersTableProps) {
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedPartner(null);
+            router.refresh();
         }
     }
     
@@ -76,6 +79,9 @@ function PartnersTable({ title, data, type }: PartnersTableProps) {
                 description: result.message,
                 variant: result.type === 'success' ? 'default' : 'destructive',
             });
+            if (result.type === 'success') {
+                router.refresh();
+            }
         });
     };
 

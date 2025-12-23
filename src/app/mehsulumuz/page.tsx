@@ -16,6 +16,46 @@ async function getProductFeatures() {
     }
 }
 
+const defaultFeatures: ProductFeature[] = [
+    {
+        id: "static-1",
+        title: "Təhlükəsiz E-Resept",
+        description: "Reseptləri kağızdan rəqəmsala daşıyaraq səhvləri minimuma endirin və təhlükəsizliyi maksimuma çatdırın.",
+        icon: "ShieldCheck"
+    },
+    {
+        id: "static-2",
+        title: "AI Konsultant",
+        description: "Diaqnoz və müalicə prosesində qərarlarınıza dəstək olmaq üçün süni intellektin gücündən faydalanın.",
+        icon: "BrainCircuit"
+    },
+    {
+        id: "static-3",
+        title: "Vahid Xəstə Profili",
+        description: "Xəstələrin bütün resept tarixçəsinə və tibbi məlumatlarına bir yerdən, anında və təhlükəsiz şəkildə daxil olun.",
+        icon: "User"
+    },
+    {
+        id: "static-4",
+        title: "Aptek İnventar İdarəçiliyi",
+        description: "Aptek anbarınızı real zamanlı izləyin, dərmanların bitmə tarixinə nəzarət edin və sifarişləri avtomatlaşdırın.",
+        icon: "Package"
+    },
+    {
+        id: "static-5",
+        title: "Analitika və Hesabatlar",
+        description: "Baş həkimlər və aptek rəhbərləri üçün xəstəliklər, dərman satışları və fəaliyyət effektivliyi haqqında detallı hesabatlar.",
+        icon: "BarChart3"
+    },
+    {
+        id: "static-6",
+        title: "İki Faktorlu Doğrulama",
+        description: "Reseptlərin yalnız doğru xəstəyə verilməsini təmin etmək üçün FİN kod və SMS təsdiqindən ibarət güclü təhlükəsizlik.",
+        icon: "KeyRound"
+    }
+];
+
+
 const IconComponent = ({ iconName, className }: { iconName: string, className?: string }) => {
     const Icon = (LucideIcons as any)[iconName];
     if (!Icon) {
@@ -25,7 +65,11 @@ const IconComponent = ({ iconName, className }: { iconName: string, className?: 
 };
 
 export default async function ProductPage() {
-    const productFeatures = await getProductFeatures();
+    let productFeatures = await getProductFeatures();
+
+    if (productFeatures.length === 0) {
+        productFeatures = defaultFeatures;
+    }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">

@@ -33,6 +33,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
 
 interface PricingClientPageProps {
     initialPlans: PricingPlan[];
@@ -40,6 +41,7 @@ interface PricingClientPageProps {
 
 export function PricingClientPage({ initialPlans }: PricingClientPageProps) {
     const { toast } = useToast();
+    const router = useRouter();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
 
@@ -64,6 +66,7 @@ export function PricingClientPage({ initialPlans }: PricingClientPageProps) {
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedPlan(null);
+            router.refresh();
         }
     }
     
@@ -74,6 +77,9 @@ export function PricingClientPage({ initialPlans }: PricingClientPageProps) {
             description: result.message,
             variant: result.type === 'success' ? 'default' : 'destructive',
         });
+        if (result.type === 'success') {
+            router.refresh();
+        }
     };
 
     return (

@@ -29,6 +29,7 @@ type UserRole = 'admin' | 'system_admin';
 
 function UsersTable({ title, icon, data, type, currentUser }: { title: string, icon: React.ReactNode, data: UserType[], type: UserRole, currentUser: any }) {
     const { toast } = useToast();
+    const router = useRouter();
     const [isFormOpen, setIsFormOpen] = useState(false);
 
     const onFormSubmit = (state: { type: 'success' | 'error', message: string }) => {
@@ -39,6 +40,7 @@ function UsersTable({ title, icon, data, type, currentUser }: { title: string, i
         });
         if (state.type === 'success') {
             setIsFormOpen(false);
+            router.refresh();
         }
     }
     
@@ -49,6 +51,9 @@ function UsersTable({ title, icon, data, type, currentUser }: { title: string, i
             description: result.message,
             variant: result.type === 'success' ? 'default' : 'destructive',
         });
+        if (result.type === 'success') {
+            router.refresh();
+        }
     };
 
     return (

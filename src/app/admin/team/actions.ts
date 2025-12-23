@@ -2,7 +2,6 @@
 
 import { z } from 'zod';
 import { db } from '@/firebase/server-init';
-import { revalidatePath } from 'next/cache';
 
 const TeamMemberSchema = z.object({
   id: z.string().optional(),
@@ -42,8 +41,6 @@ export async function addTeamMember(
     const docRef = await collectionRef.add(validatedFields.data);
     await docRef.update({ id: docRef.id });
 
-    revalidatePath('/admin/team');
-    revalidatePath('/haqqimizda');
     return { type: 'success', message: 'Komanda üzvü uğurla əlavə edildi.' };
   } catch (error) {
     return {
@@ -86,8 +83,6 @@ export async function updateTeamMember(
         const docRef = db.collection('teamMembers').doc(id);
         await docRef.update(dataToUpdate);
 
-        revalidatePath('/admin/team');
-        revalidatePath('/haqqimizda');
         return { type: 'success', message: 'Komanda üzvü uğurla yeniləndi.' };
     } catch (error) {
         return {
@@ -108,8 +103,6 @@ export async function deleteTeamMember(id: string): Promise<FormState> {
     const docRef = db.collection('teamMembers').doc(id);
     await docRef.delete();
 
-    revalidatePath('/admin/team');
-    revalidatePath('/haqqimizda');
     return { type: 'success', message: 'Komanda üzvü uğurla silindi.' };
   } catch (error) {
     return { type: 'error', message: `Üzvü silmək mümkün olmadı: ${error instanceof Error ? error.message : "Bilinməyən xəta"}` };

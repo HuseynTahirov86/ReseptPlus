@@ -2,7 +2,6 @@
 
 import { z } from 'zod';
 import { db } from '@/firebase/server-init';
-import { revalidatePath } from 'next/cache';
 
 const MedicationSchema = z.object({
   id: z.string().optional(),
@@ -55,7 +54,6 @@ async function addOrUpdateMedication(
       await docRef.set(dataToSave, { merge: true });
     }
 
-    revalidatePath('/dashboard/pharmacy/inventory');
     return { type: 'success', message: `Dərman uğurla ${action === 'add' ? 'əlavə edildi' : 'yeniləndi'}.` };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Bilinməyən xəta';
@@ -79,7 +77,6 @@ export async function deleteMedication(pharmacyId: string, id: string): Promise<
   try {
     const docRef = db.collection(`pharmacies/${pharmacyId}/inventory`).doc(id);
     await docRef.delete();
-    revalidatePath('/dashboard/pharmacy/inventory');
     return { type: 'success', message: 'Dərman uğurla silindi.' };
   } catch (error) {
      const errorMessage = error instanceof Error ? error.message : 'Bilinməyən xəta';

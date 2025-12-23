@@ -2,7 +2,6 @@
 import { z } from 'zod';
 import { db } from '@/firebase/server-init';
 import type { Prescription, Patient, Doctor, DoctorFeedback } from '@/lib/types';
-import { revalidatePath } from 'next/cache';
 
 const PrescribedMedicationSchema = z.object({
   medicationName: z.string().min(3, 'Dərman adı ən azı 3 simvol olmalıdır.'),
@@ -113,10 +112,6 @@ export async function addPrescription(
     });
     await docRef.update({ id: docRef.id });
 
-    revalidatePath(`/dashboard/patients/${validatedFields.data.patientId}`);
-    revalidatePath('/dashboard');
-    revalidatePath('/dashboard/prescriptions');
-
     return { type: 'success', message: 'Resept uğurla əlavə edildi.' };
   } catch (error) {
     console.error("Add Prescription Error:", error);
@@ -166,7 +161,6 @@ export async function addPatient(prevState: FormState, formData: FormData): Prom
         const docRef = await collectionRef.add(newPatient);
         await docRef.update({ id: docRef.id });
 
-        revalidatePath('/dashboard/patients');
 
         return { type: 'success', message: 'Xəstə uğurla qeydiyyata alındı.' };
     } catch (error) {
@@ -200,9 +194,6 @@ export async function submitDoctorFeedback(prevState: FormState, formData: FormD
             dateSubmitted: new Date().toISOString(),
         });
         await docRef.update({ id: docRef.id });
-        
-        revalidatePath(`/dashboard/prescriptions`);
-        revalidatePath('/dashboard/hospital/feedback');
 
         return { type: 'success', message: 'Rəyiniz uğurla göndərildi. Təşəkkür edirik!' };
 

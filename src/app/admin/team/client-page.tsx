@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from "next/navigation";
 
 
 function MemberSkeleton() {
@@ -57,6 +58,7 @@ interface TeamClientPageProps {
 
 export function TeamClientPage({ initialMembers }: TeamClientPageProps) {
     const { toast } = useToast();
+    const router = useRouter();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
 
@@ -81,6 +83,7 @@ export function TeamClientPage({ initialMembers }: TeamClientPageProps) {
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedMember(null);
+            router.refresh();
         }
     }
     
@@ -91,6 +94,9 @@ export function TeamClientPage({ initialMembers }: TeamClientPageProps) {
             description: result.message,
             variant: result.type === 'success' ? 'default' : 'destructive',
         });
+        if (result.type === 'success') {
+            router.refresh();
+        }
     };
 
     return (

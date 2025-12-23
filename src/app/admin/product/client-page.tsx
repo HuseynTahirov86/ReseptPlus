@@ -34,6 +34,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { useRouter } from "next/navigation";
 
 const IconComponent = ({ iconName }: { iconName: string }) => {
     const Icon = (LucideIcons as any)[iconName];
@@ -49,6 +50,7 @@ interface ProductClientPageProps {
 
 export function ProductClientPage({ initialFeatures }: ProductClientPageProps) {
     const { toast } = useToast();
+    const router = useRouter();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedFeature, setSelectedFeature] = useState<ProductFeature | null>(null);
 
@@ -73,6 +75,7 @@ export function ProductClientPage({ initialFeatures }: ProductClientPageProps) {
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedFeature(null);
+            router.refresh();
         }
     }
     
@@ -83,6 +86,9 @@ export function ProductClientPage({ initialFeatures }: ProductClientPageProps) {
             description: result.message,
             variant: result.type === 'success' ? 'default' : 'destructive',
         });
+        if (result.type === 'success') {
+            router.refresh();
+        }
     };
 
     return (
