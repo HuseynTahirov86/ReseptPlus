@@ -193,7 +193,7 @@ export function PatientForm({ initialFinCode, initialBirthDate, onFormSubmit }: 
           render={({ field }) => (
             <FormItem>
               <FormLabel>Cins</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Cins seçin..." />

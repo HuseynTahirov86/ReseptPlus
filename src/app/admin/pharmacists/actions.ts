@@ -110,7 +110,7 @@ export async function updatePharmacist(
         await docRef.set(pharmacistData, { merge: true });
         
         // Update Firebase Auth user if needed
-        const authUpdates: adminAuth.UpdateRequest = {
+        const authUpdates: Partial<adminAuth.UpdateRequest> = {
              email: pharmacistData.email,
              displayName: `${pharmacistData.firstName} ${pharmacistData.lastName}`
         };
