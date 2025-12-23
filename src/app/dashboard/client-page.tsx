@@ -16,11 +16,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Prescription, Doctor, AppUser } from "@/lib/types";
-import { ClipboardList, Users, RefreshCw, UserCheck, Pill, Building, Loader2, Hospital } from "lucide-react";
+import { ClipboardList, Users, RefreshCw, UserCheck, Pill, Building, Loader2, Hospital, Stethoscope, HeartPulse } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser, useFirebase } from "@/firebase";
 import { collection, getCountFromServer, query, where, getDocs, limit, orderBy } from "firebase/firestore";
+import Link from 'next/link';
 
 const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
     'Təhvil verildi': 'default',
@@ -35,6 +36,108 @@ interface Stats {
     inventoryCount: number;
     pendingPrescriptions: number;
     hospitalName?: string;
+    activeMedications?: number;
+}
+
+function PatientDashboard({ user, stats, prescriptions, isLoading }: { user: AppUser | null, stats: Stats, prescriptions: Prescription[], isLoading: boolean }) {
+    const welcomeMessage = user ? `Xoş gəlmisiniz, ${user.profile?.firstName || user.email}!` : "Xoş gəlmisiniz!";
+    
+    return (
+         <div className="space-y-8">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">{welcomeMessage}</h1>
+                <p className="text-muted-foreground">
+                    Səhiyyə məlumatlarınız bir yerdə.
+                </p>
+            </div>
+             <div className="grid gap-6 md:grid-cols-3">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">Aktiv Reseptlər</CardTitle>
+                        <ClipboardList className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.pendingPrescriptions}</div>}
+                        <p className="text-xs text-muted-foreground">gözləmə rejimində</p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">Ümumi Reseptlər</CardTitle>
+                        <ClipboardList className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.prescriptions}</div>}
+                        <p className="text-xs text-muted-foreground">bütün tarixçəniz üzrə</p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">Aktiv Dərmanlar</CardTitle>
+                        <Pill className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.activeMedications}</div>}
+                        <p className="text-xs text-muted-foreground">aktiv reseptlərinizdə</p>
+                    </CardContent>
+                </Card>
+            </div>
+             <Card>
+                <CardHeader className="flex flex-row justify-between items-center">
+                    <div>
+                        <CardTitle>Son Reseptləriniz</CardTitle>
+                        <CardDescription>
+                            Ən son yazılmış reseptlərin siyahısı.
+                        </CardDescription>
+                    </div>
+                    <Link href="/dashboard/prescriptions" className="text-sm font-medium text-primary hover:underline">
+                        Hamısına bax
+                    </Link>
+                </CardHeader>
+                <CardContent>
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>Diaqnoz</TableHead>
+                        <TableHead>Tarix</TableHead>
+                        <TableHead>Dərmanlar</TableHead>
+                        <TableHead className="text-right">Status</TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {isLoading && (
+                        Array.from({ length: 3 }).map((_, i) => (
+                            <TableRow key={i}>
+                                <TableCell><Skeleton className="h-5 w-[120px]" /></TableCell>
+                                <TableCell><Skeleton className="h-5 w-[80px]" /></TableCell>
+                                <TableCell><Skeleton className="h-5 w-[150px]" /></TableCell>
+                                <TableCell className="text-right"><Skeleton className="h-5 w-[70px] ml-auto" /></TableCell>
+                            </TableRow>
+                        ))
+                    )}
+                    {!isLoading && prescriptions.slice(0, 3).map((p) => (
+                        <TableRow key={p.id}>
+                            <TableCell className="font-medium">{p.diagnosis}</TableCell>
+                            <TableCell>{new Date(p.datePrescribed).toLocaleDateString()}</TableCell>
+                            <TableCell>
+                                {p.medications.map(m => m.medicationName).join(', ')}
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <Badge variant={statusVariant[p.status] || 'secondary'}>{p.status}</Badge>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                    {!isLoading && prescriptions.length === 0 && (
+                        <TableRow>
+                        <TableCell colSpan={4} className="text-center h-24">Heç bir resept tapılmadı.</TableCell>
+                        </TableRow>
+                    )}
+                    </TableBody>
+                </Table>
+                </CardContent>
+            </Card>
+        </div>
+    )
 }
 
 function DoctorDashboard({ user, stats, prescriptions, isLoading }: { user: AppUser | null, stats: Stats, prescriptions: Prescription[], isLoading: boolean }) {
@@ -70,7 +173,7 @@ function DoctorDashboard({ user, stats, prescriptions, isLoading }: { user: AppU
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">Xəstəxanadakı Həkimlər</CardTitle>
-                        <UserCheck className="h-4 w-4 text-muted-foreground" />
+                        <Stethoscope className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                         {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.doctors}</div>}
@@ -225,7 +328,7 @@ function PharmacistDashboard({ user, stats, isLoading }: { user: AppUser | null,
 export function DashboardClientPage() {
   const { user, isUserLoading } = useUser();
   const { firestore } = useFirebase();
-  const [stats, setStats] = useState<Stats>({ prescriptions: 0, patients: 0, doctors: 0, inventoryCount: 0, pendingPrescriptions: 0 });
+  const [stats, setStats] = useState<Stats>({ prescriptions: 0, patients: 0, doctors: 0, inventoryCount: 0, pendingPrescriptions: 0, activeMedications: 0 });
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -236,7 +339,7 @@ export function DashboardClientPage() {
         setIsLoading(true);
 
         const profile = user.profile;
-        let newStats: Stats = { prescriptions: 0, patients: 0, doctors: 0, inventoryCount: 0, pendingPrescriptions: 0 };
+        let newStats: Stats = { prescriptions: 0, patients: 0, doctors: 0, inventoryCount: 0, pendingPrescriptions: 0, activeMedications: 0 };
         let newPrescriptions: Prescription[] = [];
 
         try {
@@ -272,6 +375,21 @@ export function DashboardClientPage() {
                         newStats.inventoryCount = (await getCountFromServer(inventoryQuery)).data().count;
                     }
                 }
+            } else if (profile.role === 'patient') {
+                const presQuery = query(presCollection, where("patientId", "==", user.uid));
+                const pendingQuery = query(presQuery, where("status", "==", "Gözləmədə"));
+                
+                const presSnapshot = await getDocs(presQuery);
+                newPrescriptions = presSnapshot.docs.map(doc => doc.data() as Prescription).sort((a, b) => new Date(b.datePrescribed).getTime() - new Date(a.datePrescribed).getTime());
+
+                newStats.prescriptions = newPrescriptions.length;
+                newStats.pendingPrescriptions = (await getCountFromServer(pendingQuery)).data().count;
+                
+                const activeMeds = new Set<string>();
+                newPrescriptions.filter(p => p.status === 'Gözləmədə').forEach(p => {
+                    p.medications.forEach(med => activeMeds.add(med.medicationName));
+                });
+                newStats.activeMedications = activeMeds.size;
             }
         } catch (error) {
             console.error("Error fetching live stats:", error);
@@ -322,6 +440,10 @@ export function DashboardClientPage() {
   
   if (userRole === 'employee' || userRole === 'head_pharmacist') {
       return <PharmacistDashboard user={user} stats={stats} isLoading={isLoading} />;
+  }
+
+  if (userRole === 'patient') {
+      return <PatientDashboard user={user} stats={stats} prescriptions={prescriptions} isLoading={isLoading} />;
   }
 
   // Fallback for other roles or while loading

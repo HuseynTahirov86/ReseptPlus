@@ -15,6 +15,8 @@ import {
   Building,
   ShieldCheck,
   MapPin,
+  HeartPulse,
+  Stethoscope
 } from "lucide-react";
 
 import {
@@ -118,16 +120,20 @@ export default function DashboardLayout({
 
   let roleDisplay = "İstifadəçi";
   let menuItems = [];
+  let RoleIcon = HeartPulse;
 
   if (userRole === 'doctor' || userRole === 'head_doctor') {
     menuItems = doctorMenuItems.filter(item => !item.role || item.role === userRole);
     roleDisplay = userRole === 'head_doctor' ? 'Baş Həkim' : 'Həkim';
+    RoleIcon = Stethoscope;
   } else if (userRole === 'employee' || userRole === 'head_pharmacist') {
     menuItems = pharmacistMenuItems.filter(item => !item.role || item.role === userRole);
     roleDisplay = userRole === 'head_pharmacist' ? 'Baş Əczaçı' : 'Əczaçı';
+    RoleIcon = Building;
   } else if (userRole === 'patient') {
     menuItems = patientMenuItems;
     roleDisplay = 'Xəstə';
+    RoleIcon = HeartPulse;
   }
   
 
@@ -197,7 +203,7 @@ export default function DashboardLayout({
                     </Avatar>
                     <div className="text-left hidden sm:block">
                       <div className="font-medium text-sm">{user.displayName || user.email}</div>
-                      {userRole && <Badge variant="secondary">{roleDisplay}</Badge>}
+                      {userRole && <Badge variant="secondary" className="flex items-center gap-1"><RoleIcon className="h-3 w-3"/>{roleDisplay}</Badge>}
                     </div>
                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   </Button>

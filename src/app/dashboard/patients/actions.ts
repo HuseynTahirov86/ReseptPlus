@@ -1,7 +1,7 @@
 'use server';
 import { z } from 'zod';
 import { db } from '@/firebase/server-init';
-import type { Prescription, Patient, Doctor } from '@/lib/types';
+import type { Prescription, Patient, Doctor, DoctorFeedback } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 
 const PrescribedMedicationSchema = z.object({
@@ -28,6 +28,14 @@ const PatientSchema = z.object({
   contactNumber: z.string().min(9, 'Nömrə düzgün formatda olmalıdır.'),
   email: z.string().email('Düzgün email daxil edin.').optional().or(z.literal('')),
   address: z.string().min(3, 'Ünvan ən azı 3 simvol olmalıdır.').optional().or(z.literal('')),
+});
+
+const FeedbackSchema = z.object({
+  prescriptionId: z.string(),
+  doctorId: z.string(),
+  patientId: z.string(),
+  rating: z.coerce.number().min(1).max(5),
+  comment: z.string().optional(),
 });
 
 
@@ -89,6 +97,7 @@ export async function addPrescription(
     const newPrescription: Omit<Prescription, 'id' | 'status' | 'verificationCode' | 'datePrescribed' > = {
       ...validatedFields.data,
       doctorId: doctorId,
+      doctorName: `${doctorData.firstName} ${doctorData.lastName}`,
       hospitalId: hospitalId,
       pharmacyId: '', // Will be assigned by the pharmacy
       totalCost: 0,
@@ -166,6 +175,43 @@ export async function addPatient(prevState: FormState, formData: FormData): Prom
             type: 'error',
             message: 'Xəstə əlavə edilərkən gözlənilməz bir xəta baş verdi.',
             fields: rawData,
+        };
+    }
+}
+
+export async function submitDoctorFeedback(prevState: FormState, formData: FormData): Promise<FormState> {
+    const validatedFields = FeedbackSchema.safeParse(Object.fromEntries(formData.entries()));
+
+    if (!validatedFields.success) {
+        return {
+            type: 'error',
+            message: "Məlumatlar yanlışdır.",
+            issues: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+
+    const { doctorId, ...feedbackData } = validatedFields.data;
+
+    try {
+        const feedbackRef = db.collection('doctors').doc(doctorId).collection('feedback');
+        const newFeedback: Omit<DoctorFeedback, 'id' | 'dateSubmitted'> = {
+            ...feedbackData
+        };
+        await feedbackRef.add({
+            ...newFeedback,
+            dateSubmitted: new Date().toISOString(),
+        });
+        
+        revalidatePath(`/dashboard/prescriptions`);
+
+        return { type: 'success', message: 'Rəyiniz uğurla göndərildi. Təşəkkür edirik!' };
+
+    } catch (error) {
+        console.error("Submit Feedback Error:", error);
+        const errorMessage = error instanceof Error ? error.message : 'Bilinməyən xəta';
+        return {
+            type: 'error',
+            message: `Rəy göndərilərkən xəta baş verdi: ${errorMessage}`,
         };
     }
 }
