@@ -14,17 +14,20 @@ const serviceAccount = {
 };
 
 if (!getApps().length) {
-    if (!serviceAccount.projectId || !serviceAccount.clientEmail || !serviceAccount.privateKey) {
-        if (process.env.NODE_ENV === 'production') {
-            console.warn("Firebase Admin SDK credentials not found in environment variables. Production functionalities might be affected.");
-            // In production, we might rely on default credentials if available
-            app = initializeApp();
-        } else {
-            console.error("Firebase Admin SDK credentials are not set. Please check your .env file.");
-            // To avoid crashing the dev server, we can create a dummy app, but auth-dependent features will fail.
-            app = initializeApp({ credential: cert({ projectId: 'dummy-project' }) });
-        }
-    } else {
+    if (process.env.NODE_ENV === 'production' && (!serviceAccount.projectId || !serviceAccount.clientEmail || !serviceAccount.privateKey)) {
+        // In a real production environment (like Vercel), we might rely on default application credentials
+        // but for this build process, if .env is missing, we must handle it gracefully.
+        console.warn("Firebase Admin SDK credentials not found in environment variables for production build. Admin-dependent server actions (like user creation) may fail if not configured correctly on the server.");
+        // We initialize with a dummy project to prevent the build from crashing.
+        // The actual server environment MUST have the correct .env variables.
+        app = initializeApp({ credential: cert({ projectId: 'dummy-project-for-build' }) });
+    } else if (!serviceAccount.projectId || !serviceAccount.clientEmail || !serviceAccount.privateKey) {
+        // For local development
+        console.error("Firebase Admin SDK credentials are not set in .env. Server-side auth actions will fail.");
+        app = initializeApp({ credential: cert({ projectId: 'dummy-project-for-dev' }) });
+    }
+    else {
+        // Credentials are provided
         app = initializeApp({
             credential: cert(serviceAccount),
         });
