@@ -112,18 +112,18 @@ export default async function MarketingHomePage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="py-24 md:py-32 lg:py-40">
-          <div className="container text-center">
+          <div className="container grid lg:grid-cols-2 gap-12 items-center">
             <div
-              className="mx-auto max-w-4xl animate-fade-in-up"
+              className="mx-auto max-w-4xl text-center lg:text-left animate-fade-in-up"
               style={{ animationDuration: '0.9s' }}
             >
               <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
                 Səhiyyəni Rəqəmsal Zirvəyə Daşıyırıq.
               </h1>
-              <p className="mx-auto mt-6 max-w-3xl text-lg text-muted-foreground md:text-xl">
+              <p className="mx-auto mt-6 max-w-3xl text-lg text-muted-foreground md:text-xl lg:mx-0">
                 ReseptPlus, həkimləri, aptekləri və xəstələri daha təhlükəsiz və səmərəli səhiyyə təcrübəsi üçün bir araya gətirən vahid elektron resept platformasıdır.
               </p>
-              <div className="mt-8 flex justify-center gap-4">
+              <div className="mt-8 flex justify-center lg:justify-start gap-4">
                 <Button asChild size="lg" style={{ animationDelay: '0.2s' }} className="animate-fade-in-up">
                   <Link href="/login">Platformaya Keçid</Link>
                 </Button>
@@ -131,6 +131,22 @@ export default async function MarketingHomePage() {
                   <Link href="/haqqimizda">Daha Çox Məlumat</Link>
                 </Button>
               </div>
+            </div>
+             <div 
+              className="relative hidden lg:block animate-fade-in-up"
+              style={{ animationDelay: '0.3s', animationDuration: '0.9s' }}
+             >
+                {heroImage && (
+                    <Image
+                        src={heroImage.imageUrl}
+                        alt={heroImage.description}
+                        width={600}
+                        height={400}
+                        priority
+                        className="rounded-xl shadow-2xl shadow-primary/10"
+                        data-ai-hint={heroImage.imageHint}
+                    />
+                )}
             </div>
           </div>
         </section>
