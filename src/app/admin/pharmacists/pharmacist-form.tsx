@@ -69,7 +69,7 @@ export function PharmacistForm({ initialData, pharmacies, onFormSubmit }: Pharma
 
   const form = useForm<PharmacistFormValues>({
     resolver: zodResolver(isEditing ? UpdatePharmacistSchema : CreatePharmacistSchema),
-    defaultValues: isEditing ? {
+    defaultValues: isEditing && initialData ? {
         ...initialData,
         password: '',
     } : {
@@ -101,7 +101,7 @@ export function PharmacistForm({ initialData, pharmacies, onFormSubmit }: Pharma
     }
   }, [state, onFormSubmit, form]);
 
-  // Reset form when initialData changes
+  // Reset form when initialData changes to ensure dropdowns are correctly set
   useEffect(() => {
     if (initialData) {
       form.reset({ ...initialData, password: '' });

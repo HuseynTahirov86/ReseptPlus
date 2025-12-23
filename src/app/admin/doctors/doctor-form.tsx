@@ -70,7 +70,7 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
 
   const form = useForm<DoctorFormValues>({
     resolver: zodResolver(isEditing ? UpdateDoctorSchema : CreateDoctorSchema),
-    defaultValues: isEditing ? {
+    defaultValues: isEditing && initialData ? {
         ...initialData,
         password: '',
     } : {
@@ -103,7 +103,7 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
     }
   }, [state, onFormSubmit, form]);
 
-  // Reset form when initialData changes
+  // Reset form when initialData changes, ensuring dropdowns get updated
   useEffect(() => {
     if (initialData) {
       form.reset({ ...initialData, password: '' });
