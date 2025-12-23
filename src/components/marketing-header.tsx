@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 const navLinks = [
   { href: "/mehsulumuz", label: "Məhsulumuz" },
@@ -17,6 +18,11 @@ const navLinks = [
 
 export default function MarketingHeader() {
   const pathname = usePathname();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -46,37 +52,39 @@ export default function MarketingHeader() {
           </Button>
         </div>
         <div className="md:hidden">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Menyunu aç</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="bg-background">
-              <div className="flex flex-col gap-6 p-6">
-                 <Link href="/">
-                    <Logo />
-                  </Link>
-                <nav className="flex flex-col gap-4">
-                  {navLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className="text-lg font-medium text-foreground/80 hover:text-foreground"
-                    >
-                      {link.label}
+          {isClient && (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Menyunu aç</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="bg-background">
+                <div className="flex flex-col gap-6 p-6">
+                  <Link href="/">
+                      <Logo />
                     </Link>
-                  ))}
-                </nav>
-                 <div className="flex flex-col gap-4">
-                    <Button asChild className="w-full">
-                        <Link href="/login">Daxil Ol</Link>
-                    </Button>
-                 </div>
-              </div>
-            </SheetContent>
-          </Sheet>
+                  <nav className="flex flex-col gap-4">
+                    {navLinks.map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className="text-lg font-medium text-foreground/80 hover:text-foreground"
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </nav>
+                  <div className="flex flex-col gap-4">
+                      <Button asChild className="w-full">
+                          <Link href="/login">Daxil Ol</Link>
+                      </Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
       </div>
     </header>
