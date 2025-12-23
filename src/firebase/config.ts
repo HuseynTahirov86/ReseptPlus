@@ -1,8 +1,9 @@
+// This file is populated from .env variables
 export const firebaseConfig = {
-  "projectId": "studio-498030416-70ea5",
-  "appId": "1:150295020220:web:a596244b2b120daa9446b9",
-  "apiKey": "AIzaSyAT1SdEaITNIdv4WvWXXsoSeTg3gy7MQos",
-  "authDomain": "studio-498030416-70ea5.firebaseapp.com",
-  "measurementId": "",
-  "messagingSenderId": "150295020220"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };

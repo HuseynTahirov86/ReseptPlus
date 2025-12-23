@@ -19,7 +19,7 @@ const CreatePharmacistSchema = z.object({
 // Schema for updating a pharmacist (password is optional)
 const UpdatePharmacistSchema = CreatePharmacistSchema.omit({ password: true }).extend({
   id: z.string().min(1, 'Əczaçı ID-si təyin edilməyib.'),
-  password: z.string().min(6, 'Şifrə ən azı 6 simvol olmalıdır.').optional().or(z.literal('')),
+  password: z.string().min(6, 'Şifrə ən azı 6 simvol olmalıdır.').optional().or(z.literal('')).transform(e => e === '' ? undefined : e),
 });
 
 
