@@ -46,6 +46,12 @@ const nextConfig: NextConfig = {
         port: '9002',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'bioscript.ndu.edu.az',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
