@@ -65,11 +65,15 @@ export const FirebaseContext = createContext<FirebaseContextState | undefined>(u
 const SPECIAL_ACCOUNTS: Record<string, Partial<UserProfile>> = {
     'admin@sagliknet.az': { role: 'admin' },
     'superadmin@reseptplus.az': { role: 'system_admin' },
-    'bashekim@ndu.edu.az': { role: 'head_doctor', firstName: 'Baş', lastName: 'Həkim', specialization: 'Ümumi Cərrah', hospitalId: 'ndu_hospital' },
-    'hekim@ndu.edu.az': { role: 'doctor', firstName: 'Test', lastName: 'Həkim', specialization: 'Kardioloq', hospitalId: 'ndu_hospital' },
-    'basecza@ndu.edu.az': { role: 'head_pharmacist', firstName: 'Baş', lastName: 'Əczaçı', pharmacyId: 'ndu_pharmacy' },
-    'eczaci@ndu.edu.az': { role: 'employee', firstName: 'Test', lastName: 'Əczaçı', pharmacyId: 'ndu_pharmacy' }
+    
+    // Demo accounts for presentation
+    'aysel.quliyeva@reseptplus.az': { role: 'head_doctor', firstName: 'Aysel', lastName: 'Quliyeva', specialization: 'Baş Həkim', hospitalId: 'ndmc_hospital_01' },
+    'elvin.agayev@reseptplus.az': { role: 'doctor', firstName: 'Elvin', lastName: 'Ağayev', specialization: 'Kardioloq', hospitalId: 'ndmc_hospital_01' },
+    'leyla.hesenova@reseptplus.az': { role: 'head_pharmacist', firstName: 'Leyla', lastName: 'Həsənova', pharmacyId: 'zeytun_pharmacy_05' },
+    'anar.memmedov@reseptplus.az': { role: 'employee', firstName: 'Anar', lastName: 'Məmmədov', pharmacyId: 'zeytun_pharmacy_05' },
+    'orxan.veliyev@reseptplus.az': { role: 'patient', firstName: 'Orxan', lastName: 'Vəliyev', dateOfBirth: '1988-05-15', gender: 'Kişi', contactNumber: '+994501234567', finCode: '1A2B3C4' }
 };
+
 
 const getCollectionForRole = (role: string) => {
     switch (role) {
@@ -115,7 +119,7 @@ const RedirectHandler = () => {
       // If user is not on the correct page for their role, redirect them
       if ((role === 'admin' || role === 'system_admin') && !isAdminPage) {
          router.push('/admin/dashboard');
-      } else if (role && ['doctor', 'head_doctor', 'pharmacist', 'head_pharmacist', 'employee'].includes(role) && !isDashboardPage) {
+      } else if (role && ['doctor', 'head_doctor', 'pharmacist', 'head_pharmacist', 'employee', 'patient'].includes(role) && !isDashboardPage) {
          router.push('/dashboard');
       }
 

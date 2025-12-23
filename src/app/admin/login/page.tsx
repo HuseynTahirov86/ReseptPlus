@@ -59,7 +59,7 @@ function AuthForm() {
         <CardHeader>
           <CardTitle>Admin Panelə Giriş</CardTitle>
           <CardDescription>
-            İdarəetmə panelinə daxil olmaq üçün məlumatlarınızı daxil edin.
+            İdarəetmə panelinə daxil olmaq üçün məlumatlarınızı daxil edin. Test üçün `superadmin@reseptplus.az` və ya `admin@sagliknet.az` (şifrə: password) istifadə edin.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
