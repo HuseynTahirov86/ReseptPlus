@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import Link from "next/link";
 import { useRouter, usePathname } from 'next/navigation';
 import { useUser, useAuth } from '@/firebase';
-import { Loader2, Home, Handshake, FileText, DollarSign, Package, Upload, Library, Users, LogOut, Hospital, Microscope, Pill, ShieldCheck, Building } from 'lucide-react';
+import { Loader2, Home, Handshake, FileText, DollarSign, Package, Upload, Library, Users, LogOut, Hospital, Microscope, Pill, ShieldCheck, Building, DatabaseZap } from 'lucide-react';
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 
@@ -27,6 +27,7 @@ const systemAdminNavItems = [
   { href: "/admin/pharmacists", label: "Əczaçılar", icon: Pill },
   { href: "/admin/users", label: "İstifadəçilər", icon: Users },
   { href: "/admin/security", label: "Təhlükəsizlik", icon: ShieldCheck },
+  { href: "/admin/seed", label: "Məlumatları Yarat", icon: DatabaseZap },
 ];
 
 
@@ -106,10 +107,10 @@ export default function AdminLayout({
         </div>
       </aside>
       <div className="flex flex-1 flex-col">
-        <header className="flex h-16 items-center border-b bg-background px-6">
+        <header className="flex h-16 items-center border-b bg-background px-6 md:hidden">
             <h1 className="text-xl font-semibold">{getRoleDisplayName()} Paneli</h1>
         </header>
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-4 md:p-6">{children}</main>
       </div>
     </div>
   );
