@@ -9,17 +9,6 @@ import MarketingFooter from "@/components/marketing-footer";
 import type { BlogPost, PricingPlan } from "@/lib/types";
 import { db } from "@/firebase/server-init";
 
-const sampleBlogPost: BlogPost = {
-    id: "sample-post-1",
-    title: "ReseptPlus: Səhiyyədə Rəqəmsal İnqilab",
-    description: "Kağız reseptlərin yaratdığı xaosu, uzun növbələri və potensial səhvləri geridə qoyun. ReseptPlus, səhiyyə sistemini necə daha ağıllı, sürətli və təhlükəsiz etdiyimizi kəşf edin.",
-    author: "ReseptPlus Komandası",
-    datePublished: new Date().toISOString(),
-    imageUrl: "https://i.ibb.co/Nd15wKwV/hero.png",
-    imageHint: "digital health",
-    content: "Bu məzmun blog səhifəsində tam olaraq göstərilir."
-};
-
 async function getMarketingData() {
     try {
         const plansSnapshot = await db.collection("pricingPlans").orderBy("price").get();
@@ -28,15 +17,11 @@ async function getMarketingData() {
         const blogSnapshot = await db.collection("blogPosts").orderBy('datePublished', 'desc').limit(3).get();
         let blogPosts = blogSnapshot.docs.map(doc => doc.data() as BlogPost);
 
-        if (blogPosts.length === 0) {
-            blogPosts.push(sampleBlogPost);
-        }
-        
         return { pricingPlans, blogPosts };
 
     } catch (error) {
         console.error("Error fetching marketing data:", error);
-        return { pricingPlans: [], blogPosts: [sampleBlogPost] };
+        return { pricingPlans: [], blogPosts: [] };
     }
 }
 
