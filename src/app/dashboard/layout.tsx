@@ -32,10 +32,12 @@ import {
   SidebarFooter,
   SidebarTrigger,
   SidebarInset,
+} from "@/components/ui/sidebar";
+import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
-} from "@/components/ui/sidebar";
+} from "@/components/ui/collapsible";
 import { Logo } from "@/components/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -275,5 +277,3 @@ export default function DashboardLayout({
     </SidebarProvider>
   );
 }
-
-    
