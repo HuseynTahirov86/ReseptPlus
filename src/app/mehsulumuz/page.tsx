@@ -4,6 +4,7 @@ import * as LucideIcons from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/firebase/server-init";
 import type { ProductFeature } from "@/lib/types";
+import Image from "next/image";
 
 async function getProductFeatures() {
     try {
@@ -74,6 +75,47 @@ export default async function ProductPage() {
             </div>
           </div>
         </section>
+
+        <section className="py-16 md:py-24 bg-secondary/50">
+            <div className="container grid lg:grid-cols-2 gap-12 items-center">
+                <div 
+                  className="animate-fade-in-up" 
+                  style={{ animationDelay: '0.2s', animationDuration: '0.9s' }}
+                >
+                    <h2 className="text-3xl font-bold">Xüsusi Həllər: ReseptPlus Terminalı</h2>
+                    <p className="mt-4 text-lg text-muted-foreground">
+                        Kompüter infrastrukturu olmayan xəstəxanalar və apteklər üçün xüsusi olaraq hazırlanmış "ReseptPlus Terminalı" ilə rəqəmsal səhiyyə hər kəs üçün əlçatandır. Bu kompakt və istifadəsi asan cihaz, internetə çıxışı məhdud olan yerlərdə belə platformamızın bütün üstünlüklərindən yararlanmağa imkan verir.
+                    </p>
+                    <ul className="mt-6 space-y-4 text-muted-foreground">
+                        <li className="flex items-start gap-3">
+                            <LucideIcons.CheckCircle className="h-5 w-5 text-primary mt-1 shrink-0" />
+                            <span>Minimalist dizayn və asan quraşdırma.</span>
+                        </li>
+                         <li className="flex items-start gap-3">
+                            <LucideIcons.CheckCircle className="h-5 w-5 text-primary mt-1 shrink-0" />
+                            <span>Toxunuşlu ekran vasitəsilə intuitiv idarəetmə.</span>
+                        </li>
+                         <li className="flex items-start gap-3">
+                            <LucideIcons.CheckCircle className="h-5 w-5 text-primary mt-1 shrink-0" />
+                            <span>Offline rejimdə işləmə və avtomatik sinxronizasiya.</span>
+                        </li>
+                    </ul>
+                </div>
+                 <div 
+                  className="relative animate-fade-in-up" 
+                  style={{ animationDelay: '0.4s', animationDuration: '0.9s' }}
+                >
+                    <Image
+                        src="https://i.ibb.co/G6nS5z6/Dark-Modern-Corporate-App-Development-Startup-Pitch-Deck-Presentation.png"
+                        alt="ReseptPlus Terminal Device"
+                        width={600}
+                        height={400}
+                        className="rounded-xl shadow-2xl shadow-primary/10"
+                    />
+                </div>
+            </div>
+        </section>
+
       </main>
       <MarketingFooter />
     </div>
