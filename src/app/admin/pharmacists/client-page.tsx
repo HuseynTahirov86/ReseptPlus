@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser } from "@/firebase";
+import { useUser, useCollection, useFirebase, useMemoFirebase } from "@/firebase";
 import type { Pharmacist, Pharmacy } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
@@ -36,13 +36,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import { collection, orderBy, query } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
-interface PharmacistsClientPageProps {
-    initialPharmacists: Pharmacist[];
-    initialPharmacies: Pharmacy[];
-}
-
-export function PharmacistsClientPage({ initialPharmacists, initialPharmacies }: PharmacistsClientPageProps) {
+export function PharmacistsClientPage() {
     const { user } = useUser();
     const router = useRouter();
     const { toast } = useToast();
@@ -50,6 +47,21 @@ export function PharmacistsClientPage({ initialPharmacists, initialPharmacies }:
     const [selectedPharmacist, setSelectedPharmacist] = useState<Pharmacist | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [pharmacistToDelete, setPharmacistToDelete] = useState<Pharmacist | null>(null);
+
+    const { firestore } = useFirebase();
+
+    const pharmacistsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, "pharmacists"), orderBy("lastName"));
+    }, [firestore]);
+
+    const pharmaciesQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, "pharmacies"), orderBy("name"));
+    }, [firestore]);
+
+    const { data: pharmacists, isLoading: isLoadingPharmacists } = useCollection<Pharmacist>(pharmacistsQuery);
+    const { data: pharmacies, isLoading: isLoadingPharmacies } = useCollection<Pharmacy>(pharmaciesQuery);
 
 
     useEffect(() => {
@@ -59,11 +71,12 @@ export function PharmacistsClientPage({ initialPharmacists, initialPharmacies }:
     }, [user, router]);
 
     const pharmacyMap = useMemo(() => {
-        return initialPharmacies.reduce((acc, pharmacy) => {
+        if (!pharmacies) return {};
+        return pharmacies.reduce((acc, pharmacy) => {
             acc[pharmacy.id] = pharmacy.name;
             return acc;
         }, {} as Record<string, string>);
-    }, [initialPharmacies]);
+    }, [pharmacies]);
 
 
     const openFormForEdit = (pharmacist: Pharmacist) => {
@@ -85,7 +98,6 @@ export function PharmacistsClientPage({ initialPharmacists, initialPharmacies }:
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedPharmacist(null);
-            router.refresh();
         }
     }
     
@@ -104,14 +116,13 @@ export function PharmacistsClientPage({ initialPharmacists, initialPharmacies }:
         });
         setDeleteDialogOpen(false);
         setPharmacistToDelete(null);
-        if (result.type === 'success') {
-            router.refresh();
-        }
     };
     
-     if (user?.profile?.role !== 'system_admin') {
+    if (user?.profile?.role !== 'system_admin') {
         return null;
     }
+    
+    const isLoading = isLoadingPharmacists || isLoadingPharmacies;
 
     return (
         <div className="space-y-8">
@@ -123,7 +134,7 @@ export function PharmacistsClientPage({ initialPharmacists, initialPharmacies }:
                             Sistemdəki əczaçıları və baş əczaçıları idarə edin.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -135,7 +146,16 @@ export function PharmacistsClientPage({ initialPharmacists, initialPharmacies }:
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {initialPharmacists.map((pharmacist) => (
+                                {isLoading && Array.from({length: 3}).map((_, i) => (
+                                     <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-36" /></TableCell>
+                                        <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
+                                        <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                    </TableRow>
+                                ))}
+                                {pharmacists?.map((pharmacist) => (
                                     <TableRow key={pharmacist.id}>
                                         <TableCell className="font-medium">{pharmacist.firstName} {pharmacist.lastName}</TableCell>
                                         <TableCell>{pharmacist.email}</TableCell>
@@ -169,7 +189,7 @@ export function PharmacistsClientPage({ initialPharmacists, initialPharmacies }:
                                         </TableCell>
                                     </TableRow>
                                 ))}
-                                {initialPharmacists.length === 0 && (
+                                {!isLoading && pharmacists?.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={5} className="h-24 text-center">
                                             Heç bir əczaçı tapılmadı.
@@ -180,10 +200,10 @@ export function PharmacistsClientPage({ initialPharmacists, initialPharmacies }:
                         </Table>
                     </CardContent>
                     <CardFooter>
-                        <Button onClick={openFormForNew} disabled={initialPharmacies.length === 0}>
+                        <Button onClick={openFormForNew} disabled={!pharmacies || pharmacies.length === 0}>
                             <PlusCircle className="mr-2 h-4 w-4" /> Yeni Əczaçı Əlavə Et
                         </Button>
-                         {initialPharmacies.length === 0 && <p className="text-sm text-destructive ml-4">Əczaçı əlavə etmək üçün əvvəlcə aptek yaratmalısınız.</p>}
+                         {(!pharmacies || pharmacies.length === 0) && <p className="text-sm text-destructive ml-4">Əczaçı əlavə etmək üçün əvvəlcə aptek yaratmalısınız.</p>}
                     </CardFooter>
                 </Card>
 
@@ -196,7 +216,7 @@ export function PharmacistsClientPage({ initialPharmacists, initialPharmacies }:
                     </DialogHeader>
                     <PharmacistForm 
                         initialData={selectedPharmacist}
-                        pharmacies={initialPharmacies}
+                        pharmacies={pharmacies || []}
                         onFormSubmit={onFormSubmit}
                     />
                 </DialogContent>

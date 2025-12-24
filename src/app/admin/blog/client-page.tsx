@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MoreHorizontal, PlusCircle, Trash2, Edit } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Trash2, Edit, Loader2 } from "lucide-react";
 import { PostForm } from "./post-form";
 import {
   DropdownMenu,
@@ -19,7 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { deletePost } from './actions';
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -31,20 +31,27 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useRouter } from "next/navigation";
+import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
+import { collection, orderBy, query } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
-interface BlogClientPageProps {
-    initialPosts: BlogPost[];
-}
 
-export function BlogClientPage({ initialPosts }: BlogClientPageProps) {
+export function BlogClientPage() {
     const { toast } = useToast();
     const router = useRouter();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
-    const [isPending, startTransition] = useTransition();
+    
+    const { firestore } = useFirebase();
+
+    const postsQuery = useMemoFirebase(() => {
+      if (!firestore) return null;
+      return query(collection(firestore, "blogPosts"), orderBy("datePublished", "desc"));
+    }, [firestore]);
+
+    const { data: posts, isLoading } = useCollection<BlogPost>(postsQuery);
 
     const openFormForEdit = (post: BlogPost) => {
         setSelectedPost(post);
@@ -57,31 +64,25 @@ export function BlogClientPage({ initialPosts }: BlogClientPageProps) {
     }
 
     const onFormSubmit = (state: { type: 'success' | 'error', message: string, issues?: any }) => {
-        if (state.type === 'success' || (state.type === 'error' && !state.issues)) {
-            toast({
-                title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
-                description: state.message,
-                variant: state.type === 'success' ? 'default' : 'destructive',
-            });
-        }
+        toast({
+            title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
+            description: state.message,
+            variant: state.type === 'success' ? 'default' : 'destructive',
+        });
+        
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedPost(null);
-            router.refresh();
+            // No need for router.refresh() due to real-time updates
         }
     }
     
-     const handleDelete = (id: string) => {
-        startTransition(async () => {
-            const result = await deletePost(id);
-            toast({
-                title: result.type === 'success' ? 'Uğurlu' : 'Xəta',
-                description: result.message,
-                variant: result.type === 'success' ? 'default' : 'destructive',
-            });
-             if (result.type === 'success') {
-                router.refresh();
-            }
+     const handleDelete = async (id: string) => {
+        const result = await deletePost(id);
+        toast({
+            title: result.type === 'success' ? 'Uğurlu' : 'Xəta',
+            description: result.message,
+            variant: result.type === 'success' ? 'default' : 'destructive',
         });
     };
 
@@ -95,7 +96,7 @@ export function BlogClientPage({ initialPosts }: BlogClientPageProps) {
                             Marketinq saytındakı blog yazılarını idarə edin.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -106,7 +107,15 @@ export function BlogClientPage({ initialPosts }: BlogClientPageProps) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {initialPosts.map((post) => (
+                                {isLoading && Array.from({length: 3}).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                        <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                    </TableRow>
+                                ))}
+                                {posts?.map((post) => (
                                     <TableRow key={post.id}>
                                         <TableCell className="font-medium">{post.title}</TableCell>
                                         <TableCell>{post.author}</TableCell>
@@ -114,7 +123,7 @@ export function BlogClientPage({ initialPosts }: BlogClientPageProps) {
                                         <TableCell className="text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" disabled={isPending}>
+                                                    <Button variant="ghost" size="icon">
                                                         <MoreHorizontal className="h-4 w-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
@@ -150,7 +159,7 @@ export function BlogClientPage({ initialPosts }: BlogClientPageProps) {
                                         </TableCell>
                                     </TableRow>
                                 ))}
-                                {initialPosts.length === 0 && (
+                                {!isLoading && posts?.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={4} className="h-24 text-center">
                                             Heç bir yazı tapılmadı.

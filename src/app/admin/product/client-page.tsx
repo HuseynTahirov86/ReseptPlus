@@ -34,7 +34,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { useRouter } from "next/navigation";
+import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
+import { collection, orderBy, query } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
+
 
 const IconComponent = ({ iconName }: { iconName: string }) => {
     const Icon = (LucideIcons as any)[iconName];
@@ -44,15 +47,19 @@ const IconComponent = ({ iconName }: { iconName: string }) => {
     return <Icon className="h-5 w-5" />;
 };
 
-interface ProductClientPageProps {
-    initialFeatures: ProductFeature[];
-}
 
-export function ProductClientPage({ initialFeatures }: ProductClientPageProps) {
+export function ProductClientPage() {
     const { toast } = useToast();
-    const router = useRouter();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedFeature, setSelectedFeature] = useState<ProductFeature | null>(null);
+
+    const { firestore } = useFirebase();
+    const featuresQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, "productFeatures"), orderBy("title"));
+    }, [firestore]);
+
+    const { data: features, isLoading } = useCollection<ProductFeature>(featuresQuery);
 
     const openFormForEdit = (feature: ProductFeature) => {
         setSelectedFeature(feature);
@@ -65,17 +72,14 @@ export function ProductClientPage({ initialFeatures }: ProductClientPageProps) {
     }
 
     const onFormSubmit = (state: { type: 'success' | 'error', message: string, issues?: any }) => {
-        if (state.type === 'success' || (state.type === 'error' && !state.issues)) {
-            toast({
-                title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
-                description: state.message,
-                variant: state.type === 'success' ? 'default' : 'destructive',
-            });
-        }
+        toast({
+            title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
+            description: state.message,
+            variant: state.type === 'success' ? 'default' : 'destructive',
+        });
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedFeature(null);
-            router.refresh();
         }
     }
     
@@ -86,9 +90,6 @@ export function ProductClientPage({ initialFeatures }: ProductClientPageProps) {
             description: result.message,
             variant: result.type === 'success' ? 'default' : 'destructive',
         });
-        if (result.type === 'success') {
-            router.refresh();
-        }
     };
 
     return (
@@ -101,7 +102,7 @@ export function ProductClientPage({ initialFeatures }: ProductClientPageProps) {
                             "Məhsulumuz" səhifəsində göstərilən xüsusiyyətləri idarə edin.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -112,7 +113,15 @@ export function ProductClientPage({ initialFeatures }: ProductClientPageProps) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {initialFeatures.map((feature) => (
+                                {isLoading && Array.from({length: 3}).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-5 rounded-full" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-64" /></TableCell>
+                                        <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                    </TableRow>
+                                ))}
+                                {features?.map((feature) => (
                                     <TableRow key={feature.id}>
                                         <TableCell><IconComponent iconName={feature.icon} /></TableCell>
                                         <TableCell className="font-medium">{feature.title}</TableCell>
@@ -156,7 +165,7 @@ export function ProductClientPage({ initialFeatures }: ProductClientPageProps) {
                                         </TableCell>
                                     </TableRow>
                                 ))}
-                                {initialFeatures.length === 0 && (
+                                {!isLoading && features?.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={4} className="h-24 text-center">
                                             Heç bir xüsusiyyət tapılmadı.

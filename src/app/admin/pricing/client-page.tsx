@@ -34,16 +34,24 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
+import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
+import { collection, orderBy, query } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
-interface PricingClientPageProps {
-    initialPlans: PricingPlan[];
-}
 
-export function PricingClientPage({ initialPlans }: PricingClientPageProps) {
+export function PricingClientPage() {
     const { toast } = useToast();
-    const router = useRouter();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
+    
+    const { firestore } = useFirebase();
+    const plansQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, "pricingPlans"), orderBy("price"));
+    }, [firestore]);
+
+    const { data: plans, isLoading } = useCollection<PricingPlan>(plansQuery);
+
 
     const openFormForEdit = (plan: PricingPlan) => {
         setSelectedPlan(plan);
@@ -56,17 +64,14 @@ export function PricingClientPage({ initialPlans }: PricingClientPageProps) {
     }
 
     const onFormSubmit = (state: { type: 'success' | 'error', message: string, issues?: any }) => {
-        if (state.type === 'success' || (state.type === 'error' && !state.issues)) {
-            toast({
-                title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
-                description: state.message,
-                variant: state.type === 'success' ? 'default' : 'destructive',
-            });
-        }
+        toast({
+            title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
+            description: state.message,
+            variant: state.type === 'success' ? 'default' : 'destructive',
+        });
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedPlan(null);
-            router.refresh();
         }
     }
     
@@ -77,9 +82,6 @@ export function PricingClientPage({ initialPlans }: PricingClientPageProps) {
             description: result.message,
             variant: result.type === 'success' ? 'default' : 'destructive',
         });
-        if (result.type === 'success') {
-            router.refresh();
-        }
     };
 
     return (
@@ -94,7 +96,10 @@ export function PricingClientPage({ initialPlans }: PricingClientPageProps) {
                     </CardHeader>
                     <CardContent>
                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                         {initialPlans.map((plan) => (
+                         {isLoading && Array.from({length:3}).map((_, i) => (
+                             <Card key={i}><CardContent className="p-6"><Skeleton className="h-64 w-full" /></CardContent></Card>
+                         ))}
+                         {plans?.map((plan) => (
                               <Card key={plan.id} className={plan.isPopular ? "border-primary border-2 relative" : ""}>
                                 {plan.isPopular && <Badge className="absolute top-0 right-4 -mt-3">POPULYAR</Badge>}
                                 <CardHeader>
@@ -154,7 +159,7 @@ export function PricingClientPage({ initialPlans }: PricingClientPageProps) {
                                 </CardContent>
                             </Card>
                          ))}
-                         {initialPlans.length === 0 && (
+                         {!isLoading && plans?.length === 0 && (
                             <div className="col-span-full text-center py-12">
                                 <BadgeInfo className="mx-auto h-12 w-12 text-muted-foreground" />
                                 <h3 className="mt-4 text-lg font-semibold">Heç bir plan tapılmadı.</h3>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser } from "@/firebase";
+import { useUser, useCollection, useFirebase, useMemoFirebase } from "@/firebase";
 import type { Pharmacy } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
@@ -35,14 +35,24 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
+import { collection, orderBy, query } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
-export function PharmaciesClientPage({ initialPharmacies }: { initialPharmacies: Pharmacy[] }) {
+export function PharmaciesClientPage() {
     const { user } = useUser();
     const router = useRouter();
     const { toast } = useToast();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null);
+
+    const { firestore } = useFirebase();
+    const pharmaciesQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, "pharmacies"), orderBy("name"));
+    }, [firestore]);
+
+    const { data: pharmacies, isLoading } = useCollection<Pharmacy>(pharmaciesQuery);
 
     useEffect(() => {
         if (user && user.profile?.role !== 'system_admin') {
@@ -69,7 +79,6 @@ export function PharmaciesClientPage({ initialPharmacies }: { initialPharmacies:
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedPharmacy(null);
-            router.refresh();
         }
     }
     
@@ -80,9 +89,6 @@ export function PharmaciesClientPage({ initialPharmacies }: { initialPharmacies:
             description: result.message,
             variant: result.type === 'success' ? 'default' : 'destructive',
         });
-        if (result.type === 'success') {
-            router.refresh();
-        }
     };
     
      if (user?.profile?.role !== 'system_admin') {
@@ -99,7 +105,7 @@ export function PharmaciesClientPage({ initialPharmacies }: { initialPharmacies:
                             Sistemdəki aptekləri idarə edin. Yenilərini yaradın, mövcud olanları redaktə edin və ya silin.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -111,7 +117,16 @@ export function PharmaciesClientPage({ initialPharmacies }: { initialPharmacies:
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {initialPharmacies.map((pharmacy) => (
+                                {isLoading && Array.from({length: 3}).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-28" /></TableCell>
+                                        <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                    </TableRow>
+                                ))}
+                                {pharmacies?.map((pharmacy) => (
                                     <TableRow key={pharmacy.id}>
                                         <TableCell className="font-medium">{pharmacy.name}</TableCell>
                                         <TableCell>{pharmacy.address}</TableCell>
@@ -156,7 +171,7 @@ export function PharmaciesClientPage({ initialPharmacies }: { initialPharmacies:
                                         </TableCell>
                                     </TableRow>
                                 ))}
-                                {initialPharmacies.length === 0 && (
+                                {!isLoading && pharmacies?.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={5} className="h-24 text-center">
                                             Heç bir aptek tapılmadı.

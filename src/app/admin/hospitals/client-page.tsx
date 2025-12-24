@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser } from "@/firebase";
+import { useUser, useCollection, useFirebase, useMemoFirebase } from "@/firebase";
 import type { Hospital } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
@@ -35,16 +35,25 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
+import { collection, orderBy, query } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
-export function HospitalsClientPage({ initialHospitals }: { initialHospitals: Hospital[] }) {
+export function HospitalsClientPage() {
     const { user } = useUser();
     const router = useRouter();
     const { toast } = useToast();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedHospital, setSelectedHospital] = useState<Hospital | null>(null);
 
-    // Redirect if not a system admin
+    const { firestore } = useFirebase();
+    const hospitalsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, "hospitals"), orderBy("name"));
+    }, [firestore]);
+
+    const { data: hospitals, isLoading } = useCollection<Hospital>(hospitalsQuery);
+
     useEffect(() => {
         if (user && user.profile?.role !== 'system_admin') {
             router.push('/admin/dashboard');
@@ -62,17 +71,14 @@ export function HospitalsClientPage({ initialHospitals }: { initialHospitals: Ho
     }
 
     const onFormSubmit = (state: { type: 'success' | 'error', message: string, issues?: any }) => {
-       if (state.type === 'success' || (state.type === 'error' && !state.issues)) {
-            toast({
-                title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
-                description: state.message,
-                variant: state.type === 'success' ? 'default' : 'destructive',
-            });
-        }
+       toast({
+            title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
+            description: state.message,
+            variant: state.type === 'success' ? 'default' : 'destructive',
+        });
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedHospital(null);
-            router.refresh();
         }
     }
     
@@ -83,13 +89,10 @@ export function HospitalsClientPage({ initialHospitals }: { initialHospitals: Ho
             description: result.message,
             variant: result.type === 'success' ? 'default' : 'destructive',
         });
-        if (result.type === 'success') {
-            router.refresh();
-        }
     };
     
      if (user?.profile?.role !== 'system_admin') {
-        return null; // Or a loading/unauthorized component
+        return null;
     }
 
     return (
@@ -102,7 +105,7 @@ export function HospitalsClientPage({ initialHospitals }: { initialHospitals: Ho
                             Sistemdəki xəstəxanaları idarə edin. Yeni xəstəxanalar yaradın, mövcud olanları redaktə edin və ya silin.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -114,7 +117,16 @@ export function HospitalsClientPage({ initialHospitals }: { initialHospitals: Ho
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {initialHospitals.map((hospital) => (
+                                {isLoading && Array.from({length: 3}).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-28" /></TableCell>
+                                        <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                    </TableRow>
+                                ))}
+                                {hospitals?.map((hospital) => (
                                     <TableRow key={hospital.id}>
                                         <TableCell className="font-medium">{hospital.name}</TableCell>
                                         <TableCell>{hospital.address}</TableCell>
@@ -159,7 +171,7 @@ export function HospitalsClientPage({ initialHospitals }: { initialHospitals: Ho
                                         </TableCell>
                                     </TableRow>
                                 ))}
-                                {initialHospitals.length === 0 && (
+                                {!isLoading && hospitals?.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={5} className="h-24 text-center">
                                             Heç bir xəstəxana tapılmadı.

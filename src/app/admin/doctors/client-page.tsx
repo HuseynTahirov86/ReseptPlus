@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser } from "@/firebase";
+import { useUser, useCollection, useFirebase, useMemoFirebase } from "@/firebase";
 import type { Doctor, Hospital } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
@@ -36,13 +36,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import { collection, orderBy, query } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
-interface DoctorsClientPageProps {
-    initialDoctors: Doctor[];
-    initialHospitals: Hospital[];
-}
 
-export function DoctorsClientPage({ initialDoctors, initialHospitals }: DoctorsClientPageProps) {
+export function DoctorsClientPage() {
     const { user } = useUser();
     const router = useRouter();
     const { toast } = useToast();
@@ -50,6 +48,21 @@ export function DoctorsClientPage({ initialDoctors, initialHospitals }: DoctorsC
     const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [doctorToDelete, setDoctorToDelete] = useState<Doctor | null>(null);
+
+    const { firestore } = useFirebase();
+
+    const doctorsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, "doctors"), orderBy("lastName"));
+    }, [firestore]);
+
+    const hospitalsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, "hospitals"), orderBy("name"));
+    }, [firestore]);
+
+    const { data: doctors, isLoading: isLoadingDoctors } = useCollection<Doctor>(doctorsQuery);
+    const { data: hospitals, isLoading: isLoadingHospitals } = useCollection<Hospital>(hospitalsQuery);
 
     // Redirect if not a system admin
     useEffect(() => {
@@ -59,11 +72,12 @@ export function DoctorsClientPage({ initialDoctors, initialHospitals }: DoctorsC
     }, [user, router]);
 
     const hospitalMap = useMemo(() => {
-        return initialHospitals.reduce((acc, hospital) => {
+        if (!hospitals) return {};
+        return hospitals.reduce((acc, hospital) => {
             acc[hospital.id] = hospital.name;
             return acc;
         }, {} as Record<string, string>);
-    }, [initialHospitals]);
+    }, [hospitals]);
 
     const openFormForEdit = (doctor: Doctor) => {
         setSelectedDoctor(doctor);
@@ -76,17 +90,14 @@ export function DoctorsClientPage({ initialDoctors, initialHospitals }: DoctorsC
     }
 
     const onFormSubmit = (state: { type: 'success' | 'error', message: string, issues?: any }) => {
-        if (state.type === 'success' || (state.type === 'error' && !state.issues)) {
-            toast({
-                title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
-                description: state.message,
-                variant: state.type === 'success' ? 'default' : 'destructive',
-            });
-        }
+        toast({
+            title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
+            description: state.message,
+            variant: state.type === 'success' ? 'default' : 'destructive',
+        });
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedDoctor(null);
-            router.refresh();
         }
     }
 
@@ -107,14 +118,13 @@ export function DoctorsClientPage({ initialDoctors, initialHospitals }: DoctorsC
         
         setDeleteDialogOpen(false);
         setDoctorToDelete(null);
-         if (result.type === 'success') {
-            router.refresh();
-        }
     };
     
     if (user?.profile?.role !== 'system_admin') {
         return null;
     }
+    
+    const isLoading = isLoadingDoctors || isLoadingHospitals;
 
     return (
         <div className="space-y-8">
@@ -128,7 +138,7 @@ export function DoctorsClientPage({ initialDoctors, initialHospitals }: DoctorsC
                             Sistemdəki həkimləri və baş həkimləri idarə edin.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -141,7 +151,17 @@ export function DoctorsClientPage({ initialDoctors, initialHospitals }: DoctorsC
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {initialDoctors.map((doctor) => (
+                                {isLoading && Array.from({length: 4}).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                                        <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                    </TableRow>
+                                ))}
+                                {doctors?.map((doctor) => (
                                     <TableRow key={doctor.id}>
                                         <TableCell className="font-medium">
                                             {doctor.firstName} {doctor.lastName}
@@ -180,7 +200,7 @@ export function DoctorsClientPage({ initialDoctors, initialHospitals }: DoctorsC
                                         </TableCell>
                                     </TableRow>
                                 ))}
-                                {initialDoctors.length === 0 && (
+                                {!isLoading && doctors?.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={6} className="h-24 text-center">
                                             Heç bir həkim tapılmadı.
@@ -191,10 +211,10 @@ export function DoctorsClientPage({ initialDoctors, initialHospitals }: DoctorsC
                         </Table>
                     </CardContent>
                     <CardFooter className="flex-col items-start gap-2">
-                        <Button onClick={openFormForNew} disabled={initialHospitals.length === 0}>
+                        <Button onClick={openFormForNew} disabled={!hospitals || hospitals.length === 0}>
                             <PlusCircle className="mr-2 h-4 w-4" /> Yeni Həkim Əlavə Et
                         </Button>
-                        {initialHospitals.length === 0 && (
+                        {(!hospitals || hospitals.length === 0) && (
                             <p className="text-sm text-destructive">
                                 Həkim əlavə etmək üçün əvvəlcə xəstəxana yaratmalısınız.
                             </p>
@@ -215,7 +235,7 @@ export function DoctorsClientPage({ initialDoctors, initialHospitals }: DoctorsC
                     </DialogHeader>
                     <DoctorForm 
                         initialData={selectedDoctor}
-                        hospitals={initialHospitals}
+                        hospitals={hospitals || []}
                         onFormSubmit={onFormSubmit}
                     />
                 </DialogContent>

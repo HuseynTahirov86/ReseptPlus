@@ -34,8 +34,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useRouter } from "next/navigation";
-
+import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
+import { collection, orderBy, query } from "firebase/firestore";
 
 function MemberSkeleton() {
     return (
@@ -52,15 +52,18 @@ function MemberSkeleton() {
     );
 }
 
-interface TeamClientPageProps {
-    initialMembers: TeamMember[];
-}
-
-export function TeamClientPage({ initialMembers }: TeamClientPageProps) {
+export function TeamClientPage() {
     const { toast } = useToast();
-    const router = useRouter();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+
+    const { firestore } = useFirebase();
+    const membersQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, "teamMembers"), orderBy("name"));
+    }, [firestore]);
+
+    const { data: members, isLoading } = useCollection<TeamMember>(membersQuery);
 
     const openFormForEdit = (member: TeamMember) => {
         setSelectedMember(member);
@@ -73,17 +76,14 @@ export function TeamClientPage({ initialMembers }: TeamClientPageProps) {
     }
 
     const onFormSubmit = (state: { type: 'success' | 'error', message: string, issues?: any }) => {
-        if (state.type === 'success' || (state.type === 'error' && !state.issues)) {
-            toast({
-                title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
-                description: state.message,
-                variant: state.type === 'success' ? 'default' : 'destructive',
-            });
-        }
+        toast({
+            title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
+            description: state.message,
+            variant: state.type === 'success' ? 'default' : 'destructive',
+        });
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedMember(null);
-            router.refresh();
         }
     }
     
@@ -94,9 +94,6 @@ export function TeamClientPage({ initialMembers }: TeamClientPageProps) {
             description: result.message,
             variant: result.type === 'success' ? 'default' : 'destructive',
         });
-        if (result.type === 'success') {
-            router.refresh();
-        }
     };
 
     return (
@@ -111,7 +108,8 @@ export function TeamClientPage({ initialMembers }: TeamClientPageProps) {
                     </CardHeader>
                     <CardContent>
                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            {initialMembers.map((member) => (
+                            {isLoading && Array.from({length: 4}).map((_, i) => <MemberSkeleton key={i} />)}
+                            {members?.map((member) => (
                                 <Card key={member.id} className="flex flex-col items-center p-4 text-center">
                                     <Avatar className="h-24 w-24 mb-4 border-2 border-muted">
                                         <AvatarImage src={member.imageUrl} alt={member.name} data-ai-hint={member.imageHint} />
@@ -157,7 +155,7 @@ export function TeamClientPage({ initialMembers }: TeamClientPageProps) {
                                     </DropdownMenu>
                                 </Card>
                             ))}
-                            {initialMembers.length === 0 && (
+                            {!isLoading && members?.length === 0 && (
                                 <div className="col-span-full text-center py-12">
                                     <p className="text-muted-foreground">Heç bir komanda üzvü tapılmadı.</p>
                                 </div>

@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { deletePartner } from './actions';
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -28,23 +28,30 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { useRouter } from "next/navigation";
+import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
+import { collection } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Partner = SupportingOrganization | ClientCompany;
 type PartnerType = 'supportingOrganizations' | 'clientCompanies';
 
 interface PartnersTableProps {
     title: string;
-    data: Partner[];
     type: PartnerType;
 }
 
-function PartnersTable({ title, data, type }: PartnersTableProps) {
+function PartnersTable({ title, type }: PartnersTableProps) {
     const { toast } = useToast();
-    const router = useRouter();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
-    const [isPending, startTransition] = useTransition();
+
+    const { firestore } = useFirebase();
+    const partnersQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return collection(firestore, type);
+    }, [firestore, type]);
+
+    const { data: partners, isLoading } = useCollection<Partner>(partnersQuery);
 
     const openFormForEdit = (partner: Partner) => {
         setSelectedPartner(partner);
@@ -57,31 +64,23 @@ function PartnersTable({ title, data, type }: PartnersTableProps) {
     }
 
     const onFormSubmit = (state: { type: 'success' | 'error', message: string, issues?: any }) => {
-        if (state.type === 'success' || (state.type === 'error' && !state.issues)) {
-            toast({
-                title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
-                description: state.message,
-                variant: state.type === 'success' ? 'default' : 'destructive',
-            });
-        }
+        toast({
+            title: state.type === 'success' ? 'Uğurlu' : 'Xəta',
+            description: state.message,
+            variant: state.type === 'success' ? 'default' : 'destructive',
+        });
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedPartner(null);
-            router.refresh();
         }
     }
     
-     const handleDelete = (id: string) => {
-        startTransition(async () => {
-            const result = await deletePartner(type, id);
-            toast({
-                title: result.type === 'success' ? 'Uğurlu' : 'Xəta',
-                description: result.message,
-                variant: result.type === 'success' ? 'default' : 'destructive',
-            });
-            if (result.type === 'success') {
-                router.refresh();
-            }
+     const handleDelete = async (id: string) => {
+        const result = await deletePartner(type, id);
+        toast({
+            title: result.type === 'success' ? 'Uğurlu' : 'Xəta',
+            description: result.message,
+            variant: result.type === 'success' ? 'default' : 'destructive',
         });
     };
 
@@ -94,7 +93,7 @@ function PartnersTable({ title, data, type }: PartnersTableProps) {
                         {type === 'supportingOrganizations' ? 'Sizə dəstək olan təşkilatları idarə edin.' : 'Sistemi istifadə edən müştəriləri idarə edin.'}
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -105,7 +104,15 @@ function PartnersTable({ title, data, type }: PartnersTableProps) {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {data.map((item) => (
+                             {isLoading && Array.from({length: 2}).map((_, i) => (
+                                <TableRow key={i}>
+                                    <TableCell><Skeleton className="h-8 w-16" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                    <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                </TableRow>
+                            ))}
+                            {partners?.map((item) => (
                                 <TableRow key={item.id}>
                                     <TableCell>
                                         <Image src={item.logoUrl} alt={item.name} width={64} height={32} className="object-contain" />
@@ -115,7 +122,7 @@ function PartnersTable({ title, data, type }: PartnersTableProps) {
                                     <TableCell className="text-right">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" disabled={isPending}>
+                                                <Button variant="ghost" size="icon">
                                                     <MoreHorizontal className="h-4 w-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
@@ -151,7 +158,7 @@ function PartnersTable({ title, data, type }: PartnersTableProps) {
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {data.length === 0 && (
+                            {!isLoading && partners?.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={4} className="h-24 text-center">
                                         Heç bir partnyor tapılmadı.
@@ -185,16 +192,11 @@ function PartnersTable({ title, data, type }: PartnersTableProps) {
     );
 }
 
-interface PartnersClientPageProps {
-    initialSupportingOrgs: SupportingOrganization[];
-    initialClientCompanies: ClientCompany[];
-}
-
-export function PartnersClientPage({ initialSupportingOrgs, initialClientCompanies }: PartnersClientPageProps) {
+export function PartnersClientPage() {
     return (
         <div className="space-y-8">
-            <PartnersTable title="Dəstəkçi Təşkilatlar" data={initialSupportingOrgs} type="supportingOrganizations" />
-            <PartnersTable title="Müştəri Şirkətlər" data={initialClientCompanies} type="clientCompanies" />
+            <PartnersTable title="Dəstəkçi Təşkilatlar" type="supportingOrganizations" />
+            <PartnersTable title="Müştəri Şirkətlər" type="clientCompanies" />
         </div>
     );
 }
