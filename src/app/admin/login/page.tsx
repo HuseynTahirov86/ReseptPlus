@@ -59,7 +59,7 @@ function AuthForm() {
         <CardHeader>
           <CardTitle>Admin Panelə Giriş</CardTitle>
           <CardDescription>
-            İdarəetmə panelinə daxil olmaq üçün məlumatlarınızı daxil edin. Test üçün `superadmin@reseptplus.az` və ya `admin@sagliknet.az` (şifrə: password) istifadə edin.
+            İdarəetmə panelinə daxil olmaq üçün məlumatlarınızı daxil edin.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -78,6 +78,15 @@ function AuthForm() {
             <Label htmlFor="password">Şifrə</Label>
             <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
           </div>
+           <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Test Hesabları</AlertTitle>
+              <AlertDescription className="text-xs">
+                <p><b>Sistem Admini:</b> superadmin@reseptplus.az</p>
+                <p><b>Sayt Admini:</b> admin@sagliknet.az</p>
+                <p>Bütün hesablar üçün şifrə: <b>password</b></p>
+              </AlertDescription>
+            </Alert>
         </CardContent>
         <CardFooter>
           <Button className="w-full" onClick={handleAuthAction} disabled={loading}>

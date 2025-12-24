@@ -196,8 +196,8 @@ export default async function MarketingHomePage() {
                         <Card 
                             key={plan.id} 
                             className={`
-                                ${plan.isPopular ? "border-primary border-2 shadow-2xl shadow-primary/10" : "bg-card"} 
-                                flex flex-col rounded-2xl transition-transform duration-300 hover:-translate-y-2 animate-fade-in-up
+                                ${plan.isPopular ? "border-primary border-2 shadow-2xl shadow-primary/10" : ""} 
+                                flex flex-col rounded-2xl transition-transform duration-300 hover:-translate-y-2 animate-fade-in-up bg-glass-bg border-glass-border backdrop-blur-lg
                             `}
                             style={{ animationDelay: `${i * 0.15 + 0.3}s`, animationDuration: '0.9s' }}
                         >
@@ -251,7 +251,7 @@ export default async function MarketingHomePage() {
                 ) : blogPosts.map((post, i) => (
                     <Link key={post.id} href={`/blog/${post.id}`} className="group block">
                     <Card 
-                        className="overflow-hidden h-full flex flex-col rounded-xl shadow-md transition-all duration-300 hover:shadow-primary/20 hover:-translate-y-2 animate-fade-in-up"
+                        className="overflow-hidden h-full flex flex-col rounded-xl shadow-lg transition-all duration-300 hover:shadow-primary/20 hover:-translate-y-2 animate-fade-in-up bg-glass-bg border-glass-border backdrop-blur-lg"
                         style={{ animationDelay: `${i * 0.1 + 0.3}s`, animationDuration: '0.9s' }}
                     >
                         <div className="relative h-48 w-full">
