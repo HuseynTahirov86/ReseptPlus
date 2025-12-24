@@ -234,6 +234,7 @@ export function DoctorsClientPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <DoctorForm 
+                        key={selectedDoctor?.id || 'new'}
                         initialData={selectedDoctor}
                         hospitals={hospitals || []}
                         onFormSubmit={onFormSubmit}

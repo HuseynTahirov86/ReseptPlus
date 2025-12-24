@@ -1,11 +1,184 @@
-
 rules_version = '2';
 
-// Bu şərh faylın yenidən yüklənməsini tətikləmək üçün əlavə edilib.
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
+  
+    // ======== HELPER FUNCTIONS ========
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function getRole() {
+        return get(/databases/$(database)/documents/$(request.auth.token.role.toLowerCase() + 's')/$(request.auth.uid)).data.role;
+    }
+    
+    function isRole(role) {
+        return isSignedIn() && getRole() == role;
+    }
+
+    function isOneOfRoles(roles) {
+        return isSignedIn() && getRole() in roles;
+    }
+    
+    function getDoctorData(doctorId) {
+        return get(/databases/$(database)/documents/doctors/$(doctorId)).data;
+    }
+    
+    function getPharmacistData(pharmacistId) {
+        return get(/databases/$(database)/documents/pharmacists/$(pharmacistId)).data;
+    }
+    
+    function isHeadDoctor() {
+        return isRole('head_doctor');
+    }
+
+    function isSystemAdmin() {
+        return isRole('system_admin');
+    }
+    
+    function isAdmin() {
+        return isRole('admin');
+    }
+    
+    function isPatient() {
+      return isRole('patient');
+    }
+    
+    // ======== USER PROFILES ========
+    
+    match /patients/{patientId} {
+      // Patient can read/write their own profile. Doctor can read it. SystemAdmin can do anything.
+      allow read: if isOwner(patientId) || isOneOfRoles(['doctor', 'head_doctor', 'system_admin']);
+      allow write: if isOwner(patientId) || isSystemAdmin();
+      allow create: if isSignedIn(); // Anyone signed in can register as a patient
+    }
+    
+    match /doctors/{doctorId} {
+      // Any signed-in user can read doctor profiles (e.g., for info)
+      allow read: if isSignedIn();
+      // Only the doctor or system admin can update their own profile.
+      allow write: if isOwner(doctorId) || isSystemAdmin();
+    }
+    
+     match /pharmacists/{pharmacistId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(pharmacistId) || isSystemAdmin();
+    }
+    
+    match /admins/{adminId} {
+      // Only system admins can manage site admins
+      allow read, write, create, delete: if isSystemAdmin();
+    }
+    
+    match /systemAdmins/{adminId} {
+       // System admins can manage each other
+      allow read, write, create, delete: if isSystemAdmin();
+    }
+    
+    // ======== CORE DATA ========
+    
+    match /hospitals/{hospitalId} {
+      // Anyone can read hospital info. Only system admins can change it.
+      allow read: if true;
+      allow write: if isSystemAdmin();
+    }
+    
+    match /pharmacies/{pharmacyId} {
+      // Anyone can read pharmacy info. Only system admins can change it.
+      allow read: if true;
+      allow write: if isSystemAdmin();
+    }
+    
+    match /pharmacies/{pharmacyId}/inventory/{inventoryId} {
+        function isHeadPharmacistOfThisPharmacy() {
+            let userRole = getRole();
+            let userPharmacyId = getPharmacistData(request.auth.uid).pharmacyId;
+            return userRole == 'head_pharmacist' && userPharmacyId == pharmacyId;
+        }
+        
+        allow read: if isOneOfRoles(['head_pharmacist', 'employee']);
+        allow write, create, delete: if isHeadPharmacistOfThisPharmacy();
+    }
+
+    match /prescriptions/{prescriptionId} {
+        function isPatientOfPrescription() {
+            return request.auth.uid == resource.data.patientId;
+        }
+        function isDoctorOfPrescription() {
+            return request.auth.uid == resource.data.doctorId;
+        }
+        function isHeadDoctorOfHospital() {
+            return getDoctorData(request.auth.uid).hospitalId == resource.data.hospitalId && isHeadDoctor();
+        }
+        function isPharmacistOfPharmacy() {
+            return getPharmacistData(request.auth.uid).pharmacyId == resource.data.pharmacyId && isOneOfRoles(['employee', 'head_pharmacist']);
+        }
+    
+      // Patient, doctor, head_doctor of the hospital, and involved pharmacists can read. SystemAdmin too.
+      allow read: if isSystemAdmin() || isPatientOfPrescription() || isDoctorOfPrescription() || isHeadDoctorOfHospital() || (resource.data.pharmacyId != null && isPharmacistOfPharmacy());
+      
+      // Doctor can create
+      allow create: if isOneOfRoles(['doctor', 'head_doctor']);
+      
+      // Pharmacist can update to fulfill it
+      allow update: if isOneOfRoles(['employee', 'head_pharmacist']); 
+      
+      allow delete: if isSystemAdmin();
+    }
+    
+     match /doctors/{doctorId}/feedback/{feedbackId} {
+        // Patient can create feedback for their own prescriptions.
+        allow create: if isPatient() && get(/databases/$(database)/documents/prescriptions/$(request.resource.data.prescriptionId)).data.patientId == request.auth.uid;
+        
+        // Doctor can read their own feedback. Head doctor can read feedback for doctors in their hospital. SystemAdmin can read all.
+        allow read: if isSystemAdmin() || isOwner(doctorId) || (isHeadDoctor() && getDoctorData(request.auth.uid).hospitalId == getDoctorData(doctorId).hospitalId);
+        
+        allow list: if isHeadDoctor() || isSystemAdmin();
+        
+        allow write: if isSystemAdmin(); // Only system admin can edit/delete
+    }
+
+    // ======== MARKETING SITE CONTENT ========
+    // All marketing content is publicly readable, but only writable by admins.
+    
+    match /blogPosts/{postId} {
+      allow read: if true;
+      allow write: if isAdmin() || isSystemAdmin();
+    }
+    
+    match /pricingPlans/{planId} {
+       allow read: if true;
+       allow write: if isAdmin() || isSystemAdmin();
+    }
+    
+     match /productFeatures/{featureId} {
+       allow read: if true;
+       allow write: if isAdmin() || isSystemAdmin();
+    }
+    
+    match /teamMembers/{memberId} {
+       allow read: if true;
+       allow write: if isAdmin() || isSystemAdmin();
+    }
+    
+    match /supportingOrganizations/{orgId} {
+       allow read: if true;
+       allow write: if isAdmin() || isSystemAdmin();
+    }
+    
+    match /clientCompanies/{companyId} {
+        allow read: if true;
+        allow write: if isAdmin() || isSystemAdmin();
+    }
+    
+     match /medications/{medicationId} {
+        allow read: if true;
+        allow write: if isSystemAdmin() || isAdmin();
     }
   }
 }

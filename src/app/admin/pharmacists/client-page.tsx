@@ -214,7 +214,8 @@ export function PharmacistsClientPage() {
                         {selectedPharmacist ? `${selectedPharmacist.firstName} ${selectedPharmacist.lastName} məlumatlarını yeniləyin.` : `Yeni əczaçı məlumatlarını və giriş hesabını yaradın.`}
                         </DialogDescription>
                     </DialogHeader>
-                    <PharmacistForm 
+                    <PharmacistForm
+                        key={selectedPharmacist?.id || 'new'}
                         initialData={selectedPharmacist}
                         pharmacies={pharmacies || []}
                         onFormSubmit={onFormSubmit}

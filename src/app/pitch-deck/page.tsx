@@ -64,7 +64,7 @@ export default function PitchDeckPage() {
             {/* Main panel - visualization */}
             <div className="relative col-span-2 rounded-lg border border-dashed border-gray-300 p-4">
               <div
-                className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 animate-pulse items-center justify-center rounded-full bg-primary/10 p-4"
+                className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-primary/10 p-4"
                 style={{ animationDelay: '1s', animationDuration: '2s' }}
               >
                 <BrainCircuit className="h-8 w-8 text-primary" />
@@ -76,41 +76,6 @@ export default function PitchDeckPage() {
               <BarChart3 className="absolute bottom-4 left-4 h-6 w-6 text-gray-400" />
               <div className="absolute bottom-4 right-4 h-12 w-12 rounded-lg bg-gray-100"></div>
 
-              {/* Animated lines */}
-              <svg className="absolute inset-0 h-full w-full opacity-30">
-                <line
-                  x1="25%"
-                  y1="15%"
-                  x2="48%"
-                  y2="48%"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth="2"
-                  strokeDasharray="4"
-                  className="animate-flow"
-                />
-                <line
-                  x1="75%"
-                  y1="15%"
-                  x2="52%"
-                  y2="48%"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth="2"
-                  strokeDasharray="4"
-                  className="animate-flow"
-                  style={{ animationDelay: '0.5s' }}
-                />
-                 <line
-                  x1="25%"
-                  y1="85%"
-                  x2="48%"
-                  y2="52%"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth="2"
-                  strokeDasharray="4"
-                  className="animate-flow"
-                   style={{ animationDelay: '1s' }}
-                />
-              </svg>
             </div>
           </div>
            <div className="mt-6 space-y-3">
@@ -118,19 +83,6 @@ export default function PitchDeckPage() {
                <div className="h-5 w-3/4 rounded-md bg-gray-100"></div>
           </div>
         </div>
-        <style jsx>{`
-          @keyframes flow {
-            from {
-              stroke-dashoffset: 8;
-            }
-            to {
-              stroke-dashoffset: 0;
-            }
-          }
-          .animate-flow {
-            animation: flow 1s linear infinite;
-          }
-        `}</style>
       </div>
 
       {/* Right side - Content */}
