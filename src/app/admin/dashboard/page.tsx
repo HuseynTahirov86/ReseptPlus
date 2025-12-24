@@ -7,6 +7,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { collection, getCountFromServer } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { MonthlyPrescriptionsChart } from '@/app/dashboard/charts/monthly-prescriptions-chart';
+import { DiagnosisDistributionChart } from '@/app/dashboard/charts/diagnosis-distribution-chart';
 
 function StatCard({ title, icon, value, description, isLoading }: { title: string, icon: React.ReactNode, value: string | number, description: string, isLoading: boolean }) {
   return (
@@ -108,15 +110,18 @@ function SystemAdminDashboard() {
   const { firestore } = useFirebase();
   const [counts, setCounts] = useState({ hospitals: 0, doctors: 0, pharmacies: 0, patients: 0 });
   const [isLoading, setIsLoading] = useState(true);
+  const [prescriptions, setPrescriptions] = useState([]);
 
-  useEffect(() => {
+   useEffect(() => {
     async function fetchCounts() {
       if (!firestore) return;
+      setIsLoading(true);
       try {
         const hospitalsSnap = await getCountFromServer(collection(firestore, "hospitals"));
         const doctorsSnap = await getCountFromServer(collection(firestore, "doctors"));
         const pharmaciesSnap = await getCountFromServer(collection(firestore, "pharmacies"));
         const patientsSnap = await getCountFromServer(collection(firestore, "patients"));
+        const presSnap = await getDocs(collection(firestore, "prescriptions"));
         
         setCounts({
           hospitals: hospitalsSnap.data().count,
@@ -124,6 +129,9 @@ function SystemAdminDashboard() {
           pharmacies: pharmaciesSnap.data().count,
           patients: patientsSnap.data().count,
         });
+
+        setPrescriptions(presSnap.docs.map(doc => doc.data()) as any);
+
       } catch (error) {
         console.error("Error fetching system admin counts: ", error);
       } finally {
@@ -132,6 +140,7 @@ function SystemAdminDashboard() {
     }
     fetchCounts();
   }, [firestore]);
+
 
   return (
     <div className="space-y-8">
@@ -147,6 +156,15 @@ function SystemAdminDashboard() {
         <StatCard title="Apteklər" icon={<Building className="h-4 w-4 text-muted-foreground" />} value={counts.pharmacies} description="sistemdə qeydiyyatda" isLoading={isLoading} />
         <StatCard title="Xəstələr" icon={<Users className="h-4 w-4 text-muted-foreground" />} value={counts.patients} description="sistemdə qeydiyyatda" isLoading={isLoading} />
       </div>
+
+        <div className="space-y-4">
+             <h2 className="text-2xl font-bold tracking-tight">Ümumi Sistem Analitikası</h2>
+             <div className="grid gap-6 lg:grid-cols-2">
+                <MonthlyPrescriptionsChart prescriptions={prescriptions} isLoading={isLoading} />
+                <DiagnosisDistributionChart prescriptions={prescriptions} isLoading={isLoading} />
+            </div>
+        </div>
+
        <div>
         <h2 className="text-2xl font-bold tracking-tight">Əsas İdarəetmə Funksiyaları</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">

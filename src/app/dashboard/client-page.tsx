@@ -15,13 +15,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Prescription, Doctor, AppUser } from "@/lib/types";
+import type { Prescription, AppUser } from "@/lib/types";
 import { ClipboardList, Users, RefreshCw, UserCheck, Pill, Building, Loader2, Hospital, Stethoscope, HeartPulse } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser, useFirebase } from "@/firebase";
 import { collection, getCountFromServer, query, where, getDocs, limit, orderBy } from "firebase/firestore";
 import Link from 'next/link';
+import { MonthlyPrescriptionsChart } from './charts/monthly-prescriptions-chart';
+import { DiagnosisDistributionChart } from './charts/diagnosis-distribution-chart';
 
 const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
     'Təhvil verildi': 'default',
@@ -154,8 +156,8 @@ function DoctorDashboard({ user, stats, prescriptions, isLoading }: { user: AppU
                     : 'Bugünkü fəaliyyətinizin xülasəsi.'}
                 </p>
             </div>
-             <div className="grid gap-6 md:grid-cols-3">
-                <Card>
+             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+               <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">
                             {userRole === 'head_doctor' ? 'Ümumi Reseptlər' : 'Yazdığınız Reseptlər'}
@@ -169,29 +171,18 @@ function DoctorDashboard({ user, stats, prescriptions, isLoading }: { user: AppU
                         </p>
                     </CardContent>
                 </Card>
-                {userRole === 'head_doctor' ? (
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">Xəstəxanadakı Həkimlər</CardTitle>
-                        <Stethoscope className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.doctors}</div>}
-                        <p className="text-xs text-muted-foreground">sistemdə qeydiyyatda</p>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">Aktiv Xəstələr</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                           {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.patients}</div>}
-                           <p className="text-xs text-muted-foreground">sizin tərəfinizdən yazılmış</p>
-                        </CardContent>
-                    </Card>
-                )}
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-sm font-medium">
+                        {userRole === 'head_doctor' ? 'Xəstəxanadakı Həkimlər' : 'Unikal Xəstələr'}
+                    </CardTitle>
+                    {userRole === 'head_doctor' ? <Stethoscope className="h-4 w-4 text-muted-foreground" /> : <Users className="h-4 w-4 text-muted-foreground" />}
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{userRole === 'head_doctor' ? stats.doctors : stats.patients}</div>}
+                        <p className="text-xs text-muted-foreground">{userRole === 'head_doctor' ? 'sistemdə qeydiyyatda' : 'sizin tərəfinizdən yazılmış'}</p>
+                    </CardContent>
+                </Card>
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-sm font-medium">Gözləyən Təkrarlar</CardTitle>
@@ -202,61 +193,21 @@ function DoctorDashboard({ user, stats, prescriptions, isLoading }: { user: AppU
                     <p className="text-xs text-muted-foreground">Bu funksiya hazırlanır</p>
                     </CardContent>
                 </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-sm font-medium">Aktiv Xəstələr</CardTitle>
+                    <HeartPulse className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                    {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.patients}</div>}
+                    <p className="text-xs text-muted-foreground">hazırda müalicə alan</p>
+                    </CardContent>
+                </Card>
             </div>
-             <Card>
-                <CardHeader>
-                <CardTitle>Son Reseptlər</CardTitle>
-                <CardDescription>
-                    {userRole === 'head_doctor' 
-                        ? 'Xəstəxanada yazılmış ən son reseptlər.'
-                        : 'Ən son yazdığınız reseptlərin siyahısı.'}
-                </CardDescription>
-                </CardHeader>
-                <CardContent>
-                <Table>
-                    <TableHeader>
-                    <TableRow>
-                        <TableHead>Resept ID</TableHead>
-                        <TableHead>Xəstə</TableHead>
-                        <TableHead>Tarix</TableHead>
-                        <TableHead>Dərmanlar</TableHead>
-                        <TableHead className="text-right">Status</TableHead>
-                    </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                    {isLoading && (
-                        Array.from({ length: 5 }).map((_, i) => (
-                            <TableRow key={i}>
-                                <TableCell><Skeleton className="h-5 w-[100px]" /></TableCell>
-                                <TableCell><Skeleton className="h-5 w-[120px]" /></TableCell>
-                                <TableCell><Skeleton className="h-5 w-[80px]" /></TableCell>
-                                <TableCell><Skeleton className="h-5 w-[100px]" /></TableCell>
-                                <TableCell className="text-right"><Skeleton className="h-5 w-[70px] ml-auto" /></TableCell>
-                            </TableRow>
-                        ))
-                    )}
-                    {!isLoading && prescriptions.map((p) => (
-                        <TableRow key={p.id}>
-                        <TableCell className="font-mono text-xs">{p.id.substring(0,8)}...</TableCell>
-                        <TableCell>{p.patientName}</TableCell>
-                        <TableCell>{new Date(p.datePrescribed).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                            {p.medications.map(m => m.medicationName).join(', ')}
-                        </TableCell>
-                        <TableCell className="text-right">
-                            <Badge variant={statusVariant[p.status] || 'secondary'}>{p.status}</Badge>
-                        </TableCell>
-                        </TableRow>
-                    ))}
-                    {!isLoading && prescriptions.length === 0 && (
-                        <TableRow>
-                        <TableCell colSpan={5} className="text-center h-24">Heç bir resept tapılmadı.</TableCell>
-                        </TableRow>
-                    )}
-                    </TableBody>
-                </Table>
-                </CardContent>
-            </Card>
+             <div className="grid gap-6 lg:grid-cols-2">
+                <MonthlyPrescriptionsChart prescriptions={prescriptions} isLoading={isLoading} />
+                <DiagnosisDistributionChart prescriptions={prescriptions} isLoading={isLoading} />
+            </div>
         </div>
     )
 }
@@ -346,21 +297,20 @@ export function DashboardClientPage() {
             const presCollection = collection(firestore, "prescriptions");
             if (profile.role === 'doctor' || profile.role === 'head_doctor') {
                 let presQuery;
-                if (profile.role === 'head_doctor' && profile.hospitalId) {
+                 if (profile.role === 'head_doctor' && profile.hospitalId) {
                     presQuery = query(presCollection, where("hospitalId", "==", profile.hospitalId));
                     const hospitalDoctorsQuery = query(collection(firestore, "doctors"), where("hospitalId", "==", profile.hospitalId));
                     newStats.doctors = (await getCountFromServer(hospitalDoctorsQuery)).data().count;
                 } else {
                     presQuery = query(presCollection, where("doctorId", "==", user.uid));
-                    const presSnapshot = await getDocs(presQuery);
-                    const patientIds = [...new Set(presSnapshot.docs.map(doc => doc.data().patientId))];
-                    newStats.patients = patientIds.length;
                 }
-                newStats.prescriptions = (await getCountFromServer(presQuery)).data().count;
+
+                const presSnapshot = await getDocs(presQuery);
+                newPrescriptions = presSnapshot.docs.map(doc => doc.data() as Prescription).sort((a, b) => new Date(b.datePrescribed).getTime() - new Date(a.datePrescribed).getTime());
+                newStats.prescriptions = newPrescriptions.length;
                 
-                const latestPresQuery = query(presQuery, orderBy('datePrescribed', 'desc'), limit(5));
-                const latestPresSnapshot = await getDocs(latestPresQuery);
-                newPrescriptions = latestPresSnapshot.docs.map(doc => doc.data() as Prescription);
+                const patientIds = [...new Set(newPrescriptions.map(doc => doc.patientId))];
+                newStats.patients = patientIds.length;
 
             } else if (profile.role === 'employee' || profile.role === 'head_pharmacist') {
                 if (profile.pharmacyId) {
