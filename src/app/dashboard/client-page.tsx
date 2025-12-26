@@ -20,7 +20,7 @@ import { ClipboardList, Users, RefreshCw, Pill, Loader2, Hospital, Stethoscope, 
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser, useFirebase } from "@/firebase";
-import { collection, getCountFromServer, query, where, getDocs, limit, orderBy, collectionGroup } from "firebase/firestore";
+import { collection, getCountFromServer, query, where, getDocs, limit, orderBy, collectionGroup, doc, getDoc } from "firebase/firestore";
 import Link from 'next/link';
 import { MonthlyPrescriptionsChart } from './charts/monthly-prescriptions-chart';
 import { DiagnosisDistributionChart } from './charts/diagnosis-distribution-chart';
@@ -475,7 +475,7 @@ export function DashboardClientPage() {
                     const todayStart = new Date();
                     todayStart.setHours(0, 0, 0, 0);
 
-                    const fulfilledToday = newPrescriptions.filter(p => p.status === 'Təhvil verildi' && new Date(p.dateFulfilled) >= todayStart);
+                    const fulfilledToday = newPrescriptions.filter(p => p.status === 'Təhvil verildi' && p.dateFulfilled && new Date(p.dateFulfilled) >= todayStart);
                     newStats.todayFulfilledCount = fulfilledToday.length;
                     newStats.todayFulfilledRevenue = fulfilledToday.reduce((sum, p) => sum + (p.totalCost || 0), 0);
                     
