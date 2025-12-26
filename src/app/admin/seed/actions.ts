@@ -1,7 +1,7 @@
 'use server';
 
 import { db, auth as adminAuth } from '@/firebase/server-init';
-import type { Hospital, Pharmacy, Doctor, Pharmacist, Patient, Inventory } from '@/lib/types';
+import type { Hospital, Pharmacy, Doctor, Pharmacist, Patient, Inventory, Prescription } from '@/lib/types';
 import { FieldValue } from 'firebase-admin/firestore';
 
 async function createUser(email: string, password = 'password', displayName: string) {
@@ -19,24 +19,25 @@ async function createUser(email: string, password = 'password', displayName: str
 
 export async function seedDatabase() {
     try {
-        console.log('Starting database seed process...');
-
-        const hospitalId = 'demo_hospital_01';
-        const pharmacyId = 'demo_pharmacy_01';
+        console.log('Starting database seed process for functional data...');
+        const batch = db.batch();
 
         // 1. Create Hospital
+        const hospitalId = 'demo_hospital_01';
         const hospitalRef = db.collection('hospitals').doc(hospitalId);
         const hospitalData: Hospital = {
             id: hospitalId,
             name: 'Naxçıvan Diaqnostika Müalicə Mərkəzi',
             address: 'Naxçıvan şəh., Heydər Əliyev pr.',
             contactNumber: '(036) 545-01-01',
-            email: 'info@ndmc.az'
+            email: 'info@ndmc.az',
+            paymentStatus: 'Aktiv',
         };
-        await hospitalRef.set(hospitalData);
-        console.log(`Created Hospital: ${hospitalData.name}`);
+        batch.set(hospitalRef, hospitalData);
+        console.log(`Prepared Hospital: ${hospitalData.name}`);
 
         // 2. Create Pharmacy
+        const pharmacyId = 'demo_pharmacy_01';
         const pharmacyRef = db.collection('pharmacies').doc(pharmacyId);
         const pharmacyData: Pharmacy = {
             id: pharmacyId,
@@ -45,13 +46,13 @@ export async function seedDatabase() {
             contactNumber: '(012) 498-76-54',
             email: 'info@zeytunpharma.az',
             latitude: 40.375,
-            longitude: 49.845
+            longitude: 49.845,
+            paymentStatus: 'Aktiv',
         };
-        await pharmacyRef.set(pharmacyData);
-        console.log(`Created Pharmacy: ${pharmacyData.name}`);
+        batch.set(pharmacyRef, pharmacyData);
+        console.log(`Prepared Pharmacy: ${pharmacyData.name}`);
 
         // 3. Create Inventory for the Pharmacy
-        const inventoryBatch = db.batch();
         const inventoryItems: Omit<Inventory, 'id' | 'pharmacyId'>[] = [
             { name: 'Paracetamol', dosage: '500', unit: 'mg', form: 'tablet', quantity: 150, expirationDate: '2025-12-31' },
             { name: 'Ibuprofen', dosage: '200', unit: 'mg', form: 'tablet', quantity: 80, expirationDate: '2026-06-30' },
@@ -59,43 +60,65 @@ export async function seedDatabase() {
         ];
         inventoryItems.forEach(item => {
             const inventoryRef = db.collection(`pharmacies/${pharmacyId}/inventory`).doc();
-            inventoryBatch.set(inventoryRef, { ...item, pharmacyId, id: inventoryRef.id });
+            batch.set(inventoryRef, { ...item, pharmacyId, id: inventoryRef.id });
         });
-        await inventoryBatch.commit();
-        console.log(`Created ${inventoryItems.length} inventory items for ${pharmacyData.name}`);
+        console.log(`Prepared ${inventoryItems.length} inventory items for ${pharmacyData.name}`);
 
-        // 4. Create Users (Auth + Firestore)
-        // Head Doctor
+        // 4. Create Users (Auth is handled separately, just prepare Firestore docs)
         const headDoctorUid = await createUser('aysel.quliyeva@reseptplus.az', 'password', 'Aysel Quliyeva');
         const headDoctorData: Doctor = { id: headDoctorUid, firstName: 'Aysel', lastName: 'Quliyeva', email: 'aysel.quliyeva@reseptplus.az', specialization: 'Baş Həkim', hospitalId, role: 'head_doctor' };
-        await db.collection('doctors').doc(headDoctorUid).set(headDoctorData);
-        console.log(`Created Head Doctor: ${headDoctorData.firstName}`);
+        batch.set(db.collection('doctors').doc(headDoctorUid), headDoctorData);
+        console.log(`Prepared Head Doctor: ${headDoctorData.firstName}`);
 
-        // Doctor
         const doctorUid = await createUser('elvin.agayev@reseptplus.az', 'password', 'Elvin Ağayev');
         const doctorData: Doctor = { id: doctorUid, firstName: 'Elvin', lastName: 'Ağayev', email: 'elvin.agayev@reseptplus.az', specialization: 'Kardioloq', hospitalId, role: 'doctor' };
-        await db.collection('doctors').doc(doctorUid).set(doctorData);
-        console.log(`Created Doctor: ${doctorData.firstName}`);
-
-        // Head Pharmacist
+        batch.set(db.collection('doctors').doc(doctorUid), doctorData);
+        console.log(`Prepared Doctor: ${doctorData.firstName}`);
+        
         const headPharmacistUid = await createUser('leyla.hesenova@reseptplus.az', 'password', 'Leyla Həsənova');
         const headPharmacistData: Pharmacist = { id: headPharmacistUid, firstName: 'Leyla', lastName: 'Həsənova', email: 'leyla.hesenova@reseptplus.az', pharmacyId, role: 'head_pharmacist' };
-        await db.collection('pharmacists').doc(headPharmacistUid).set(headPharmacistData);
-        console.log(`Created Head Pharmacist: ${headPharmacistData.firstName}`);
+        batch.set(db.collection('pharmacists').doc(headPharmacistUid), headPharmacistData);
+        console.log(`Prepared Head Pharmacist: ${headPharmacistData.firstName}`);
 
-        // Pharmacist (Employee)
         const pharmacistUid = await createUser('anar.memmedov@reseptplus.az', 'password', 'Anar Məmmədov');
         const pharmacistData: Pharmacist = { id: pharmacistUid, firstName: 'Anar', lastName: 'Məmmədov', email: 'anar.memmedov@reseptplus.az', pharmacyId, role: 'employee' };
-        await db.collection('pharmacists').doc(pharmacistUid).set(pharmacistData);
-        console.log(`Created Pharmacist: ${pharmacistData.firstName}`);
-
-        // Patient
+        batch.set(db.collection('pharmacists').doc(pharmacistUid), pharmacistData);
+        console.log(`Prepared Pharmacist: ${pharmacistData.firstName}`);
+        
         const patientUid = await createUser('orxan.veliyev@reseptplus.az', 'password', 'Orxan Vəliyev');
         const patientData: Patient = { id: patientUid, firstName: 'Orxan', lastName: 'Vəliyev', email: 'orxan.veliyev@reseptplus.az', finCode: '1A2B3C4', dateOfBirth: '1988-05-15', gender: 'Kişi', contactNumber: '+994501234567', address: 'Bakı şəh., Azadlıq pr. 1', role: 'patient' };
-        await db.collection('patients').doc(patientUid).set(patientData);
-        console.log(`Created Patient: ${patientData.firstName}`);
+        batch.set(db.collection('patients').doc(patientUid), patientData);
+        console.log(`Prepared Patient: ${patientData.firstName}`);
 
-        return { type: 'success', message: 'Bütün nümunə məlumatlar və hesablar uğurla yaradıldı!' };
+        // 5. Create Sample Prescription
+        const prescriptionRef = db.collection('prescriptions').doc();
+        const prescriptionData: Omit<Prescription, 'id'> = {
+            patientId: patientUid,
+            patientName: `${patientData.firstName} ${patientData.lastName}`,
+            doctorId: doctorUid,
+            doctorName: `${doctorData.firstName} ${doctorData.lastName}`,
+            hospitalId: hospitalId,
+            datePrescribed: new Date().toISOString(),
+            diagnosis: 'Kəskin bronxit',
+            complaint: '3 gündür davam edən quru öskürək və hərarət.',
+            medications: [
+                { medicationName: 'Amoksisilin', dosage: '250mg', instructions: 'Gündə 3 dəfə yeməkdən sonra.' },
+                { medicationName: 'Paracetamol', dosage: '500mg', instructions: 'Yalnız hərarət 38.5-dən yuxarı olduqda.' },
+            ],
+            status: 'Gözləmədə',
+            verificationCode: Math.floor(100000 + Math.random() * 900000).toString(),
+            pharmacyId: '',
+            totalCost: 0,
+            paymentReceived: 0,
+        };
+        batch.set(prescriptionRef, { ...prescriptionData, id: prescriptionRef.id });
+        console.log(`Prepared Prescription for ${patientData.firstName}`);
+
+        // Commit all changes at once
+        await batch.commit();
+        console.log('Batch commit successful.');
+
+        return { type: 'success', message: 'Bütün nümunə funksional məlumatlar və hesablar uğurla yaradıldı!' };
     } catch (error) {
         console.error('Database seeding failed:', error);
         const errorMessage = error instanceof Error ? error.message : 'Bilinməyən server xətası';
