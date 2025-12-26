@@ -1,8 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useUser, useFirebase, useMemoFirebase } from '@/firebase';
-import { useCollection } from '@/firebase/firestore/use-collection';
+import { useUser, useFirebase, useMemoFirebase, useCollection } from '@/firebase';
 import { collection, query, where, orderBy } from 'firebase/firestore';
 import type { Prescription } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';

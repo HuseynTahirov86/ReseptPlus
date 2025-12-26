@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useUser, useFirebase, useMemoFirebase } from '@/firebase';
-import { useCollection } from '@/firebase/firestore/use-collection';
+import { useUser, useFirebase, useMemoFirebase, useCollection } from '@/firebase';
 import { collection, query, where, orderBy } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -164,5 +163,3 @@ export default function FindPharmacyPage() {
         </div>
     );
 }
-
-    
