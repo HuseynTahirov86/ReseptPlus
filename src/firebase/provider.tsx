@@ -175,21 +175,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 }
 
                 const appUser: AppUser = { ...firebaseUser, profile: userProfile };
-                const rolesNeedingVerification = ['doctor', 'head_doctor', 'employee', 'head_pharmacist'];
-
-                if (rolesNeedingVerification.includes(userProfile.role as string) && !firebaseUser.emailVerified) {
-                    // Send verification email only if it hasn't been sent recently
-                    if (auth.currentUser && !auth.currentUser.emailVerified) {
-                         try {
-                            await sendEmailVerification(auth.currentUser);
-                         } catch (e) {
-                             console.error("Error sending verification email:", e);
-                         }
-                    }
-                    setUserAuthState({ user: appUser, authState: "AWAITING_EMAIL_VERIFICATION", userError: null, generatedOtp: null });
-                } else {
-                    setUserAuthState({ user: appUser, authState: "AUTHENTICATED", userError: null, generatedOtp: null });
-                }
+                setUserAuthState({ user: appUser, authState: "AUTHENTICATED", userError: null, generatedOtp: null });
 
             } catch (e) {
                console.error("FirebaseProvider: Failed to fetch/create user profile:", e);
