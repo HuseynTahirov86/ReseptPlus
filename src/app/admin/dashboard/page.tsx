@@ -2,9 +2,9 @@
 
 import { useUser, useFirebase } from '@/firebase';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { BarChart, Users, Building, FileText, Hospital, Pill, ShieldCheck, Microscope } from 'lucide-react';
+import { BarChart, Users, Building, FileText, Hospital, Pill, ShieldCheck, Microscope, DatabaseZap, Library } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { collection, getCountFromServer } from 'firebase/firestore';
+import { collection, getCountFromServer, getDocs } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { MonthlyPrescriptionsChart } from '@/app/dashboard/charts/monthly-prescriptions-chart';
@@ -100,6 +100,13 @@ function SiteAdminDashboard() {
               </CardHeader>
             </Card>
           </Link>
+           <Link href="/admin/media">
+             <Card className="hover:bg-muted/50 transition-colors">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2"><Library className="h-5 w-5 text-primary" /> Media Kitabxanası</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
         </div>
       </div>
      </div>
@@ -147,7 +154,7 @@ function SystemAdminDashboard() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Sistem İdarə Paneli</h1>
         <p className="text-muted-foreground">
-          Sistemin əsas komponentlərini (xəstəxanalar, apteklər, istifadəçilər) buradan idarə edin.
+          Sistemin əsas komponentlərini, istifadəçiləri və ümumi analitikanı buradan idarə edin.
         </p>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -207,6 +214,13 @@ function SystemAdminDashboard() {
              <Card className="hover:bg-muted/50 transition-colors">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-primary" /> Təhlükəsizlik</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
+          <Link href="/admin/seed">
+             <Card className="hover:bg-muted/50 transition-colors">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2"><DatabaseZap className="h-5 w-5 text-primary" /> Məlumatları Yarat</CardTitle>
               </CardHeader>
             </Card>
           </Link>

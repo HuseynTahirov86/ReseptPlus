@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import Link from "next/link";
 import { useRouter, usePathname } from 'next/navigation';
 import { useUser, useAuth } from '@/firebase';
-import { Loader2, Home, Handshake, FileText, DollarSign, Package, Upload, Library, Users, LogOut, Hospital, Microscope, Pill, ShieldCheck, Building, DatabaseZap } from 'lucide-react';
+import { Loader2, Home, Handshake, FileText, DollarSign, Package, Users, LogOut, Hospital, Microscope, Pill, ShieldCheck, Building, DatabaseZap } from 'lucide-react';
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 
@@ -16,7 +16,6 @@ const siteAdminNavItems = [
   { href: "/admin/product", label: "Məhsul", icon: Package },
   { href: "/admin/team", label: "Komanda", icon: Users },
   { href: "/admin/media", label: "Media Kitabxanası", icon: Library },
-  { href: "/admin/upload", label: "Fayl Yüklə", icon: Upload },
 ];
 
 const systemAdminNavItems = [
