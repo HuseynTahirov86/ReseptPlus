@@ -1,6 +1,8 @@
 'use server';
 
 import { db } from '@/firebase/server-init';
+import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/firebase/error-emitter';
 
 export type FormState = {
   message: string;
@@ -18,14 +20,25 @@ export async function fulfillPrescription(
 
     try {
         const presRef = db.collection('prescriptions').doc(prescriptionId);
-        await presRef.update({
+        const dataToUpdate = {
             status: 'Təhvil verildi',
+            dateFulfilled: new Date().toISOString(),
             totalCost: totalCost,
             paymentReceived: paymentReceived
+        };
+        await presRef.update(dataToUpdate).catch(err => {
+            throw new FirestorePermissionError({
+                operation: 'update',
+                path: presRef.path,
+                requestResourceData: dataToUpdate
+            })
         });
         return { type: 'success', message: 'Resept uğurla təhvil verildi.' };
     } catch (error) {
         console.error("Fulfill Prescription Error:", error);
+         if(error instanceof FirestorePermissionError) {
+          errorEmitter.emit('permission-error', error);
+        }
         return { type: 'error', message: 'Resept statusunu yeniləyərkən xəta baş verdi.' };
     }
 }

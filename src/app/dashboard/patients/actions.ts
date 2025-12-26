@@ -2,6 +2,8 @@
 import { z } from 'zod';
 import { db } from '@/firebase/server-init';
 import type { Prescription, Patient, Doctor, DoctorFeedback } from '@/lib/types';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const PrescribedMedicationSchema = z.object({
   medicationName: z.string().min(3, 'Dərman adı ən azı 3 simvol olmalıdır.'),
@@ -92,29 +94,35 @@ export async function addPrescription(
     if (!hospitalId) {
         throw new Error("Həkimə bağlı xəstəxana ID-si tapılmadı.");
     }
+    
+    const collectionRef = db.collection('prescriptions');
+    const docRef = collectionRef.doc();
 
-    const newPrescription: Omit<Prescription, 'id' | 'status' | 'verificationCode' | 'datePrescribed' > = {
+    const newPrescriptionData = {
       ...validatedFields.data,
+      id: docRef.id,
       doctorId: doctorId,
       doctorName: `${doctorData.firstName} ${doctorData.lastName}`,
       hospitalId: hospitalId,
       pharmacyId: '', // Will be assigned by the pharmacy
       totalCost: 0,
       paymentReceived: 0,
+      datePrescribed: new Date().toISOString(),
+      verificationCode: Math.floor(100000 + Math.random() * 900000).toString(),
+      status: 'Gözləmədə',
     };
 
-    const collectionRef = db.collection('prescriptions');
-    const docRef = await collectionRef.add({
-        ...newPrescription,
-        datePrescribed: new Date().toISOString(),
-        verificationCode: Math.floor(100000 + Math.random() * 900000).toString(),
-        status: 'Gözləmədə',
+    await docRef.set(newPrescriptionData).catch(err => {
+      throw new FirestorePermissionError({ path: docRef.path, operation: 'create', requestResourceData: newPrescriptionData });
     });
-    await docRef.update({ id: docRef.id });
+
 
     return { type: 'success', message: 'Resept uğurla əlavə edildi.' };
   } catch (error) {
     console.error("Add Prescription Error:", error);
+    if(error instanceof FirestorePermissionError) {
+      errorEmitter.emit('permission-error', error);
+    }
     const errorMessage = error instanceof Error ? error.message : 'Bilinməyən xəta';
     return {
       type: 'error',
@@ -138,9 +146,10 @@ export async function addPatient(prevState: FormState, formData: FormData): Prom
     }
 
     const { finCode, ...patientData } = validatedFields.data;
+    const upperCaseFinCode = finCode.toUpperCase();
 
     try {
-        const patientQuery = db.collection('patients').where('finCode', '==', finCode.toUpperCase());
+        const patientQuery = db.collection('patients').where('finCode', '==', upperCaseFinCode);
         const querySnapshot = await patientQuery.get();
 
         if (!querySnapshot.empty) {
@@ -150,21 +159,25 @@ export async function addPatient(prevState: FormState, formData: FormData): Prom
                 fields: rawData,
             };
         }
-
-        const newPatient: Omit<Patient, 'id'> = {
-            ...patientData,
-            finCode: finCode.toUpperCase(),
-            role: 'patient',
+        
+        const docRef = db.collection('patients').doc();
+        const newPatientData = {
+          ...patientData,
+          id: docRef.id,
+          finCode: upperCaseFinCode,
+          role: 'patient' as const,
         };
 
-        const collectionRef = db.collection('patients');
-        const docRef = await collectionRef.add(newPatient);
-        await docRef.update({ id: docRef.id });
-
+        await docRef.set(newPatientData).catch(err => {
+          throw new FirestorePermissionError({ path: docRef.path, operation: 'create', requestResourceData: newPatientData });
+        });
 
         return { type: 'success', message: 'Xəstə uğurla qeydiyyata alındı.' };
     } catch (error) {
         console.error("Add Patient Error:", error);
+         if(error instanceof FirestorePermissionError) {
+          errorEmitter.emit('permission-error', error);
+        }
         return {
             type: 'error',
             message: 'Xəstə əlavə edilərkən gözlənilməz bir xəta baş verdi.',
@@ -188,17 +201,25 @@ export async function submitDoctorFeedback(prevState: FormState, formData: FormD
 
     try {
         const feedbackRef = db.collection('doctors').doc(doctorId).collection('feedback');
+        const docRef = feedbackRef.doc();
         
-        const docRef = await feedbackRef.add({
+        const newFeedbackData = {
             ...feedbackData,
+            id: docRef.id,
             dateSubmitted: new Date().toISOString(),
+        };
+
+        await docRef.set(newFeedbackData).catch(err => {
+          throw new FirestorePermissionError({ path: docRef.path, operation: 'create', requestResourceData: newFeedbackData });
         });
-        await docRef.update({ id: docRef.id });
 
         return { type: 'success', message: 'Rəyiniz uğurla göndərildi. Təşəkkür edirik!' };
 
     } catch (error) {
         console.error("Submit Feedback Error:", error);
+         if(error instanceof FirestorePermissionError) {
+          errorEmitter.emit('permission-error', error);
+        }
         const errorMessage = error instanceof Error ? error.message : 'Bilinməyən xəta';
         return {
             type: 'error',

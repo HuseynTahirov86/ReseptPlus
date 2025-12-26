@@ -16,6 +16,8 @@ import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { submitDoctorFeedback } from '../../patients/actions';
 import Link from 'next/link';
+import { db } from '@/firebase/client-init';
+
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -30,7 +32,6 @@ export default function FeedbackForm() {
     const searchParams = useSearchParams();
     const prescriptionId = searchParams.get('prescriptionId');
     const { user } = useUser();
-    const { firestore } = useFirebase();
 
     const [prescription, setPrescription] = useState<Prescription | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -40,7 +41,7 @@ export default function FeedbackForm() {
     const [state, formAction] = useActionState(submitDoctorFeedback, { message: '', type: 'error' });
 
     useEffect(() => {
-        if (!prescriptionId || !firestore) {
+        if (!prescriptionId) {
             setError('Resept ID tapılmadı.');
             setIsLoading(false);
             return;
@@ -48,7 +49,7 @@ export default function FeedbackForm() {
 
         const fetchPrescription = async () => {
             try {
-                const docRef = doc(firestore, 'prescriptions', prescriptionId);
+                const docRef = doc(db, 'prescriptions', prescriptionId);
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
@@ -65,7 +66,7 @@ export default function FeedbackForm() {
         };
 
         fetchPrescription();
-    }, [prescriptionId, firestore]);
+    }, [prescriptionId]);
 
     if (isLoading) {
         return (
@@ -141,6 +142,7 @@ export default function FeedbackForm() {
                                 />
                             ))}
                         </div>
+                         {state.issues?.rating && <p className="text-sm font-medium text-destructive">{state.issues.rating[0]}</p>}
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="comment">Rəyiniz (istəyə bağlı)</Label>

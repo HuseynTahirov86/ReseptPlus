@@ -109,7 +109,8 @@ function PatientDashboard({ user, stats, prescriptions, isLoading }: { user: App
                         <TableHead>Diaqnoz</TableHead>
                         <TableHead>Tarix</TableHead>
                         <TableHead>Dərmanlar</TableHead>
-                        <TableHead className="text-right">Status</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Rəy</TableHead>
                     </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -119,7 +120,8 @@ function PatientDashboard({ user, stats, prescriptions, isLoading }: { user: App
                                 <TableCell><Skeleton className="h-5 w-[120px]" /></TableCell>
                                 <TableCell><Skeleton className="h-5 w-[80px]" /></TableCell>
                                 <TableCell><Skeleton className="h-5 w-[150px]" /></TableCell>
-                                <TableCell className="text-right"><Skeleton className="h-5 w-[70px] ml-auto" /></TableCell>
+                                <TableCell><Skeleton className="h-5 w-[70px]" /></TableCell>
+                                <TableCell className="text-right"><Skeleton className="h-8 w-[100px] ml-auto" /></TableCell>
                             </TableRow>
                         ))
                     )}
@@ -130,14 +132,21 @@ function PatientDashboard({ user, stats, prescriptions, isLoading }: { user: App
                             <TableCell>
                                 {p.medications.map(m => m.medicationName).join(', ')}
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell>
                                 <Badge variant={statusVariant[p.status] || 'secondary'}>{p.status}</Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <Button asChild variant="outline" size="sm">
+                                    <Link href={`/dashboard/prescriptions/feedback?prescriptionId=${p.id}`}>
+                                        <Star className="mr-2 h-4 w-4" /> Rəy Bildir
+                                    </Link>
+                                </Button>
                             </TableCell>
                         </TableRow>
                     ))}
                     {!isLoading && prescriptions.length === 0 && (
                         <TableRow>
-                        <TableCell colSpan={4} className="text-center h-24">Heç bir resept tapılmadı.</TableCell>
+                        <TableCell colSpan={5} className="text-center h-24">Heç bir resept tapılmadı.</TableCell>
                         </TableRow>
                     )}
                     </TableBody>
@@ -158,7 +167,7 @@ function DoctorDashboard({ user, stats, prescriptions, isLoading }: { user: AppU
                 <h1 className="text-3xl font-bold tracking-tight">{welcomeMessage}</h1>
                 <p className="text-muted-foreground">
                 {userRole === 'head_doctor' 
-                    ? `${stats.hospitalName || 'Xəstəxananın'} ümumi fəaliyyətinin xülasəsi.` 
+                    ? `${user.profile.hospitalName || 'Xəstəxananın'} ümumi fəaliyyətinin xülasəsi.` 
                     : 'Bugünkü fəaliyyətinizin xülasəsi.'}
                 </p>
             </div>
@@ -414,9 +423,22 @@ export function DashboardClientPage() {
                 if (profile.role === 'head_doctor' && profile.hospitalId) {
                     presQuery = query(presCollection, where("hospitalId", "==", profile.hospitalId));
                     doctorsQuery = query(collection(firestore, "doctors"), where("hospitalId", "==", profile.hospitalId));
-                    const hospitalDoctorIds = (await getDocs(doctorsQuery)).docs.map(d => d.id);
-                    feedbackQuery = query(collectionGroup(firestore, 'feedback'), where('doctorId', 'in', hospitalDoctorIds));
-                    newStats.doctors = hospitalDoctorIds.length;
+                    
+                    const hospitalDoctorsSnapshot = await getDocs(doctorsQuery);
+                    const hospitalDoctors = hospitalDoctorsSnapshot.docs.map(d => d.data());
+                    newStats.doctors = hospitalDoctors.length;
+
+                    // Fetch hospital name
+                    const hospitalDoc = await getDoc(doc(firestore, `hospitals/${profile.hospitalId}`));
+                    if(hospitalDoc.exists()) {
+                       profile.hospitalName = hospitalDoc.data().name;
+                    }
+
+
+                    const hospitalDoctorIds = hospitalDoctors.map(d => d.id);
+                    if (hospitalDoctorIds.length > 0) {
+                        feedbackQuery = query(collectionGroup(firestore, 'feedback'), where('doctorId', 'in', hospitalDoctorIds));
+                    }
                 } else {
                     presQuery = query(presCollection, where("doctorId", "==", user.uid));
                     feedbackQuery = query(collection(firestore, `doctors/${user.uid}/feedback`));
@@ -433,15 +455,16 @@ export function DashboardClientPage() {
                 newStats.todayPatients = [...new Set(newPrescriptions.filter(p => p.datePrescribed >= todayISO).map(p => p.patientId))].length;
 
                 // Calculate average rating
-                const feedbackSnapshot = await getDocs(feedbackQuery);
-                const feedbacks = feedbackSnapshot.docs.map(doc => doc.data() as DoctorFeedback);
-                if (feedbacks.length > 0) {
-                    const totalRating = feedbacks.reduce((sum, f) => sum + f.rating, 0);
-                    newStats.averageRating = totalRating / feedbacks.length;
-                } else {
-                    newStats.averageRating = 0;
+                if (feedbackQuery) {
+                    const feedbackSnapshot = await getDocs(feedbackQuery);
+                    const feedbacks = feedbackSnapshot.docs.map(doc => doc.data() as DoctorFeedback);
+                    if (feedbacks.length > 0) {
+                        const totalRating = feedbacks.reduce((sum, f) => sum + f.rating, 0);
+                        newStats.averageRating = totalRating / feedbacks.length;
+                    } else {
+                        newStats.averageRating = 0;
+                    }
                 }
-
 
             } else if (profile.role === 'employee' || profile.role === 'head_pharmacist') {
                 if (profile.pharmacyId) {
@@ -452,7 +475,7 @@ export function DashboardClientPage() {
                     const todayStart = new Date();
                     todayStart.setHours(0, 0, 0, 0);
 
-                    const fulfilledToday = newPrescriptions.filter(p => p.status === 'Təhvil verildi' && new Date(p.datePrescribed) >= todayStart);
+                    const fulfilledToday = newPrescriptions.filter(p => p.status === 'Təhvil verildi' && new Date(p.dateFulfilled) >= todayStart);
                     newStats.todayFulfilledCount = fulfilledToday.length;
                     newStats.todayFulfilledRevenue = fulfilledToday.reduce((sum, p) => sum + (p.totalCost || 0), 0);
                     
@@ -491,12 +514,13 @@ export function DashboardClientPage() {
         setIsLoading(false);
     };
 
-    if (!isUserLoading && user) {
-        fetchStatsAndPrescriptions();
-    } else if (!isUserLoading && !user) {
-        setIsLoading(false);
-    }
-  }, [user, isUserLoading, firestore]);
+    useEffect(() => {
+        if (!isUserLoading && user) {
+            fetchStatsAndPrescriptions();
+        } else if (!isUserLoading && !user) {
+            setIsLoading(false);
+        }
+    }, [user, isUserLoading, firestore]);
 
 
   const userRole = user?.profile?.role;

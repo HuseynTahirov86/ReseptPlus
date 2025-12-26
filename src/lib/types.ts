@@ -17,6 +17,7 @@ export type DoctorFeedback = {
     id: string;
     prescriptionId: string;
     patientId: string;
+    doctorId: string;
     rating: number;
     comment?: string;
     dateSubmitted: string; // ISO date string
@@ -37,6 +38,7 @@ export type Prescription = {
   hospitalId: string; // Denormalized for easier querying by head_doctor
   pharmacyId: string;
   datePrescribed: string; // ISO date string
+  dateFulfilled?: string; // ISO date string when fulfilled
   verificationCode: string;
   status: 'Təhvil verildi' | 'Gözləmədə' | 'Ləğv edildi';
   complaint?: string;
@@ -53,6 +55,7 @@ export type Doctor = {
     email: string;
     specialization: string;
     hospitalId: string;
+    hospitalName?: string;
     role: 'doctor' | 'head_doctor';
 };
 

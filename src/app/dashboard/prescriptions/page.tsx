@@ -51,6 +51,8 @@ export default function PrescriptionsPage() {
         return prescriptions.filter(p => 
             (p.patientName && p.patientName.toLowerCase().includes(searchTerm.toLowerCase())) ||
             (p.diagnosis && p.diagnosis.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (p.doctorName && p.doctorName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            p.medications.some(m => m.medicationName.toLowerCase().includes(searchTerm.toLowerCase())) ||
             p.id.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [prescriptions, searchTerm]);
@@ -69,7 +71,7 @@ export default function PrescriptionsPage() {
                         <div className="relative w-full max-w-sm">
                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                            <Input 
-                                placeholder={isPatient ? "Diaqnoz və ya dərman adı ilə axtar..." : "Xəstə adı, diaqnoz və ya ID ilə axtar..."}
+                                placeholder={isPatient ? "Həkim, diaqnoz və ya dərman adı ilə axtar..." : "Xəstə adı, diaqnoz və ya ID ilə axtar..."}
                                 className="pl-8"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
