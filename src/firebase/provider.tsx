@@ -3,7 +3,7 @@
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, getDoc, setDoc } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged } from 'firebase/auth';
+import { Auth, User, onAuthStateChanged, sendEmailVerification } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import type { Doctor, Admin, UserProfile, SystemAdmin, Pharmacist, Hospital, Pharmacy, Patient } from '@/lib/types';
 import { usePathname, useRouter } from 'next/navigation';
@@ -46,8 +46,6 @@ export interface FirebaseContextState {
   generatedOtp: string | null;
 
   isUserLoading: boolean; // Derived from authState for easier use in components
-
-  verifyUserSession: () => void;
 }
 
 // Return type for useFirebase()
@@ -60,7 +58,6 @@ export interface FirebaseServicesAndUser {
   userError: Error | null;
   generatedOtp: string | null;
   isUserLoading: boolean;
-  verifyUserSession: () => void;
 }
 
 // Return type for useUser() - specific to user auth state
@@ -142,9 +139,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     generatedOtp: null
   });
 
-  const verifyUserSession = () => {
-    setUserAuthState(prev => ({ ...prev, authState: "AUTHENTICATED", generatedOtp: null }));
-  }
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
@@ -181,11 +175,18 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 }
 
                 const appUser: AppUser = { ...firebaseUser, profile: userProfile };
-                const rolesNeedingOtp = ['doctor', 'head_doctor', 'employee', 'head_pharmacist'];
+                const rolesNeedingVerification = ['doctor', 'head_doctor', 'employee', 'head_pharmacist'];
 
-                if (userProfile.role && rolesNeedingOtp.includes(userProfile.role)) {
-                    const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-                    setUserAuthState({ user: appUser, authState: "AWAITING_EMAIL_VERIFICATION", userError: null, generatedOtp: newOtp });
+                if (rolesNeedingVerification.includes(userProfile.role as string) && !firebaseUser.emailVerified) {
+                    // Send verification email only if it hasn't been sent recently
+                    if (auth.currentUser && !auth.currentUser.emailVerified) {
+                         try {
+                            await sendEmailVerification(auth.currentUser);
+                         } catch (e) {
+                             console.error("Error sending verification email:", e);
+                         }
+                    }
+                    setUserAuthState({ user: appUser, authState: "AWAITING_EMAIL_VERIFICATION", userError: null, generatedOtp: null });
                 } else {
                     setUserAuthState({ user: appUser, authState: "AUTHENTICATED", userError: null, generatedOtp: null });
                 }
@@ -218,7 +219,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       userError: userAuthState.userError,
       generatedOtp: userAuthState.generatedOtp,
       isUserLoading: userAuthState.authState === "LOADING",
-      verifyUserSession: verifyUserSession
     };
   }, [firebaseApp, firestore, auth, userAuthState]);
 
@@ -251,7 +251,6 @@ export const useFirebase = (): FirebaseServicesAndUser => {
     userError: context.userError,
     generatedOtp: context.generatedOtp,
     isUserLoading: context.isUserLoading,
-    verifyUserSession: context.verifyUserSession,
   };
 };
 
