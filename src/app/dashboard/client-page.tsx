@@ -514,13 +514,12 @@ export function DashboardClientPage() {
         setIsLoading(false);
     };
 
-    useEffect(() => {
-        if (!isUserLoading && user) {
-            fetchStatsAndPrescriptions();
-        } else if (!isUserLoading && !user) {
-            setIsLoading(false);
-        }
-    }, [user, isUserLoading, firestore]);
+    if (!isUserLoading && user) {
+        fetchStatsAndPrescriptions();
+    } else if (!isUserLoading && !user) {
+        setIsLoading(false);
+    }
+  }, [user, isUserLoading, firestore]);
 
 
   const userRole = user?.profile?.role;
