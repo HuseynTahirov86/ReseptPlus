@@ -57,7 +57,7 @@ function AuthForm() {
   return (
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Admin Panelə Giriş</CardTitle>
+          <CardTitle>ReseptPlus Admin Paneli</CardTitle>
           <CardDescription>
             İdarəetmə panelinə daxil olmaq üçün məlumatlarınızı daxil edin.
           </CardDescription>
