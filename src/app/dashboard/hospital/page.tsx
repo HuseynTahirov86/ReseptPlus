@@ -1,20 +1,23 @@
 'use client';
 import { useUser, useFirebase, useMemoFirebase } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { collection } from 'firebase/firestore';
-import type { Doctor } from '@/lib/types';
+import { collection, doc, getDoc } from 'firebase/firestore';
+import type { Doctor, Hospital } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Hospital, Loader2 } from 'lucide-react';
+import { Hospital as HospitalIcon, Download } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { exportToCsv } from '@/lib/utils';
 
 export default function HospitalManagementPage() {
     const { user, isUserLoading } = useUser();
     const { firestore } = useFirebase();
     const router = useRouter();
+    const [hospital, setHospital] = useState<Hospital | null>(null);
 
     // Redirect if user is not a head_doctor
     useEffect(() => {
@@ -32,13 +35,39 @@ export default function HospitalManagementPage() {
     
     // Note: This fetches ALL doctors. For real-world use, you'd add a `where("hospitalId", "==", hospitalId)`
     // However, this requires a composite index in Firestore. For this demo, we filter client-side.
-    const { data: allDoctors, isLoading, error } = useCollection<Doctor>(doctorsQuery);
+    const { data: allDoctors, isLoading: isLoadingDoctors, error } = useCollection<Doctor>(doctorsQuery);
 
     const hospitalDoctors = allDoctors?.filter(doctor => doctor.hospitalId === hospitalId);
+    
+    useEffect(() => {
+        if (firestore && hospitalId && !hospital) {
+            getDoc(doc(firestore, 'hospitals', hospitalId)).then(docSnap => {
+                if (docSnap.exists()) {
+                    setHospital(docSnap.data() as Hospital);
+                }
+            });
+        }
+    }, [firestore, hospitalId, hospital]);
 
-    if (isUserLoading || isLoading) {
+    const handleExport = () => {
+        if (hospitalDoctors) {
+            const dataToExport = hospitalDoctors.map(d => ({
+                id: d.id,
+                ad: d.firstName,
+                soyad: d.lastName,
+                email: d.email,
+                ixtisas: d.specialization,
+                rol: d.role === 'head_doctor' ? 'Baş Həkim' : 'Həkim',
+            }));
+            exportToCsv(dataToExport, `${hospital?.name || 'xestexana'}_hekimler`);
+        }
+    };
+
+    const isLoading = isUserLoading || isLoadingDoctors;
+
+    if (isLoading) {
         return (
-            <div className="space-y-8">
+             <div className="space-y-8">
                  <Card>
                     <CardHeader>
                         <Skeleton className="h-8 w-1/2" />
@@ -68,9 +97,15 @@ export default function HospitalManagementPage() {
         <div className="space-y-8">
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Hospital /> Xəstəxana İdarəçiliyi
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                         <CardTitle className="flex items-center gap-2">
+                            <HospitalIcon /> {hospital?.name || "Xəstəxana İdarəçiliyi"}
+                        </CardTitle>
+                        <Button variant="outline" size="sm" onClick={handleExport} disabled={!hospitalDoctors || hospitalDoctors.length === 0}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Məlumatları CSV olaraq ixrac et
+                        </Button>
+                    </div>
                     <CardDescription>
                         Xəstəxananızda qeydiyyatda olan həkimlərin siyahısı.
                     </CardDescription>

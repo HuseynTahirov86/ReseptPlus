@@ -1,11 +1,11 @@
 'use client';
 
-import { useUser } from "@/firebase";
+import { useUser, useCollection, useFirebase, useMemoFirebase } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MoreHorizontal, PlusCircle, Trash2, Edit, Pill } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Trash2, Edit, Pill, Download } from "lucide-react";
 import { MedicationForm } from "./medication-form";
 import {
   DropdownMenu,
@@ -25,17 +25,30 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { Inventory } from "@/lib/types";
+import { collection, orderBy, query } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
+import { exportToCsv } from "@/lib/utils";
 
-export function InventoryClientPage({ initialMedications }: { initialMedications: Inventory[] }) {
+export function InventoryClientPage() {
     const { user } = useUser();
     const router = useRouter();
     const { toast } = useToast();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedMed, setSelectedMed] = useState<Inventory | null>(null);
+
+    const { firestore } = useFirebase();
+
+    const pharmacyId = user?.profile?.pharmacyId;
+
+    const inventoryQuery = useMemoFirebase(() => {
+        if (!firestore || !pharmacyId) return null;
+        return query(collection(firestore, `pharmacies/${pharmacyId}/inventory`), orderBy("name"));
+    }, [firestore, pharmacyId]);
+
+    const { data: medications, isLoading } = useCollection<Inventory>(inventoryQuery);
 
     useEffect(() => {
         if (user && user.profile?.role !== 'head_pharmacist') {
@@ -62,7 +75,6 @@ export function InventoryClientPage({ initialMedications }: { initialMedications
         if (state.type === 'success') {
             setIsFormOpen(false);
             setSelectedMed(null);
-            router.refresh();
         }
     }
     
@@ -74,11 +86,23 @@ export function InventoryClientPage({ initialMedications }: { initialMedications
             description: result.message,
             variant: result.type === 'success' ? 'default' : 'destructive',
         });
-        if (result.type === 'success') {
-            router.refresh();
-        }
     };
     
+    const handleExport = () => {
+        if (medications) {
+            const dataToExport = medications.map(m => ({
+                id: m.id,
+                ad: m.name,
+                doza: m.dosage,
+                vahid: m.unit,
+                forma: m.form,
+                miqdar: m.quantity,
+                son_istifade: m.expirationDate,
+            }));
+            exportToCsv(dataToExport, 'aptek_inventari');
+        }
+    };
+
      if (user?.profile?.role !== 'head_pharmacist') {
         return null;
     }
@@ -88,7 +112,13 @@ export function InventoryClientPage({ initialMedications }: { initialMedications
             <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Pill className="h-6 w-6"/> Aptek İnventarı</CardTitle>
+                        <div className="flex items-center justify-between">
+                             <CardTitle className="flex items-center gap-2"><Pill className="h-6 w-6"/> Aptek İnventarı</CardTitle>
+                             <Button variant="outline" size="sm" onClick={handleExport} disabled={!medications || medications.length === 0}>
+                                <Download className="mr-2 h-4 w-4" />
+                                Məlumatları CSV olaraq ixrac et
+                            </Button>
+                        </div>
                         <CardDescription>
                             Aptekinizdə olan dərmanları və onların miqdarını idarə edin.
                         </CardDescription>
@@ -105,7 +135,16 @@ export function InventoryClientPage({ initialMedications }: { initialMedications
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {initialMedications.map((med) => (
+                                {isLoading && Array.from({length: 4}).map((_, i) => (
+                                     <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                        <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                    </TableRow>
+                                ))}
+                                {medications?.map((med) => (
                                     <TableRow key={med.id}>
                                         <TableCell className="font-medium">{med.name}</TableCell>
                                         <TableCell>{med.dosage} {med.unit}</TableCell>
@@ -150,7 +189,7 @@ export function InventoryClientPage({ initialMedications }: { initialMedications
                                         </TableCell>
                                     </TableRow>
                                 ))}
-                                {initialMedications.length === 0 && (
+                                {!isLoading && medications?.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={5} className="h-24 text-center">
                                             İnventarda heç bir dərman tapılmadı.
