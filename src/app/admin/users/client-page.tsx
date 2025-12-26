@@ -1,12 +1,12 @@
 'use client';
 
-import { useUser } from "@/firebase";
+import { useUser, useCollection, useFirebase, useMemoFirebase } from "@/firebase";
 import type { Admin, SystemAdmin } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PlusCircle, Trash2, ShieldAlert, Users, UserCog } from "lucide-react";
+import { PlusCircle, Trash2, ShieldAlert, Users, UserCog, Download } from "lucide-react";
 import { UserForm } from "./user-form";
 import { useState, useEffect } from "react";
 import { deleteUser } from './actions';
@@ -20,14 +20,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
+import { collection, orderBy, query } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type UserType = Admin | SystemAdmin;
 type UserRole = 'admin' | 'system_admin';
 
-function UsersTable({ title, icon, data, type, currentUser }: { title: string, icon: React.ReactNode, data: UserType[], type: UserRole, currentUser: any }) {
+function UsersTable({ title, icon, data, type, currentUser, isLoading }: { title: string, icon: React.ReactNode, data: UserType[], type: UserRole, currentUser: any, isLoading: boolean }) {
     const { toast } = useToast();
     const router = useRouter();
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -40,7 +41,7 @@ function UsersTable({ title, icon, data, type, currentUser }: { title: string, i
         });
         if (state.type === 'success') {
             setIsFormOpen(false);
-            router.refresh();
+            // No need for router.refresh(), useCollection handles it
         }
     }
     
@@ -51,9 +52,6 @@ function UsersTable({ title, icon, data, type, currentUser }: { title: string, i
             description: result.message,
             variant: result.type === 'success' ? 'default' : 'destructive',
         });
-        if (result.type === 'success') {
-            router.refresh();
-        }
     };
 
     return (
@@ -72,6 +70,13 @@ function UsersTable({ title, icon, data, type, currentUser }: { title: string, i
                             </TableRow>
                         </TableHeader>
                         <TableBody>
+                            {isLoading && Array.from({length: 1}).map((_, i) => (
+                                <TableRow key={i}>
+                                    <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-64" /></TableCell>
+                                    <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                </TableRow>
+                            ))}
                             {data.map((user) => (
                                 <TableRow key={user.id}>
                                     <TableCell className="font-medium">{user.email}</TableCell>
@@ -107,7 +112,7 @@ function UsersTable({ title, icon, data, type, currentUser }: { title: string, i
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {data.length === 0 && (
+                            {!isLoading && data.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={3} className="h-24 text-center">Heç bir istifadəçi tapılmadı.</TableCell>
                                 </TableRow>
@@ -135,14 +140,16 @@ function UsersTable({ title, icon, data, type, currentUser }: { title: string, i
     );
 }
 
-interface UsersClientPageProps {
-    initialAdmins: Admin[];
-    initialSystemAdmins: SystemAdmin[];
-}
-
-export function UsersClientPage({ initialAdmins, initialSystemAdmins }: UsersClientPageProps) {
+export function UsersClientPage() {
     const { user, isUserLoading } = useUser();
     const router = useRouter();
+    const { firestore } = useFirebase();
+
+    const adminsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, "admins"), orderBy("email")) : null, [firestore]);
+    const systemAdminsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, "systemAdmins"), orderBy("email")) : null, [firestore]);
+
+    const { data: admins, isLoading: isLoadingAdmins } = useCollection<Admin>(adminsQuery);
+    const { data: systemAdmins, isLoading: isLoadingSystemAdmins } = useCollection<SystemAdmin>(systemAdminsQuery);
 
     useEffect(() => {
         if (!isUserLoading && user && user.profile?.role !== 'system_admin') {
@@ -150,14 +157,26 @@ export function UsersClientPage({ initialAdmins, initialSystemAdmins }: UsersCli
         }
     }, [user, isUserLoading, router]);
 
-    if (isUserLoading || user?.profile?.role !== 'system_admin') {
-        return null;
+    const isLoading = isUserLoading || isLoadingAdmins || isLoadingSystemAdmins;
+
+    if (isLoading && user?.profile?.role !== 'system_admin') {
+        return (
+            <div className="space-y-8">
+                <Skeleton className="h-12 w-1/3" />
+                <Skeleton className="h-64 w-full" />
+                <Skeleton className="h-64 w-full" />
+            </div>
+        );
+    }
+    
+    if (user?.profile?.role !== 'system_admin') {
+        return null; // or a loading/unauthorized component
     }
 
     return (
         <div className="space-y-8">
             <div>
-                 <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2"><Users className="w-8 h-8"/>İstifadəçi İdarəçiliyi</h1>
+                 <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2"><UserCog className="w-8 h-8"/>Admin İstifadəçi İdarəçiliyi</h1>
                 <p className="text-muted-foreground">
                     Sistem və sayt adminlərini idarə edin.
                 </p>
@@ -165,16 +184,18 @@ export function UsersClientPage({ initialAdmins, initialSystemAdmins }: UsersCli
             <UsersTable 
                 title="Sayt Adminləri"
                 icon={<UserCog className="w-5 h-5 text-muted-foreground"/>}
-                data={initialAdmins} 
+                data={admins || []} 
                 type="admin"
                 currentUser={user}
+                isLoading={isLoading}
             />
             <UsersTable 
                 title="Sistem Adminləri"
                 icon={<ShieldAlert className="w-5 h-5 text-muted-foreground"/>}
-                data={initialSystemAdmins} 
+                data={systemAdmins || []} 
                 type="system_admin"
                 currentUser={user}
+                isLoading={isLoading}
             />
         </div>
     );

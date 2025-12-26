@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MoreHorizontal, PlusCircle, Trash2, Edit, Pill } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Trash2, Edit, Pill, Download } from "lucide-react";
 import { PharmacistForm } from "./pharmacist-form";
 import {
   DropdownMenu,
@@ -32,12 +32,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { collection, orderBy, query } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { exportToCsv } from "@/lib/utils";
 
 export function PharmacistsClientPage() {
     const { user } = useUser();
@@ -117,6 +117,20 @@ export function PharmacistsClientPage() {
         setDeleteDialogOpen(false);
         setPharmacistToDelete(null);
     };
+
+    const handleExport = () => {
+        if (pharmacists) {
+            const dataToExport = pharmacists.map(p => ({
+                id: p.id,
+                ad: p.firstName,
+                soyad: p.lastName,
+                email: p.email,
+                aptek: pharmacyMap[p.pharmacyId] || 'Təyin edilməyib',
+                rol: p.role === 'head_pharmacist' ? 'Baş Əczaçı' : 'Əczaçı',
+            }));
+            exportToCsv(dataToExport, 'eczacilar');
+        }
+    };
     
     if (user?.profile?.role !== 'system_admin') {
         return null;
@@ -129,7 +143,13 @@ export function PharmacistsClientPage() {
             <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Pill className="h-6 w-6"/> Əczaçı İdarəçiliyi</CardTitle>
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="flex items-center gap-2"><Pill className="h-6 w-6"/> Əczaçı İdarəçiliyi</CardTitle>
+                             <Button variant="outline" size="sm" onClick={handleExport} disabled={!pharmacists || pharmacists.length === 0}>
+                                <Download className="mr-2 h-4 w-4" />
+                                Məlumatları CSV olaraq ixrac et
+                            </Button>
+                        </div>
                         <CardDescription>
                             Sistemdəki əczaçıları və baş əczaçıları idarə edin.
                         </CardDescription>

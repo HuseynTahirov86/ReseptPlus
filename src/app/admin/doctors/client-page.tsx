@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MoreHorizontal, PlusCircle, Trash2, Edit, Microscope } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Trash2, Edit, Microscope, Download } from "lucide-react";
 import { DoctorForm } from "./doctor-form";
 import {
   DropdownMenu,
@@ -32,12 +32,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { collection, orderBy, query } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { exportToCsv } from '@/lib/utils';
 
 
 export function DoctorsClientPage() {
@@ -119,6 +119,21 @@ export function DoctorsClientPage() {
         setDeleteDialogOpen(false);
         setDoctorToDelete(null);
     };
+
+    const handleExport = () => {
+        if (doctors) {
+            const dataToExport = doctors.map(d => ({
+                id: d.id,
+                ad: d.firstName,
+                soyad: d.lastName,
+                email: d.email,
+                ixtisas: d.specialization,
+                xestexana: hospitalMap[d.hospitalId] || 'Təyin edilməyib',
+                rol: d.role === 'head_doctor' ? 'Baş Həkim' : 'Həkim',
+            }));
+            exportToCsv(dataToExport, 'hekimler');
+        }
+    };
     
     if (user?.profile?.role !== 'system_admin') {
         return null;
@@ -131,9 +146,15 @@ export function DoctorsClientPage() {
             <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Microscope className="h-6 w-6"/> Həkim İdarəçiliyi
-                        </CardTitle>
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="flex items-center gap-2">
+                                <Microscope className="h-6 w-6"/> Həkim İdarəçiliyi
+                            </CardTitle>
+                            <Button variant="outline" size="sm" onClick={handleExport} disabled={!doctors || doctors.length === 0}>
+                                <Download className="mr-2 h-4 w-4" />
+                                Məlumatları CSV olaraq ixrac et
+                            </Button>
+                        </div>
                         <CardDescription>
                             Sistemdəki həkimləri və baş həkimləri idarə edin.
                         </CardDescription>

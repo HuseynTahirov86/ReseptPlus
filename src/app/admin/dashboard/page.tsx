@@ -2,7 +2,7 @@
 
 import { useUser, useFirebase } from '@/firebase';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { BarChart, Users, Building, FileText, Hospital, Pill, ShieldCheck, Microscope, DatabaseZap, Library, Wallet, ClipboardList } from 'lucide-react';
+import { BarChart, Users, Building, FileText, Hospital, Pill, ShieldCheck, Microscope, DatabaseZap, Library, Wallet, ClipboardList, UserCog } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { collection, getCountFromServer, getDocs } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
@@ -203,10 +203,17 @@ function SystemAdminDashboard() {
               </CardHeader>
             </Card>
           </Link>
+          <Link href="/admin/patients">
+             <Card className="hover:bg-muted/50 transition-colors h-full">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> Xəstələr</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
            <Link href="/admin/prescriptions">
              <Card className="hover:bg-muted/50 transition-colors h-full">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2"><ClipboardList className="h-5 w-5 text-primary" /> Reseptlər</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2"><ClipboardList className="h-5 w-5 text-primary" /> Bütün Reseptlər</CardTitle>
               </CardHeader>
             </Card>
           </Link>
@@ -220,7 +227,7 @@ function SystemAdminDashboard() {
            <Link href="/admin/users">
              <Card className="hover:bg-muted/50 transition-colors h-full">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> İstifadəçilər</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2"><UserCog className="h-5 w-5 text-primary" /> Admin İstifadəçilər</CardTitle>
               </CardHeader>
             </Card>
           </Link>
