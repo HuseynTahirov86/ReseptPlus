@@ -15,15 +15,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Prescription, AppUser } from "@/lib/types";
-import { ClipboardList, Users, RefreshCw, UserCheck, Pill, Building, Loader2, Hospital, Stethoscope, HeartPulse } from "lucide-react";
+import type { Prescription, AppUser, Doctor, DoctorFeedback } from "@/lib/types";
+import { ClipboardList, Users, RefreshCw, Pill, Loader2, Hospital, Stethoscope, Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser, useFirebase } from "@/firebase";
-import { collection, getCountFromServer, query, where, getDocs, limit, orderBy } from "firebase/firestore";
+import { collection, getCountFromServer, query, where, getDocs, limit, orderBy, collectionGroup } from "firebase/firestore";
 import Link from 'next/link';
 import { MonthlyPrescriptionsChart } from './charts/monthly-prescriptions-chart';
 import { DiagnosisDistributionChart } from './charts/diagnosis-distribution-chart';
+import { Button } from "@/components/ui/button";
 
 const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
     'Təhvil verildi': 'default',
@@ -39,6 +40,9 @@ interface Stats {
     pendingPrescriptions: number;
     hospitalName?: string;
     activeMedications?: number;
+    todayPrescriptions?: number;
+    todayPatients?: number;
+    averageRating?: number;
 }
 
 function PatientDashboard({ user, stats, prescriptions, isLoading }: { user: AppUser | null, stats: Stats, prescriptions: Prescription[], isLoading: boolean }) {
@@ -159,48 +163,44 @@ function DoctorDashboard({ user, stats, prescriptions, isLoading }: { user: AppU
              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            {userRole === 'head_doctor' ? 'Ümumi Reseptlər' : 'Yazdığınız Reseptlər'}
-                        </CardTitle>
+                        <CardTitle className="text-sm font-medium">Bu Gün Yazılan Reseptlər</CardTitle>
                         <ClipboardList className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.prescriptions}</div>}
+                        {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.todayPrescriptions}</div>}
                         <p className="text-xs text-muted-foreground">
-                            {userRole === 'head_doctor' ? 'bütün xəstəxana üzrə' : 'ümumi'}
+                            {userRole === 'head_doctor' ? 'bütün xəstəxana üzrə' : 'sizin tərəfinizdən'}
                         </p>
                     </CardContent>
                 </Card>
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">
-                        {userRole === 'head_doctor' ? 'Xəstəxanadakı Həkimlər' : 'Unikal Xəstələr'}
-                    </CardTitle>
-                    {userRole === 'head_doctor' ? <Stethoscope className="h-4 w-4 text-muted-foreground" /> : <Users className="h-4 w-4 text-muted-foreground" />}
+                    <CardTitle className="text-sm font-medium">Bu Gün Baxılan Xəstələr</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{userRole === 'head_doctor' ? stats.doctors : stats.patients}</div>}
-                        <p className="text-xs text-muted-foreground">{userRole === 'head_doctor' ? 'sistemdə qeydiyyatda' : 'sizin tərəfinizdən yazılmış'}</p>
+                        {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.todayPatients}</div>}
+                        <p className="text-xs text-muted-foreground">{userRole === 'head_doctor' ? 'unikal xəstə sayı' : 'sizin tərəfinizdən'}</p>
                     </CardContent>
                 </Card>
                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-sm font-medium">Ümumi Reytinq</CardTitle>
+                    <Star className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.averageRating?.toFixed(1) || 'N/A'}</div>}
+                        <p className="text-xs text-muted-foreground">xəstə rəyləri əsasında</p>
+                    </CardContent>
+                </Card>
+                <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-sm font-medium">Gözləyən Təkrarlar</CardTitle>
                     <RefreshCw className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                    <div className="text-2xl font-bold">0</div>
-                    <p className="text-xs text-muted-foreground">Bu funksiya hazırlanır</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">Aktiv Xəstələr</CardTitle>
-                    <HeartPulse className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                    {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.patients}</div>}
-                    <p className="text-xs text-muted-foreground">hazırda müalicə alan</p>
+                        <div className="text-2xl font-bold">0</div>
+                        <p className="text-xs text-muted-foreground">Bu funksiya hazırlanır</p>
                     </CardContent>
                 </Card>
             </div>
@@ -208,6 +208,59 @@ function DoctorDashboard({ user, stats, prescriptions, isLoading }: { user: AppU
                 <MonthlyPrescriptionsChart prescriptions={prescriptions} isLoading={isLoading} />
                 <DiagnosisDistributionChart prescriptions={prescriptions} isLoading={isLoading} />
             </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Son Reseptlər</CardTitle>
+                    <CardDescription>Yazdığınız ən son 5 resept.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Xəstə</TableHead>
+                                <TableHead>Tarix</TableHead>
+                                <TableHead>Diaqnoz</TableHead>
+                                <TableHead className="text-right">Status</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading ? (
+                                Array.from({length: 5}).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                        <TableCell className="text-right"><Skeleton className="h-6 w-20 rounded-full ml-auto" /></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                prescriptions.slice(0, 5).map(p => (
+                                     <TableRow key={p.id}>
+                                        <TableCell className="font-medium">{p.patientName}</TableCell>
+                                        <TableCell>{new Date(p.datePrescribed).toLocaleDateString()}</TableCell>
+                                        <TableCell>{p.diagnosis}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Badge variant={statusVariant[p.status] || 'secondary'}>{p.status}</Badge>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                             {!isLoading && prescriptions.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="h-24 text-center">
+                                        Heç bir resept tapılmadı.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+                <CardFooter>
+                    <Button asChild variant="outline">
+                        <Link href="/dashboard/prescriptions">Bütün Reseptlərə Bax</Link>
+                    </Button>
+                </CardFooter>
+            </Card>
         </div>
     )
 }
@@ -279,7 +332,7 @@ function PharmacistDashboard({ user, stats, isLoading }: { user: AppUser | null,
 export function DashboardClientPage() {
   const { user, isUserLoading } = useUser();
   const { firestore } = useFirebase();
-  const [stats, setStats] = useState<Stats>({ prescriptions: 0, patients: 0, doctors: 0, inventoryCount: 0, pendingPrescriptions: 0, activeMedications: 0 });
+  const [stats, setStats] = useState<Stats>({ prescriptions: 0, patients: 0, doctors: 0, inventoryCount: 0, pendingPrescriptions: 0, activeMedications: 0, todayPrescriptions: 0, todayPatients: 0, averageRating: 0 });
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -290,19 +343,27 @@ export function DashboardClientPage() {
         setIsLoading(true);
 
         const profile = user.profile;
-        let newStats: Stats = { prescriptions: 0, patients: 0, doctors: 0, inventoryCount: 0, pendingPrescriptions: 0, activeMedications: 0 };
+        let newStats: Stats = { prescriptions: 0, patients: 0, doctors: 0, inventoryCount: 0, pendingPrescriptions: 0, activeMedications: 0, todayPrescriptions: 0, todayPatients: 0, averageRating: 0 };
         let newPrescriptions: Prescription[] = [];
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayISO = today.toISOString();
 
         try {
             const presCollection = collection(firestore, "prescriptions");
             if (profile.role === 'doctor' || profile.role === 'head_doctor') {
-                let presQuery;
-                 if (profile.role === 'head_doctor' && profile.hospitalId) {
+                let presQuery, feedbackQuery, doctorsQuery;
+                
+                if (profile.role === 'head_doctor' && profile.hospitalId) {
                     presQuery = query(presCollection, where("hospitalId", "==", profile.hospitalId));
-                    const hospitalDoctorsQuery = query(collection(firestore, "doctors"), where("hospitalId", "==", profile.hospitalId));
-                    newStats.doctors = (await getCountFromServer(hospitalDoctorsQuery)).data().count;
+                    doctorsQuery = query(collection(firestore, "doctors"), where("hospitalId", "==", profile.hospitalId));
+                    const hospitalDoctorIds = (await getDocs(doctorsQuery)).docs.map(d => d.id);
+                    feedbackQuery = query(collectionGroup(firestore, 'feedback'), where('doctorId', 'in', hospitalDoctorIds));
+                    newStats.doctors = hospitalDoctorIds.length;
                 } else {
                     presQuery = query(presCollection, where("doctorId", "==", user.uid));
+                    feedbackQuery = query(collection(firestore, `doctors/${user.uid}/feedback`));
                 }
 
                 const presSnapshot = await getDocs(presQuery);
@@ -311,6 +372,20 @@ export function DashboardClientPage() {
                 
                 const patientIds = [...new Set(newPrescriptions.map(doc => doc.patientId))];
                 newStats.patients = patientIds.length;
+
+                newStats.todayPrescriptions = newPrescriptions.filter(p => p.datePrescribed >= todayISO).length;
+                newStats.todayPatients = [...new Set(newPrescriptions.filter(p => p.datePrescribed >= todayISO).map(p => p.patientId))].length;
+
+                // Calculate average rating
+                const feedbackSnapshot = await getDocs(feedbackQuery);
+                const feedbacks = feedbackSnapshot.docs.map(doc => doc.data() as DoctorFeedback);
+                if (feedbacks.length > 0) {
+                    const totalRating = feedbacks.reduce((sum, f) => sum + f.rating, 0);
+                    newStats.averageRating = totalRating / feedbacks.length;
+                } else {
+                    newStats.averageRating = 0;
+                }
+
 
             } else if (profile.role === 'employee' || profile.role === 'head_pharmacist') {
                 if (profile.pharmacyId) {
