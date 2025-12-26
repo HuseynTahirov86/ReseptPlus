@@ -143,8 +143,8 @@ service cloud.firestore {
       // Doctor can create
       allow create: if isOneOfRoles(['doctor', 'head_doctor']);
       
-      // Pharmacist can update to fulfill it
-      allow update: if isOneOfRoles(['employee', 'head_pharmacist']); 
+      // Pharmacist can update to fulfill it, System Admin can update anything.
+      allow update: if isOneOfRoles(['employee', 'head_pharmacist']) || isSystemAdmin(); 
       
       allow delete: if isSystemAdmin();
     }
