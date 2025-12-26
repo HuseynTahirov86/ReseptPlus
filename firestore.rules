@@ -14,7 +14,23 @@ service cloud.firestore {
     }
 
     function getRole() {
-        return get(/databases/$(database)/documents/$(request.auth.token.role.toLowerCase() + 's')/$(request.auth.uid)).data.role;
+        // Tries to get role from any of the potential user collections
+        let patientRole = get(/databases/$(database)/documents/patients/$(request.auth.uid)).data.role;
+        if (patientRole != null) return patientRole;
+        
+        let doctorRole = get(/databases/$(database)/documents/doctors/$(request.auth.uid)).data.role;
+        if (doctorRole != null) return doctorRole;
+        
+        let pharmacistRole = get(/databases/$(database)/documents/pharmacists/$(request.auth.uid)).data.role;
+        if (pharmacistRole != null) return pharmacistRole;
+
+        let adminRole = get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role;
+        if (adminRole != null) return adminRole;
+
+        let systemAdminRole = get(/databases/$(database)/documents/systemAdmins/$(request.auth.uid)).data.role;
+        if (systemAdminRole != null) return systemAdminRole;
+        
+        return null;
     }
     
     function isRole(role) {
@@ -54,8 +70,8 @@ service cloud.firestore {
     match /patients/{patientId} {
       // Patient can read/write their own profile. Doctor can read it. SystemAdmin can do anything.
       allow read: if isOwner(patientId) || isOneOfRoles(['doctor', 'head_doctor', 'system_admin']);
-      allow write: if isOwner(patientId) || isSystemAdmin();
-      allow create: if isSignedIn(); // Anyone signed in can register as a patient
+      allow write: if isOwner(patientId) || isSystemAdmin() || isOneOfRoles(['doctor', 'head_doctor']);
+      allow create: if isSignedIn(); // Anyone signed in can register as a patient, but doctors do it for them in the app.
     }
     
     match /doctors/{doctorId} {
@@ -63,11 +79,13 @@ service cloud.firestore {
       allow read: if isSignedIn();
       // Only the doctor or system admin can update their own profile.
       allow write: if isOwner(doctorId) || isSystemAdmin();
+      allow create: if isSystemAdmin();
     }
     
      match /pharmacists/{pharmacistId} {
       allow read: if isSignedIn();
       allow write: if isOwner(pharmacistId) || isSystemAdmin();
+      allow create: if isSystemAdmin();
     }
     
     match /admins/{adminId} {

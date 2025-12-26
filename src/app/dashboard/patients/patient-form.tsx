@@ -30,7 +30,7 @@ import {
 const PatientSchema = z.object({
   firstName: z.string().min(2, 'Ad ən azı 2 hərfdən ibarət olmalıdır.'),
   lastName: z.string().min(2, 'Soyad ən azı 2 hərfdən ibarət olmalıdır.'),
-  finCode: z.string().length(7, 'FİN kod 7 simvol olmalıdır.'),
+  finCode: z.string().length(7, 'FİN kod 7 simvol olmalıdır.').transform(val => val.toUpperCase()),
   dateOfBirth: z.string().nonempty('Doğum tarixi tələb olunur.'),
   gender: z.enum(['Kişi', 'Qadın'], {
     errorMap: () => ({ message: 'Cins seçilməlidir.' }),
@@ -165,7 +165,7 @@ export function PatientForm({ initialFinCode, initialBirthDate, onFormSubmit }: 
               <FormItem>
                 <FormLabel>FİN Kod</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

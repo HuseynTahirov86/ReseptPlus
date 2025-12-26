@@ -200,8 +200,7 @@ export async function submitDoctorFeedback(prevState: FormState, formData: FormD
     const { doctorId, ...feedbackData } = validatedFields.data;
 
     try {
-        const feedbackRef = db.collection('doctors').doc(doctorId).collection('feedback');
-        const docRef = feedbackRef.doc();
+        const docRef = db.collection('doctors').doc(doctorId).collection('feedback').doc();
         
         const newFeedbackData = {
             ...feedbackData,

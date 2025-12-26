@@ -63,10 +63,7 @@ export default function PitchDeckPage() {
 
             {/* Main panel - visualization */}
             <div className="relative col-span-2 rounded-lg border border-dashed border-gray-300 p-4">
-              <div
-                className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-primary/10 p-4"
-                style={{ animationDelay: '1s', animationDuration: '2s' }}
-              >
+              <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-primary/10 p-4">
                 <BrainCircuit className="h-8 w-8 text-primary" />
               </div>
 

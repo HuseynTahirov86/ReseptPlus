@@ -43,6 +43,7 @@ function SiteAdminDashboard() {
   useEffect(() => {
     async function fetchCounts() {
       if (!firestore) return;
+      setIsLoading(true);
       try {
         const blogPostsSnap = await getCountFromServer(collection(firestore, "blogPosts"));
         const clientCompaniesSnap = await getCountFromServer(collection(firestore, "clientCompanies"));
@@ -124,11 +125,13 @@ function SystemAdminDashboard() {
       if (!firestore) return;
       setIsLoading(true);
       try {
-        const hospitalsSnap = await getCountFromServer(collection(firestore, "hospitals"));
-        const doctorsSnap = await getCountFromServer(collection(firestore, "doctors"));
-        const pharmaciesSnap = await getCountFromServer(collection(firestore, "pharmacies"));
-        const patientsSnap = await getCountFromServer(collection(firestore, "patients"));
-        const presSnap = await getDocs(collection(firestore, "prescriptions"));
+        const [hospitalsSnap, doctorsSnap, pharmaciesSnap, patientsSnap, presSnap] = await Promise.all([
+            getCountFromServer(collection(firestore, "hospitals")),
+            getCountFromServer(collection(firestore, "doctors")),
+            getCountFromServer(collection(firestore, "pharmacies")),
+            getCountFromServer(collection(firestore, "patients")),
+            getDocs(collection(firestore, "prescriptions"))
+        ]);
         
         setCounts({
           hospitals: hospitalsSnap.data().count,
@@ -235,6 +238,13 @@ function SystemAdminDashboard() {
              <Card className="hover:bg-muted/50 transition-colors h-full">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2"><DatabaseZap className="h-5 w-5 text-primary" /> Məlumat Yarat</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
+           <Link href="/admin/security">
+             <Card className="hover:bg-muted/50 transition-colors h-full">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-primary" /> Təhlükəsizlik</CardTitle>
               </CardHeader>
             </Card>
           </Link>
