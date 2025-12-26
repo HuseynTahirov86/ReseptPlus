@@ -16,7 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Prescription, AppUser, Doctor, DoctorFeedback } from "@/lib/types";
-import { ClipboardList, Users, RefreshCw, Pill, Loader2, Hospital, Stethoscope, Star } from "lucide-react";
+import { ClipboardList, Users, RefreshCw, Pill, Loader2, Hospital, Stethoscope, Star, Wallet, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser, useFirebase } from "@/firebase";
@@ -37,12 +37,14 @@ interface Stats {
     patients: number;
     doctors: number;
     inventoryCount: number;
-    pendingPrescriptions: number;
-    hospitalName?: string;
+    pendingPrescriptionsCount: number;
     activeMedications?: number;
     todayPrescriptions?: number;
     todayPatients?: number;
     averageRating?: number;
+    todayFulfilledCount: number;
+    todayFulfilledRevenue: number;
+    pendingPrescriptionsRevenue: number;
 }
 
 function PatientDashboard({ user, stats, prescriptions, isLoading }: { user: AppUser | null, stats: Stats, prescriptions: Prescription[], isLoading: boolean }) {
@@ -63,7 +65,7 @@ function PatientDashboard({ user, stats, prescriptions, isLoading }: { user: App
                         <ClipboardList className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.pendingPrescriptions}</div>}
+                        {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.pendingPrescriptionsCount}</div>}
                         <p className="text-xs text-muted-foreground">gözləmə rejimində</p>
                     </CardContent>
                 </Card>
@@ -265,7 +267,7 @@ function DoctorDashboard({ user, stats, prescriptions, isLoading }: { user: AppU
     )
 }
 
-function PharmacistDashboard({ user, stats, isLoading }: { user: AppUser | null, stats: Stats, isLoading: boolean }) {
+function PharmacistDashboard({ user, stats, prescriptions, isLoading }: { user: AppUser | null, stats: Stats, prescriptions: Prescription[], isLoading: boolean }) {
     const userRole = user?.profile?.role;
     const welcomeMessage = user ? `Xoş gəlmisiniz, ${user.profile?.firstName || user.email}!` : "Xoş gəlmisiniz!";
 
@@ -280,15 +282,17 @@ function PharmacistDashboard({ user, stats, isLoading }: { user: AppUser | null,
                 </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">Təhvil Verilən Reseptlər</CardTitle>
-                        <ClipboardList className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium">Bu Gün Təhvil Verilən</CardTitle>
+                        <CheckCircle className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.prescriptions}</div>}
-                        <p className="text-xs text-muted-foreground">bu gün (simulyasiya)</p>
+                        {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.todayFulfilledCount}</div>}
+                        <p className="text-xs text-muted-foreground">
+                            {isLoading ? <Skeleton className="h-4 w-24"/> : `+${stats.todayFulfilledRevenue.toFixed(2)} AZN gəlir`}
+                        </p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -297,8 +301,10 @@ function PharmacistDashboard({ user, stats, isLoading }: { user: AppUser | null,
                         <Loader2 className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.pendingPrescriptions}</div>}
-                        <p className="text-xs text-muted-foreground">hazırda sistemdə</p>
+                        {isLoading ? <Skeleton className="h-8 w-20 mb-1"/> : <div className="text-2xl font-bold">{stats.pendingPrescriptionsCount}</div>}
+                         <p className="text-xs text-muted-foreground">
+                            {isLoading ? <Skeleton className="h-4 w-24"/> : `~${stats.pendingPrescriptionsRevenue.toFixed(2)} AZN gözlənilən gəlir`}
+                        </p>
                     </CardContent>
                 </Card>
                 {userRole === 'head_pharmacist' && (
@@ -313,15 +319,65 @@ function PharmacistDashboard({ user, stats, isLoading }: { user: AppUser | null,
                         </CardContent>
                     </Card>
                 )}
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">Ümumi Gəlir (Ay)</CardTitle>
+                        <Wallet className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">0.00 <span className="text-sm">AZN</span></div>
+                        <p className="text-xs text-muted-foreground">Bu funksiya hazırlanır</p>
+                    </CardContent>
+                </Card>
             </div>
 
             <Card>
                 <CardHeader>
                     <CardTitle>Son Əməliyyatlar</CardTitle>
-                    <CardDescription>Aptekdə təhvil verilən ən son reseptlər.</CardDescription>
+                    <CardDescription>Aptekdə təhvil verilən ən son 5 resept.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                     <p className="text-sm text-muted-foreground text-center py-8">Son əməliyyatlar üçün funksionallıq hazırlanır.</p>
+                     <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Xəstə</TableHead>
+                                <TableHead>Həkim</TableHead>
+                                <TableHead>Tarix</TableHead>
+                                <TableHead className="text-right">Məbləğ</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading ? (
+                                Array.from({length: 5}).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                                        <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                prescriptions
+                                    .filter(p => p.status === 'Təhvil verildi')
+                                    .slice(0, 5)
+                                    .map(p => (
+                                     <TableRow key={p.id}>
+                                        <TableCell className="font-medium">{p.patientName}</TableCell>
+                                        <TableCell>Dr. {p.doctorName}</TableCell>
+                                        <TableCell>{new Date(p.datePrescribed).toLocaleDateString()}</TableCell>
+                                        <TableCell className="text-right font-mono">{p.totalCost?.toFixed(2)} AZN</TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                             {!isLoading && prescriptions.filter(p => p.status === 'Təhvil verildi').length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="h-24 text-center">
+                                        Heç bir təhvil verilmiş resept tapılmadı.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
                 </CardContent>
             </Card>
         </div>
@@ -332,7 +388,7 @@ function PharmacistDashboard({ user, stats, isLoading }: { user: AppUser | null,
 export function DashboardClientPage() {
   const { user, isUserLoading } = useUser();
   const { firestore } = useFirebase();
-  const [stats, setStats] = useState<Stats>({ prescriptions: 0, patients: 0, doctors: 0, inventoryCount: 0, pendingPrescriptions: 0, activeMedications: 0, todayPrescriptions: 0, todayPatients: 0, averageRating: 0 });
+  const [stats, setStats] = useState<Stats>({ prescriptions: 0, patients: 0, doctors: 0, inventoryCount: 0, pendingPrescriptionsCount: 0, activeMedications: 0, todayPrescriptions: 0, todayPatients: 0, averageRating: 0, todayFulfilledCount: 0, todayFulfilledRevenue: 0, pendingPrescriptionsRevenue: 0 });
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -343,7 +399,7 @@ export function DashboardClientPage() {
         setIsLoading(true);
 
         const profile = user.profile;
-        let newStats: Stats = { prescriptions: 0, patients: 0, doctors: 0, inventoryCount: 0, pendingPrescriptions: 0, activeMedications: 0, todayPrescriptions: 0, todayPatients: 0, averageRating: 0 };
+        let newStats: Stats = { prescriptions: 0, patients: 0, doctors: 0, inventoryCount: 0, pendingPrescriptionsCount: 0, activeMedications: 0, todayPrescriptions: 0, todayPatients: 0, averageRating: 0, todayFulfilledCount: 0, todayFulfilledRevenue: 0, pendingPrescriptionsRevenue: 0 };
         let newPrescriptions: Prescription[] = [];
 
         const today = new Date();
@@ -389,11 +445,21 @@ export function DashboardClientPage() {
 
             } else if (profile.role === 'employee' || profile.role === 'head_pharmacist') {
                 if (profile.pharmacyId) {
-                    const fulfilledQuery = query(presCollection, where("pharmacyId", "==", profile.pharmacyId), where("status", "==", "Təhvil verildi"));
-                    const pendingQuery = query(presCollection, where("pharmacyId", "==", profile.pharmacyId), where("status", "==", "Gözləmədə"));
+                    const presQuery = query(presCollection, where("pharmacyId", "==", profile.pharmacyId));
+                    const presSnapshot = await getDocs(presQuery);
+                    newPrescriptions = presSnapshot.docs.map(doc => doc.data() as Prescription).sort((a, b) => new Date(b.datePrescribed).getTime() - new Date(a.datePrescribed).getTime());
                     
-                    newStats.prescriptions = (await getCountFromServer(fulfilledQuery)).data().count; // Simulating "today" for now
-                    newStats.pendingPrescriptions = (await getCountFromServer(pendingQuery)).data().count;
+                    const todayStart = new Date();
+                    todayStart.setHours(0, 0, 0, 0);
+
+                    const fulfilledToday = newPrescriptions.filter(p => p.status === 'Təhvil verildi' && new Date(p.datePrescribed) >= todayStart);
+                    newStats.todayFulfilledCount = fulfilledToday.length;
+                    newStats.todayFulfilledRevenue = fulfilledToday.reduce((sum, p) => sum + (p.totalCost || 0), 0);
+                    
+                    const pending = newPrescriptions.filter(p => p.status === 'Gözləmədə');
+                    newStats.pendingPrescriptionsCount = pending.length;
+                    newStats.pendingPrescriptionsRevenue = pending.reduce((sum, p) => sum + (p.totalCost || 0), 0);
+
 
                     if (profile.role === 'head_pharmacist') {
                         const inventoryQuery = collection(firestore, `pharmacies/${profile.pharmacyId}/inventory`);
@@ -408,7 +474,7 @@ export function DashboardClientPage() {
                 newPrescriptions = presSnapshot.docs.map(doc => doc.data() as Prescription).sort((a, b) => new Date(b.datePrescribed).getTime() - new Date(a.datePrescribed).getTime());
 
                 newStats.prescriptions = newPrescriptions.length;
-                newStats.pendingPrescriptions = (await getCountFromServer(pendingQuery)).data().count;
+                newStats.pendingPrescriptionsCount = (await getCountFromServer(pendingQuery)).data().count;
                 
                 const activeMeds = new Set<string>();
                 newPrescriptions.filter(p => p.status === 'Gözləmədə').forEach(p => {
@@ -464,7 +530,7 @@ export function DashboardClientPage() {
   }
   
   if (userRole === 'employee' || userRole === 'head_pharmacist') {
-      return <PharmacistDashboard user={user} stats={stats} isLoading={isLoading} />;
+      return <PharmacistDashboard user={user} stats={stats} prescriptions={prescriptions} isLoading={isLoading} />;
   }
 
   if (userRole === 'patient') {
