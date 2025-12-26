@@ -21,11 +21,14 @@ export type AppUser = User & {
     profile?: Partial<UserProfile>;
 };
 
+type AuthState = "LOADING" | "UNAUTHENTICATED" | "AWAITING_EMAIL_VERIFICATION" | "AUTHENTICATED";
+
 // Internal state for user authentication and profile data
 interface UserAuthState {
   user: AppUser | null;
-  isUserLoading: boolean;
+  authState: AuthState;
   userError: Error | null;
+  generatedOtp: string | null;
 }
 
 
@@ -35,10 +38,16 @@ export interface FirebaseContextState {
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
   auth: Auth | null; // The Auth service instance
+  
   // User authentication state
   user: AppUser | null;
-  isUserLoading: boolean; // True during initial auth check
-  userError: Error | null; // Error from auth listener
+  authState: AuthState;
+  userError: Error | null;
+  generatedOtp: string | null;
+
+  isUserLoading: boolean; // Derived from authState for easier use in components
+
+  verifyUserSession: () => void;
 }
 
 // Return type for useFirebase()
@@ -47,8 +56,11 @@ export interface FirebaseServicesAndUser {
   firestore: Firestore;
   auth: Auth;
   user: AppUser | null;
-  isUserLoading: boolean;
+  authState: AuthState;
   userError: Error | null;
+  generatedOtp: string | null;
+  isUserLoading: boolean;
+  verifyUserSession: () => void;
 }
 
 // Return type for useUser() - specific to user auth state
@@ -62,24 +74,24 @@ export interface UserHookResult {
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
 
 const RedirectHandler = () => {
-  const { user, isUserLoading } = useUser();
+  const { user, authState, isUserLoading } = useFirebase();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    // Don't redirect until auth state is determined
     if (isUserLoading) {
-      return;
+      return; // Wait until auth state is fully determined
     }
 
     const isAdminPage = pathname.startsWith('/admin');
     const isDashboardPage = pathname.startsWith('/dashboard');
     const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/admin/login');
+    const isVerifyPage = pathname === '/login/verify-otp';
 
-    if (user) {
-      const role = user.profile?.role;
-      // If user is on an auth page, redirect them away
-      if (isAuthPage) {
+    if (authState === "AUTHENTICATED") {
+      const role = user?.profile?.role;
+      // If user is authenticated and on an auth or verification page, redirect away
+      if (isAuthPage || isVerifyPage) {
         if (role === 'admin' || role === 'system_admin') {
           router.push('/admin/dashboard');
         } else {
@@ -94,17 +106,21 @@ const RedirectHandler = () => {
       } else if (role && ['doctor', 'head_doctor', 'pharmacist', 'head_pharmacist', 'employee', 'patient'].includes(role) && !isDashboardPage) {
          router.push('/dashboard');
       }
-
-    } else {
-      // If no user is logged in, and they are trying to access a protected route, redirect to login
-      if (isAdminPage) {
-        router.push('/admin/login');
-      } else if (isDashboardPage) {
-        router.push('/login');
-      }
+    } else if (authState === "AWAITING_EMAIL_VERIFICATION") {
+        // If user is waiting for verification, they MUST be on the verify page
+        if (!isVerifyPage) {
+            router.push('/login/verify-otp');
+        }
+    } else if (authState === "UNAUTHENTICATED") {
+        // If no user is logged in, and they are trying to access a protected route, redirect to login
+        if (isAdminPage && pathname !== '/admin/login') {
+            router.push('/admin/login');
+        } else if (isDashboardPage) {
+            router.push('/login');
+        }
     }
 
-  }, [user, isUserLoading, pathname, router]);
+  }, [user, authState, isUserLoading, pathname, router]);
 
   return null; // This component does not render anything
 };
@@ -121,27 +137,31 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 }) => {
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
     user: null,
-    isUserLoading: true, // Start loading until first auth event
+    authState: "LOADING",
     userError: null,
+    generatedOtp: null
   });
+
+  const verifyUserSession = () => {
+    setUserAuthState(prev => ({ ...prev, authState: "AUTHENTICATED", generatedOtp: null }));
+  }
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
-    if (!auth || !firestore) { // If no Auth service instance, cannot determine user state
-      setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth or Firestore service not provided.") });
+    if (!auth || !firestore) {
+      setUserAuthState({ user: null, authState: "UNAUTHENTICATED", userError: new Error("Auth or Firestore service not provided."), generatedOtp: null });
       return;
     }
 
-    setUserAuthState({ user: null, isUserLoading: true, userError: null }); // Reset on auth instance change
+    setUserAuthState({ user: null, authState: "LOADING", userError: null, generatedOtp: null });
 
     const unsubscribe = onAuthStateChanged(
       auth,
-      async (firebaseUser) => { // Auth state determined
+      async (firebaseUser) => {
         if (firebaseUser) {
             let userProfile: Partial<UserProfile> | undefined = undefined;
             
             try {
-                // IMPORTANT: The order of checking collections is crucial.
                 const profilePaths = ['systemAdmins', 'admins', 'doctors', 'pharmacists', 'patients'];
                 
                 for (const path of profilePaths) {
@@ -149,34 +169,43 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                     const userDoc = await getDoc(docRef);
                     if (userDoc.exists()) {
                         userProfile = userDoc.data() as UserProfile;
-                        break; // Stop after finding the first matching profile
+                        break;
                     }
                 }
                 
                 if (!userProfile) {
-                    console.warn(`No profile found for user ${firebaseUser.uid} in any collection.`);
+                    console.warn(`No profile found for user ${firebaseUser.uid} in any collection. Signing out.`);
+                    await auth.signOut();
+                    setUserAuthState({ user: null, authState: "UNAUTHENTICATED", userError: null, generatedOtp: null });
+                    return;
                 }
 
                 const appUser: AppUser = { ...firebaseUser, profile: userProfile };
-                setUserAuthState({ user: appUser, isUserLoading: false, userError: null });
+                const rolesNeedingOtp = ['doctor', 'head_doctor', 'employee', 'head_pharmacist'];
+
+                if (userProfile.role && rolesNeedingOtp.includes(userProfile.role)) {
+                    const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+                    setUserAuthState({ user: appUser, authState: "AWAITING_EMAIL_VERIFICATION", userError: null, generatedOtp: newOtp });
+                } else {
+                    setUserAuthState({ user: appUser, authState: "AUTHENTICATED", userError: null, generatedOtp: null });
+                }
 
             } catch (e) {
                console.error("FirebaseProvider: Failed to fetch/create user profile:", e);
-               setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: e instanceof Error ? e : new Error('Failed to fetch user profile') });
+               setUserAuthState({ user: firebaseUser, authState: "UNAUTHENTICATED", userError: e instanceof Error ? e : new Error('Failed to fetch user profile'), generatedOtp: null });
             }
         } else {
-             setUserAuthState({ user: null, isUserLoading: false, userError: null });
+             setUserAuthState({ user: null, authState: "UNAUTHENTICATED", userError: null, generatedOtp: null });
         }
       },
-      (error) => { // Auth listener error
+      (error) => {
         console.error("FirebaseProvider: onAuthStateChanged error:", error);
-        setUserAuthState({ user: null, isUserLoading: false, userError: error });
+        setUserAuthState({ user: null, authState: "UNAUTHENTICATED", userError: error, generatedOtp: null });
       }
     );
-    return () => unsubscribe(); // Cleanup
-  }, [auth, firestore]); // Depends on the auth and firestore instance
+    return () => unsubscribe();
+  }, [auth, firestore]);
 
-  // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
     const servicesAvailable = !!(firebaseApp && firestore && auth);
     return {
@@ -185,8 +214,11 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       firestore: servicesAvailable ? firestore : null,
       auth: servicesAvailable ? auth : null,
       user: userAuthState.user,
-      isUserLoading: userAuthState.isUserLoading,
+      authState: userAuthState.authState,
       userError: userAuthState.userError,
+      generatedOtp: userAuthState.generatedOtp,
+      isUserLoading: userAuthState.authState === "LOADING",
+      verifyUserSession: verifyUserSession
     };
   }, [firebaseApp, firestore, auth, userAuthState]);
 
@@ -199,10 +231,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   );
 };
 
-/**
- * Hook to access core Firebase services and user authentication state.
- * Throws error if core services are not available or used outside provider.
- */
 export const useFirebase = (): FirebaseServicesAndUser => {
   const context = useContext(FirebaseContext);
 
@@ -219,24 +247,24 @@ export const useFirebase = (): FirebaseServicesAndUser => {
     firestore: context.firestore,
     auth: context.auth,
     user: context.user,
-    isUserLoading: context.isUserLoading,
+    authState: context.authState,
     userError: context.userError,
+    generatedOtp: context.generatedOtp,
+    isUserLoading: context.isUserLoading,
+    verifyUserSession: context.verifyUserSession,
   };
 };
 
-/** Hook to access Firebase Auth instance. */
 export const useAuth = (): Auth => {
   const { auth } = useFirebase();
   return auth;
 };
 
-/** Hook to access Firestore instance. */
 export const useFirestore = (): Firestore => {
   const { firestore } = useFirebase();
   return firestore;
 };
 
-/** Hook to access Firebase App instance. */
 export const useFirebaseApp = (): FirebaseApp => {
   const { firebaseApp } = useFirebase();
   return firebaseApp;
@@ -253,12 +281,11 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
   return memoized;
 }
 
-/**
- * Hook specifically for accessing the authenticated user's state.
- * This provides the User object, loading status, and any auth errors.
- * @returns {UserHookResult} Object with user, isUserLoading, userError.
- */
 export const useUser = (): UserHookResult => { 
-  const { user, isUserLoading, userError } = useFirebase(); 
-  return { user, isUserLoading, userError };
+  const { user, isUserLoading, userError, authState } = useFirebase(); 
+  
+  // Return user as null if they are not fully authenticated
+  const finalUser = authState === "AUTHENTICATED" ? user : null;
+
+  return { user: finalUser, isUserLoading, userError };
 };
