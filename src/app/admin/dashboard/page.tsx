@@ -2,7 +2,7 @@
 
 import { useUser, useFirebase } from '@/firebase';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { BarChart, Users, Building, FileText, Hospital, Pill, ShieldCheck, Microscope, DatabaseZap, Library } from 'lucide-react';
+import { BarChart, Users, Building, FileText, Hospital, Pill, ShieldCheck, Microscope, DatabaseZap, Library, Wallet, ClipboardList } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { collection, getCountFromServer, getDocs } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
@@ -174,53 +174,60 @@ function SystemAdminDashboard() {
 
        <div>
         <h2 className="text-2xl font-bold tracking-tight">Əsas İdarəetmə Funksiyaları</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
           <Link href="/admin/hospitals">
-            <Card className="hover:bg-muted/50 transition-colors">
+            <Card className="hover:bg-muted/50 transition-colors h-full">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2"><Hospital className="h-5 w-5 text-primary" /> Xəstəxanalar</CardTitle>
               </CardHeader>
             </Card>
           </Link>
           <Link href="/admin/doctors">
-             <Card className="hover:bg-muted/50 transition-colors">
+             <Card className="hover:bg-muted/50 transition-colors h-full">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2"><Microscope className="h-5 w-5 text-primary" /> Həkimlər</CardTitle>
               </CardHeader>
             </Card>
           </Link>
            <Link href="/admin/pharmacies">
-             <Card className="hover:bg-muted/50 transition-colors">
+             <Card className="hover:bg-muted/50 transition-colors h-full">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2"><Building className="h-5 w-5 text-primary" /> Apteklər</CardTitle>
               </CardHeader>
             </Card>
           </Link>
            <Link href="/admin/pharmacists">
-             <Card className="hover:bg-muted/50 transition-colors">
+             <Card className="hover:bg-muted/50 transition-colors h-full">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2"><Pill className="h-5 w-5 text-primary" /> Əczaçılar</CardTitle>
               </CardHeader>
             </Card>
           </Link>
+           <Link href="/admin/prescriptions">
+             <Card className="hover:bg-muted/50 transition-colors h-full">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2"><ClipboardList className="h-5 w-5 text-primary" /> Reseptlər</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
+           <Link href="/admin/payments">
+             <Card className="hover:bg-muted/50 transition-colors h-full">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2"><Wallet className="h-5 w-5 text-primary" /> Ödənişlər</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
            <Link href="/admin/users">
-             <Card className="hover:bg-muted/50 transition-colors">
+             <Card className="hover:bg-muted/50 transition-colors h-full">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> İstifadəçilər</CardTitle>
               </CardHeader>
             </Card>
           </Link>
-           <Link href="/admin/security">
-             <Card className="hover:bg-muted/50 transition-colors">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-primary" /> Təhlükəsizlik</CardTitle>
-              </CardHeader>
-            </Card>
-          </Link>
           <Link href="/admin/seed">
-             <Card className="hover:bg-muted/50 transition-colors">
+             <Card className="hover:bg-muted/50 transition-colors h-full">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2"><DatabaseZap className="h-5 w-5 text-primary" /> Məlumatları Yarat</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2"><DatabaseZap className="h-5 w-5 text-primary" /> Məlumat Yarat</CardTitle>
               </CardHeader>
             </Card>
           </Link>
@@ -234,18 +241,14 @@ function SystemAdminDashboard() {
 export default function AdminDashboardPage() {
   const { user } = useUser();
 
-  // Sistem admini həm də sayt admini funksiyalarına giriş əldə edə bilər,
-  // lakin onun üçün əsas panel sistem panelidir.
   if (user?.profile?.role === 'system_admin') {
     return <SystemAdminDashboard />;
   }
 
-  // Sayt admini yalnız öz panelini görür.
   if (user?.profile?.role === 'admin') {
     return <SiteAdminDashboard />;
   }
 
-  // Yüklənərkən və ya rol təyin edilməyibsə göstəriləcək skelet.
   return (
     <div className="space-y-8">
        <div>

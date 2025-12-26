@@ -86,6 +86,7 @@ export type Hospital = {
     address: string;
     contactNumber: string;
     email: string;
+    paymentStatus?: 'Aktiv' | 'Sınaq Müddəti' | 'Ödəniş Gözlənilir' | 'Deaktiv';
 };
 
 export type Pharmacy = {
@@ -96,6 +97,7 @@ export type Pharmacy = {
     email: string;
     latitude: number;
     longitude: number;
+    paymentStatus?: 'Aktiv' | 'Sınaq Müddəti' | 'Ödəniş Gözlənilir' | 'Deaktiv';
 };
 
 export type Inventory = {
@@ -170,5 +172,3 @@ export type UserProfile = (Doctor | Admin | SystemAdmin | Pharmacist | Patient |
 export type AppUser = User & {
     profile?: Partial<UserProfile>;
 };
-
-    
