@@ -196,7 +196,7 @@ export function PharmacistForm({ initialData, pharmacies, onFormSubmit }: Pharma
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Aptek</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Aptek seçin..." />
@@ -220,7 +220,7 @@ export function PharmacistForm({ initialData, pharmacies, onFormSubmit }: Pharma
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Rol</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Rol seçin..." />

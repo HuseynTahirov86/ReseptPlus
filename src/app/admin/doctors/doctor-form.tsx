@@ -213,7 +213,7 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Xəstəxana</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Xəstəxana seçin..." />
@@ -237,7 +237,7 @@ export function DoctorForm({ initialData, hospitals, onFormSubmit }: DoctorFormP
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Rol</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Rol seçin..." />
