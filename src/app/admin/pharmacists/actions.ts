@@ -107,7 +107,7 @@ export async function updatePharmacist(
     try {
         // Update Firestore document
         const docRef = db.collection('pharmacists').doc(id);
-        await docRef.set(pharmacistData, { merge: true });
+        await docRef.update({ ...pharmacistData });
         
         // Update Firebase Auth user if needed
         const authUpdates: Partial<adminAuth.UpdateRequest> = {

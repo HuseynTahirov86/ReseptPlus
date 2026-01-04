@@ -432,7 +432,7 @@ export function DashboardClientPage() {
                     // Fetch hospital name
                     const hospitalDoc = await getDoc(doc(firestore, `hospitals/${profile.hospitalId}`));
                     if(hospitalDoc.exists()) {
-                       profile.hospitalName = hospitalDoc.data().name;
+                       user.profile.hospitalName = hospitalDoc.data().name;
                     }
 
 

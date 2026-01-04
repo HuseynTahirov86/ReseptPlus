@@ -111,7 +111,7 @@ export async function updateDoctor(
   try {
     // Update Firestore document
     const docRef = db.collection('doctors').doc(id);
-    await docRef.set(doctorData, { merge: true });
+    await docRef.update({ ...doctorData });
 
     // Update Firebase Auth user if needed
     const authUpdates: Partial<adminAuth.UpdateRequest> = {

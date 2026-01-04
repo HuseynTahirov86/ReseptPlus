@@ -1,8 +1,7 @@
 'use server';
 
 import { z } from 'zod';
-import { db } from '@/firebase/server-init';
-import { auth as adminAuth } from 'firebase-admin';
+import { db, auth as adminAuth } from '@/firebase/server-init';
 
 const PatientSchema = z.object({
   id: z.string().optional(),
@@ -46,7 +45,7 @@ async function addOrUpdatePatient(action: 'add' | 'update', prevState: FormState
         return { type: 'error', message: 'Bu FİN kod artıq sistemdə mövcuddur.', fields: rawData };
       }
 
-      const userRecord = await adminAuth().createUser({
+      const userRecord = await adminAuth.createUser({
           email: patientData.email,
           password: 'password', // Default password, user should change it
           displayName: `${patientData.firstName} ${patientData.lastName}`,
@@ -71,7 +70,7 @@ async function addOrUpdatePatient(action: 'add' | 'update', prevState: FormState
       const docRef = db.collection('patients').doc(id);
       await docRef.update({ ...patientData, finCode });
 
-      await adminAuth().updateUser(id, {
+      await adminAuth.updateUser(id, {
           email: patientData.email,
           displayName: `${patientData.firstName} ${patientData.lastName}`,
           phoneNumber: patientData.contactNumber
@@ -103,7 +102,7 @@ export async function deletePatient(id: string): Promise<FormState> {
   try {
     const docRef = db.collection('patients').doc(id);
     await docRef.delete();
-    await adminAuth().deleteUser(id);
+    await adminAuth.deleteUser(id);
     return { type: 'success', message: 'Xəstə uğurla silindi.' };
   } catch (error) {
     const err = error as Error;
